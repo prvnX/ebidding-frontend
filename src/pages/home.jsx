@@ -2,11 +2,16 @@ import React from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import CustomHeader from "../components/custom-header";
+import BidderHeader from "../components/bidder-header";
+import HeroSection from "../components/hero-header";
+import Footer from "../components/footer";
 
 export default function Home() {
     return (
     <>
         <CustomHeader />
+        <BidderHeader />
+        <HeroSection />
        <h3 className="text-3xl font-bold underline text-center text-blue-600 cursor-pointer ">
          Custom Biddng Home Page
       </h3>
@@ -17,6 +22,7 @@ export default function Home() {
       <button className="mt-10 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition" onClick={()=> window.location.href = '/about'}>
         Go to about
         </button> 
+        <Footer />
     </>
     );
 }

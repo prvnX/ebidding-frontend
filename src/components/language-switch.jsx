@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Globe } from "lucide-react"
+import { useTranslation } from "react-i18next";
+
 
 const languages = [
   { code: "en", name: "English", nativeName: "English" },
@@ -7,10 +9,19 @@ const languages = [
   { code: "ta", name: "Tamil", nativeName: "தமிழ்" },
 ]
 
+
+
 export function LanguageSwitcher() {
+    const { i18n } = useTranslation();
+
   const [language, setLanguage] = useState("en")
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
+
+  function changeLanguage(Lang){
+    i18n.changeLanguage(Lang)
+    setLanguage(Lang);
+}
 
   const currentLanguage = languages.find((lang) => lang.code === language)
 
@@ -43,7 +54,7 @@ export function LanguageSwitcher() {
             <div
               key={lang.code}
               onClick={() => {
-                setLanguage(lang.code)
+                changeLanguage(lang.code)
                 setOpen(false)
               }}
               className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
