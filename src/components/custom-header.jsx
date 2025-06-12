@@ -13,7 +13,7 @@ export default function CustomHeader() {
     return (
       // Header
       <header className="bg-[#1e3a5f] shadow-sm py-1">  
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-[#2d4a6b]">
           {/* Top bar with contact info */}
           <div className="flex justify-between items-center h-10 text-sm text-white/80">
             <div className="flex items-center space-x-6">
@@ -29,7 +29,7 @@ export default function CustomHeader() {
             
               {/* <LanguageSwitcher /> */}
 
-            <div className="ml-4">
+            <div className="ml-4 ">
 
                 <LanguageSwitcher />
                 
