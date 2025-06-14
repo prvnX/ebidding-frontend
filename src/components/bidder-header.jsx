@@ -24,16 +24,16 @@ export default function BidderHeader() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10 rounded-lg p-2 flex items-center border-1 border-white">
+              {/* <button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10 rounded-lg p-2 flex items-center border-1 border-white"> */}
                 {/* <Bell className="h-4 w-4 mr-2" /> */}
-                <FontAwesomeIcon icon={faBell} className="h-4 w-4 mr-2 text-white" />
-                Notifications
+                {/* <FontAwesomeIcon icon={faBell} className="h-4 w-4 mr-2 text-white" /> */}
+                {/* Notifications */}
 
-              </button>
-              <button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10 rounded-lg py-2 px-4 flex items-center border-1 border-white">
+              {/* </button> */}
+              <button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer" onClick={()=> window.location.href = '/login'}>
                 Login
               </button>
-              <button size="sm" className="bg-white text-[#1e3a5f] hover:bg-white/90 rounded-lg py-2 px-4 flex items-center border-1 border-white">
+              <button size="sm" className="bg-white text-[#1e3a5f] hover:bg-white/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer">
                 Register
               </button>
             </div>
