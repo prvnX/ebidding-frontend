@@ -10,7 +10,23 @@ const resources = {
       welcome: "Welcome",
       about: "About us",
       bannerTitle:"Official Customs Auction Platform",
-      officialEbiddingPlatform:"Official eBidding platform for seized goods and confiscated items by Sri Lanka Customs Department."
+      officialEbiddingPlatform:"Official eBidding platform for seized goods and confiscated items by Sri Lanka Customs Department.",
+      quickLinks: "Quick Links",
+      currentBid:"Current Bid",
+      startingBid:"Starting Bid",
+      bids:"bids",
+      placeBid:"Place Bid",
+      active: "Active",
+      endingSoon: "Ending Soon",
+      completed: "Completed",
+      activeAuctionsTab: "Active Auctions",
+      searchPlaceholder: "Search by item name, category, or location...",
+      allCategories: "All Categories",
+      moreFilters: "More Filters",
+      noEndingSoonAuctions: "No ending soon auctions",
+      noEndingSoonAuctionsPara: "There are currently no auctions ending soon. Please check back later.",
+     noCompletedAuctions: "No completed auctions",
+     noCompletedAuctionsPara: "There are currently no completed auctions. Please check back later.",
 
     }
   },
@@ -20,7 +36,9 @@ const resources = {
       welcome: "ආයුබෝවන්",
       about: "අපි ගැන",
       bannerTitle:"නිල රේගු වෙන්දේසි වේදිකාව",
-      officialEbiddingPlatform:"ශ්‍රී ලංකා රේගු දෙපාර්තමේන්තුව විසින් අත්අඩංගුවට ගත් භාණ්ඩ සඳහා නිල ඊ-ලංසු වේදිකාව."
+      officialEbiddingPlatform:"ශ්‍රී ලංකා රේගු දෙපාර්තමේන්තුව විසින් අත්අඩංගුවට ගත් භාණ්ඩ සඳහා නිල ඊ-ලංසු වේදිකාව.",    
+      quickLinks: "ඉක්මන් සබැඳි",
+      
     }
   },
   ta: {
@@ -30,7 +48,8 @@ const resources = {
       about: "எங்களை பற்றி",
       bannerTitle:"அதிகாரப்பூர்வ சுங்க ஏல தளம்",
         //footer
-    officialEbiddingPlatform:"இலங்கை சுங்கத் துறையால் பறிமுதல் செய்யப்பட்ட பொருட்களுக்கான அதிகாரப்பூர்வ மின்-ஏல தளம்."
+    officialEbiddingPlatform:"இலங்கை சுங்கத் துறையால் பறிமுதல் செய்யப்பட்ட பொருட்களுக்கான அதிகாரப்பூர்வ மின்-ஏல தளம்.",
+    quickLinks: "விரைவு இணைப்புகள்",
     }
   }
 };

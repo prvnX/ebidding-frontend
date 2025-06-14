@@ -1,6 +1,8 @@
 import React from "react";
 import custombanner from "../assets/custom-banner.png";
 import { useTranslation } from "react-i18next";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPhone, faEnvelope, faGlobe,faLocationDot } from "@fortawesome/free-solid-svg-icons";
 export default function Footer(){
     const {t} = useTranslation();
     return (
@@ -14,26 +16,26 @@ export default function Footer(){
               <p className="text-white/80 text-sm">{t("officialEbiddingPlatform")}</p>
             </div>
             <div>
-              <h4 className="font-medium mb-4 text-white">{("quickLinks")}</h4>
+              <h4 className="font-medium mb-4 text-white">{t("quickLinks")}</h4>
               <ul className="space-y-2 text-sm text-white/80">
                 <li>
                   <a href="#" className="hover:text-white">
-                    {("howToBid")}
+                    {t("howToBid")}
                   </a>
                 </li>
                 <li>
                   <a href="#" className="hover:text-white">
-                    {("termsConditions")}
+                    {t("termsConditions")}
                   </a>
                 </li>
                 <li>
                   <a href="#" className="hover:text-white">
-                    {("paymentMethods")}
+                    {t("paymentMethods")}
                   </a>
                 </li>
                 <li>
                   <a href="#" className="hover:text-white">
-                    {("collectionProcess")}
+                    {t("collectionProcess")}
                   </a>
                 </li>
               </ul>
@@ -43,22 +45,22 @@ export default function Footer(){
               <ul className="space-y-2 text-sm text-white/80">
                 <li>
                   <a href="#" className="hover:text-white">
-                    {("helpCenter")}
+                    {t("helpCenter")}
                   </a>
                 </li>
                 <li>
                   <a href="#" className="hover:text-white">
-                    {("contactUs")}
+                    {t("contactUs")}
                   </a>
                 </li>
                 <li>
                   <a href="#" className="hover:text-white">
-                    {("liveChat")}
+                    {t("liveChat")}
                   </a>
                 </li>
                 <li>
                   <a href="#" className="hover:text-white">
-                    {("faq")}
+                    {t("faq")}
                   </a>
                 </li>
               </ul>
@@ -67,11 +69,11 @@ export default function Footer(){
               <h4 className="font-medium mb-4 text-white">{("contactInfo")}</h4>
               <div className="text-sm text-white/80 space-y-2">
                 <p>
-                  📞 {("hotline")} ({("hotlineLabel")})
+                  <FontAwesomeIcon icon={faPhone} className='mr-2'/> {t("phone")} ({("hotlineLabel")})
                 </p>
-                <p>✉️ {("email")}</p>
-                <p>📍 {("customsHouse")}</p>
-                <p>🌐 {("website")}</p>
+                <p><FontAwesomeIcon icon={faEnvelope} className='mr-2'/> {t("email")}</p>
+                <p><FontAwesomeIcon icon={faLocationDot} className='mr-2'/> {t("customsHouse")}</p>
+                <p> <FontAwesomeIcon icon={faGlobe} className='mr-2'/> {t("website")}</p>
               </div>
             </div>
           </div>
