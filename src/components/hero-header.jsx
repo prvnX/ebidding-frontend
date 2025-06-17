@@ -7,7 +7,7 @@ export default function HeroSection (){
           const {t} = useTranslation();
     return(
 
-        <section className="bg-gradient-to-r from-[#1e3a5f] to-[#2d4a6b] text-white py-12 border-t border-[#2d4a6b]">
+        <section className="bg-gradient-to-r from-[#1e3a5f] to-[#2d4a6b] text-white py-12 border-t border-[#2d4a6b]" >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold mb-4">{t("bannerTitle")}</h2>
           <p className="text-xl mb-8 font-thin text-sm">Bid on seized and confiscated items through Sri Lanka Customs</p>
