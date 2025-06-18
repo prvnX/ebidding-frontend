@@ -1,14 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as faHeartSolid } from '@fortawesome/free-solid-svg-icons';
+import { faHeart, faLocationDot, faClock, faUsers, faEye } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
-import { faLocationDot } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
-import { faEye } from "@fortawesome/free-solid-svg-icons";
-import { faClock } from "@fortawesome/free-solid-svg-icons";
-import { faUsers } from "@fortawesome/free-solid-svg-icons";
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-LK', {
@@ -19,14 +14,37 @@ const formatCurrency = (amount) => {
   }).format(amount);
 };
 
-
 export default function Card({item}){
     const [isFavorite, setIsFavorite] = useState(false);
     const { t } = useTranslation();
-    console.log(item);
+    const navigate = useNavigate();
+    
+    const handleItemClick = (itemId) => {
+        navigate(`/item/${itemId}`);
+    };
+    
+    const handleFavoriteClick = (e) => {
+        e.stopPropagation(); // Prevent triggering the card click
+        setIsFavorite(!isFavorite);
+    };
+    
+    const handleBidClick = (e, itemId) => {
+        e.stopPropagation(); // Prevent triggering the card click
+        navigate(`/item/${itemId}`);
+    };
+    
+    const handleViewClick = (e, itemId) => {
+        e.stopPropagation(); // Prevent triggering the card click
+        navigate(`/item/${itemId}`);
+    };
+    
     return(
-    <div key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer rounded-md bg-white shadow-sm">
-                  <div className="relative" onClick={() => handleItemClick(item.id)}>
+    <div 
+        key={item.id} 
+        className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer rounded-md bg-white shadow-sm"
+        onClick={() => handleItemClick(item.id)}
+    >
+                  <div className="relative">
                     <div className="relative h-48 overflow-hidden">
                       <img
                         src={item.images[0]}
@@ -48,9 +66,17 @@ export default function Card({item}){
                     </div>
                     <div className="absolute top-2 left-2 bg-white/80 hover:bg-white w-8 h-8 rounded-md flex items-center justify-center shadow-md text-red-500 ">
                     {isFavorite ? (
-                        <FontAwesomeIcon icon={faHeartSolid} className="text-red-500" onClick={() => setIsFavorite(false)} />
+                        <FontAwesomeIcon 
+                            icon={faHeart} 
+                            className="text-red-500" 
+                            onClick={(e) => handleFavoriteClick(e)} 
+                        />
                       ) : (
-                        <FontAwesomeIcon icon={faHeartRegular} className="text-gray-500" onClick={() => setIsFavorite(true)} />
+                        <FontAwesomeIcon 
+                            icon={faHeartRegular} 
+                            className="text-gray-500" 
+                            onClick={(e) => handleFavoriteClick(e)} 
+                        />
                       )
                     }
                     </div>
@@ -87,10 +113,16 @@ export default function Card({item}){
                       </div>
 
                       <div className="flex gap-2">
-                        <button className="flex-1 border bg-[#1e3a5f] text-white rounded-md p-1.5 cursor-pointer" onClick={() => alert(item.id)}>
+                        <button 
+                            className="flex-1 border bg-[#1e3a5f] text-white rounded-md p-1.5 cursor-pointer"
+                            onClick={(e) => handleBidClick(e, item.id)}
+                        >
                           {t("placeBid")}
                         </button>
-                        <button onClick={() => alert(item.id)} className="text-sm flex items-center justify-center border bg-white rounded-md h-9 w-9 cursor-pointer border-gray-300 hover:bg-gray-100 transition text-gray-700">
+                        <button 
+                            className="text-sm flex items-center justify-center border bg-white rounded-md h-9 w-9 cursor-pointer border-gray-300 hover:bg-gray-100 transition text-gray-700"
+                            onClick={(e) => handleViewClick(e, item.id)}
+                        >
                           <FontAwesomeIcon icon={faEye}/>
                         </button>
                       </div>
@@ -99,5 +131,4 @@ export default function Card({item}){
                   </div>
                 </div>
     );
-
 }
