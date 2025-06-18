@@ -65,7 +65,7 @@ export default function Home() {
             {
                 id: 4,
                 title: "Bronze Sculpture",
-                description: "Handcrafted bronze sculpture from the 19th century.",
+                description: "Handcrafted bronze sculpture from the 19th century. Handcrafted bronze sculpture from the 19th century. Handcrafted bronze sculpture from the 19th century. Handcrafted bronze sculpture from the 19th century.",
                 images: [bronze, "sculpture.png"],
                 status: "active",
                 currentBid: 1800000,

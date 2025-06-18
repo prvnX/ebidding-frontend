@@ -16,8 +16,12 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Loginpage />}/>
-        <Route path="/AuctionMan/Home" element={<AuctionHome/> }/>
-        <Route path="/AuctionMan/addItem" element={<AddItem/> }/>
+
+        <Route path="/AuctionMan">
+          <Route index element={<AuctionHome />} />         {/* this means /AuctionMan */}
+          <Route path="addItem" element={<AddItem />} />     {/* this means /AuctionMan/addItem */}
+        </Route>
+
       </Routes>
     </>
   )
