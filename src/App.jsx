@@ -10,6 +10,7 @@ import AuctionHome from './pages/AuctionMan/home'
 import AddItem from './pages/AuctionMan/addItem'
 
 import { Routes,Route } from 'react-router-dom'
+import 'leaflet/dist/leaflet.css';
 
 function App() {
   const [count, setCount] = useState(0)
