@@ -7,15 +7,7 @@ import { useState } from "react";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
 import { faUsers } from "@fortawesome/free-solid-svg-icons";
-
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-LK', {
-    style: 'currency',
-    currency: 'LKR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
+import { formatCurrency } from "../../function";
 
 
 export default function Card({item}){

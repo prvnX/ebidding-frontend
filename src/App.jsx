@@ -18,8 +18,8 @@ function App() {
         <Route path="/login" element={<Loginpage />}/>
 
         <Route path="/AuctionMan">
-          <Route index element={<AuctionHome />} />         {/* this means /AuctionMan */}
-          <Route path="addItem" element={<AddItem />} />     {/* this means /AuctionMan/addItem */}
+          <Route index element={<AuctionHome />} />
+          <Route path="addItem" element={<AddItem />} />
         </Route>
 
       </Routes>
