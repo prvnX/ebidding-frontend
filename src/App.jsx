@@ -23,10 +23,12 @@ function App() {
         <Route path="/login" element={<Loginpage />}/>
 
         <Route path="/item/:itemId" element={<ItemDetails />}/>
-
-        <Route path="/AuctionMan/Home" element={<AuctionHome/> }/>
-        <Route path="/AuctionMan/addItem" element={<AddItem/> }/>
-
+          
+        <Route path="/AuctionMan">
+          <Route index element={<AuctionHome />} />
+          <Route path="addItem" element={<AddItem />} />
+        </Route>
+        
       </Routes>
     </>
   )
