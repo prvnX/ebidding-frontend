@@ -17,7 +17,9 @@ import {
   faExclamationTriangle
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
+import LocationMap from "../components/locationmap";
 
+import CountDownDate from "../components/countdown";
 import CustomHeader from "../components/custom-header";
 import BidderHeader from "../components/bidder-header";
 import Footer from "../components/footer";
@@ -50,6 +52,8 @@ export default function ItemDetails() {
       currentBid: 25000000,
       startingBid: 2000000,
       timeLeft: "3d 4h 15m 30s",
+      endingDate:"2025-06-30",
+      endingTime:"15:00:00",
       totalBids: 15,
       location: "Colombo, Sri Lanka",
       minimumIncrement: 100000,
@@ -98,6 +102,8 @@ export default function ItemDetails() {
       totalBids: 10,
       location: "Kandy, Sri Lanka",
       minimumIncrement: 25000,
+      endingDate:"2025-07-30",
+      endingTime:"15:30:00",
       seller: {
         name: "Vintage Motors",
         rating: 4.7,
@@ -141,6 +147,8 @@ export default function ItemDetails() {
       totalBids: 7,
       location: "Galle, Sri Lanka",
       minimumIncrement: 5000,
+      endingDate:"2025-06-19",
+      endingTime:"15:00:00",
       seller: {
         name: "Antique Treasures",
         rating: 4.8,
@@ -182,6 +190,8 @@ export default function ItemDetails() {
       totalBids: 18,
       location: "Negombo, Sri Lanka",
       minimumIncrement: 50000,
+      endingDate:"2025-06-30",
+      endingTime:"15:00:00",
       seller: {
         name: "Heritage Arts",
         rating: 4.9,
@@ -224,6 +234,8 @@ export default function ItemDetails() {
       totalBids: 19,
       location: "Anuradhapura, Sri Lanka",
       minimumIncrement: 100000,
+      endingDate:"2025-06-30",
+      endingTime:"15:00:00",
       seller: {
         name: "Historical Artifacts",
         rating: 4.8,
@@ -266,6 +278,8 @@ export default function ItemDetails() {
       totalBids: 10,
       location: "Batticaloa, Sri Lanka",
       minimumIncrement: 25000,
+      endingDate:"2025-06-30",
+      endingTime:"15:00:00",
       seller: {
         name: "Global Antiques",
         rating: 4.7,
@@ -296,6 +310,11 @@ export default function ItemDetails() {
       ]
     }
   ];
+      const itemDetail={
+          position:[6.9271, 79.8612], 
+          locationName:"SriLankan Customs Head Q", 
+          image: bronze
+      };
 
   // Find the current item based on URL parameter
   const item = items.find(item => item.id === parseInt(itemId));
@@ -363,20 +382,21 @@ export default function ItemDetails() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left column - Main image and thumbnails */}
             <div className="lg:col-span-2">
-              {/* Status Badge */}
-              <div className="mb-4">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+ 
+
+              {/* Main Image */}
+              <div className="bg-white rounded-lg shadow-sm mb-4">
+
+                <div className="relative h-96 bg-gray-200 rounded-lg overflow-hidden">
+                <div className="mb-4">
+                <span className={`absolute top-2 right-2 items-center px-3 py-1 rounded-full text-sm font-medium ${
                   item.status === "Ending Soon" 
                     ? "bg-red-100 text-red-800" 
-                    : "bg-green-100 text-green-800"
+                    : "bg-green-500 text-white"
                 }`}>
                   {item.status}
                 </span>
               </div>
-
-              {/* Main Image */}
-              <div className="bg-white rounded-lg shadow-sm mb-4">
-                <div className="relative h-96 bg-gray-200 rounded-lg overflow-hidden">
                   {item.images[selectedImage] ? (
                     <img 
                       src={item.images[selectedImage]} 
@@ -464,97 +484,106 @@ export default function ItemDetails() {
                   </button>
                 </div>
                 
-                {/* Description Tab */}
-                {activeTab === "description" && (
-                  <div className="bg-white p-6">
-                    <h3 className="font-semibold text-lg text-gray-900 mb-4">Item Description</h3>
-                    <p className="text-gray-700 leading-relaxed mb-6">{item.description}</p>
-                    
-                    {/* Item Details Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Case Number */}
-                      <div className="flex items-start space-x-3">
-                        <div className="w-5 h-5 mt-1 border-2 border-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500 mb-1">Case Number</div>
-                          <div className="font-medium text-gray-900">{item.caseNumber}</div>
-                        </div>
-                      </div>
+            {activeTab === "description" && (
+              <div className="bg-white p-6">
+                <h3 className="font-semibold text-lg text-gray-900 mb-4">Item Description</h3>
+                <p className="text-gray-700 leading-relaxed mb-6">{item.description}</p>
 
-                      {/* Seized Date */}
-                      <div className="flex items-start space-x-3">
-                        <div className="w-5 h-5 mt-1 border-2 border-gray-400 rounded-sm flex items-center justify-center flex-shrink-0">
-                          <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400 text-xs" />
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500 mb-1">Seized Date</div>
-                          <div className="font-medium text-gray-900">{item.seizedDate}</div>
-                        </div>
+                {/* Item Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4">
+                  {/* Left Side - Item Info */}
+                  <div className="grid  pr-0">
+                    {/* Case Number */}
+                    <div className="flex items-start space-x-3 ">
+                      <div className="w-5 h-5 mt-1 border-2 border-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                       </div>
-
-                      {/* Location */}
-                      <div className="flex items-start space-x-3">
-                        <div className="w-5 h-5 mt-1 border-2 border-gray-400 rounded-sm flex items-center justify-center flex-shrink-0">
-                          <FontAwesomeIcon icon={faLocationDot} className="text-gray-400 text-xs" />
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500 mb-1">Location</div>
-                          <div className="font-medium text-gray-900">{item.location}</div>
-                        </div>
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Case Number</div>
+                        <div className="font-medium text-gray-900">{item.caseNumber}</div>
                       </div>
+                    </div>
 
-                      {/* Estimated Value */}
-                      <div className="flex items-start space-x-3">
-                        <div className="w-5 h-5 mt-1 border-2 border-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-500 mb-1">Estimated Value</div>
-                          <div className="font-medium text-gray-900">
-                            {formatCurrency(item.startingBid)} - {formatCurrency(item.currentBid * 1.5)}
-                          </div>
+                                    {/* Estimated Value */}
+                    <div className="flex items-start space-x-3">
+                      <div className="w-5 h-5 mt-1 border-2 border-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Estimated Value</div>
+                        <div className="font-medium text-gray-900">
+                          {formatCurrency(item.startingBid)} - {formatCurrency(item.currentBid * 1.5)}
                         </div>
                       </div>
                     </div>
+
+                    {/* Seized Date */}
+                    <div className="flex items-start space-x-3">
+                      <div className="w-5 h-5 mt-1 border-2 border-gray-400 rounded-sm flex items-center justify-center flex-shrink-0">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400 text-xs" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Seized Date</div>
+                        <div className="font-medium text-gray-900">{item.seizedDate}</div>
+                      </div>
+                    </div>
+
+                    {/* Location */}
+                    <div className="flex items-start space-x-3">
+                      <div className="w-5 h-5 mt-1 border-2 border-gray-400 rounded-sm flex items-center justify-center flex-shrink-0">
+                        <FontAwesomeIcon icon={faLocationDot} className="text-gray-400 text-xs" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Location</div>
+                        <div className="font-medium text-gray-900">{item.location}</div>
+                      </div>
+                    </div>
+
+    
                   </div>
-                )}
-                
-                {/* Specifications Tab */}
-                {activeTab === "specifications" && (
-                  <div className="bg-white p-6">
-                    <h2 className="font-semibold text-lg text-gray-900 mb-4">Item Specifications</h2>
-                    
-                    <div className="mb-6">
-                      {item.specifications.filter(spec => spec.name !== "Weight" && spec.name !== "Dimensions" && spec.name !== "Condition").map((spec, index) => (
-                        <div key={index} className="flex items-center mb-2">
-                          <div className="w-5 h-5 mr-2 flex-shrink-0">
-                            <FontAwesomeIcon icon={faCheckCircle} className="text-green-500" />
-                          </div>
-                          <span>{spec.name} - {spec.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
-                      <div>
-                        <p className="text-sm text-gray-500">Weight</p>
-                        <p className="font-medium text-gray-900">{item.specifications.find(spec => spec.name === "Weight")?.value || "N/A"}</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">Dimensions</p>
-                        <p className="font-medium text-gray-900">{item.specifications.find(spec => spec.name === "Dimensions")?.value || "N/A"}</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">Condition</p>
-                        <p className="font-medium text-gray-900">{item.specifications.find(spec => spec.name === "Condition")?.value || "N/A"}</p>
-                      </div>
-                    </div>
+
+                  {/* Right Side - Map */}
+                  <div className="pr-0">
+                    <LocationMap itemDetail={itemDetail} />
                   </div>
-                )}
+                </div>
+              </div>
+            )}
+                            
+                            {/* Specifications Tab */}
+                            {activeTab === "specifications" && (
+                              <div className="bg-white p-6">
+                                <h2 className="font-semibold text-lg text-gray-900 mb-4">Item Specifications</h2>
+                                
+                                <div className="mb-6">
+                                  {item.specifications.filter(spec => spec.name !== "Weight" && spec.name !== "Dimensions" && spec.name !== "Condition").map((spec, index) => (
+                                    <div key={index} className="flex items-center mb-2">
+                                      <div className="w-5 h-5 mr-2 flex-shrink-0">
+                                        <FontAwesomeIcon icon={faCheckCircle} className="text-green-500" />
+                                      </div>
+                                      <span>{spec.name} - {spec.value}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+                                  <div>
+                                    <p className="text-sm text-gray-500">Weight</p>
+                                    <p className="font-medium text-gray-900">{item.specifications.find(spec => spec.name === "Weight")?.value || "N/A"}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <p className="text-sm text-gray-500">Dimensions</p>
+                                    <p className="font-medium text-gray-900">{item.specifications.find(spec => spec.name === "Dimensions")?.value || "N/A"}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <p className="text-sm text-gray-500">Condition</p>
+                                    <p className="font-medium text-gray-900">{item.specifications.find(spec => spec.name === "Condition")?.value || "N/A"}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                 
                 {/* Condition Tab - Fixed version */}
                 {activeTab === "condition" && (
@@ -614,6 +643,7 @@ export default function ItemDetails() {
                   </div>
                 )}
               </div>
+              
             </div>
 
             {/* Right column - Bidding panel */}
@@ -635,7 +665,7 @@ export default function ItemDetails() {
                 <div className="flex justify-between text-sm text-gray-600 mb-4">
                   <div className="flex items-center">
                     <FontAwesomeIcon icon={faClock} className="mr-1 text-red-500" />
-                    <span className="text-red-500 font-medium">{item.timeLeft} </span>
+                    <CountDownDate  date={item.endingDate} time={item.endingTime}/>
                   </div>
                   <div className="flex items-center">
                     <FontAwesomeIcon icon={faUsers} className="mr-1" />

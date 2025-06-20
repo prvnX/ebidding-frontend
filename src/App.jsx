@@ -11,6 +11,7 @@ import AddItem from './pages/AuctionMan/addItem'
 
 import { Routes,Route } from 'react-router-dom'
 import ProfilePage from './pages/profile'
+import 'leaflet/dist/leaflet.css';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -24,10 +25,12 @@ function App() {
 
         <Route path="/item/:itemId" element={<ItemDetails />}/>
 
-        <Route path="/AuctionMan/Home" element={<AuctionHome/> }/>
-        <Route path="/AuctionMan/addItem" element={<AddItem/> }/>
-
         <Route path="/profile" element={<ProfilePage />} />
+          
+        <Route path="/AuctionMan">
+          <Route index element={<AuctionHome />} />
+          <Route path="addItem" element={<AddItem />} />
+        </Route>
 
       </Routes>
     </>

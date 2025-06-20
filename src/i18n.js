@@ -28,6 +28,21 @@ const resources = {
      noCompletedAuctions: "No completed auctions",
      noCompletedAuctionsPara: "There are currently no completed auctions. Please check back later.",
 
+      //AuctionMan
+      notSheduled: "Not Scheduled",
+      pending: "Pending",
+      loading: "Loading",
+      pleaseWait: "Please wait...",
+
+      noNotShedItemsText: "No items not scheduled",
+      noNotShedItemsDis: "There are currently no items that are not scheduled. Please check back later.",
+      noPendingItemsText: "No pending items",
+      noPendingItemsDis: "There are currently no items pending. Please check back later.",
+      noCompletedItemsText: "No completed items",
+      noCompletedItemsDis: "There are currently no completed items. Please check back later.",
+      increment: "Increment",
+      winningBid: "Winning Bid",
+
     }
   },
   si: {
@@ -38,6 +53,21 @@ const resources = {
       bannerTitle:"නිල රේගු වෙන්දේසි වේදිකාව",
       officialEbiddingPlatform:"ශ්‍රී ලංකා රේගු දෙපාර්තමේන්තුව විසින් අත්අඩංගුවට ගත් භාණ්ඩ සඳහා නිල ඊ-ලංසු වේදිකාව.",    
       quickLinks: "ඉක්මන් සබැඳි",
+
+        //AuctionMan
+        notSheduled: "පැවැත්වීමට නියමිත නැත",
+        pending: "පැවැත්වීමට ඉතිරි",
+        loading: "බාගත වෙමින්",
+        pleaseWait: "කරුණාකර රැඳී සිටින්න...",
+
+        noNotShedItemsText: "පැවැත්වීමට නියමිත භාණ්ඩ නැත",
+        noNotShedItemsDis: "පැවැත්වීමට නියමිත භාණ්ඩ කිසිවක් නොමැත. කරුණාකර පසුව නැරඹීමට පැමිණෙන්න.",
+        noPendingItemsText: "පැවැත්වීමට ඉතිරි භාණ්ඩ නැත",
+        noPendingItemsDis: "පැවැත්වීමට ඉතිරි භාණ්ඩ කිසිවක් නොමැත. කරුණාකර පසුව නැරඹීමට පැමිණෙන්න.",
+        noCompletedItemsText: "සම්පූර්ණ කළ භාණ්ඩ නැත",
+        noCompletedItemsDis: "සම්පූර්ණ කළ භාණ්ඩ කිසිවක් නොමැත. කරුණාකර පසුව නැරඹීමට පැමිණෙන්න.",
+        increment: "ඉහළ දැමීම",
+        winningBid: "ජයග්‍රහණ ලංසු",
       
     }
   },
