@@ -3,12 +3,11 @@ import { useTranslation } from "react-i18next";
 import CountUp from "react-countup";
 import { Plus, Box, Gavel, Users, CircleDollarSign } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "../../function";
 
 import CustomHeader from "../../components/custom-header"
-import Card from "../../components/ui/card";
 import NotSheduled from "../../components/ui/cards/notSheduled";
 import PendingCard from "../../components/ui/cards/pending";
 import Completed from "../../components/ui/cards/completed";
@@ -21,6 +20,7 @@ import sword from "../../assets/sword.png";
 import bicycle from "../../assets/bicycle.JPG";
 import bronze from "../../assets/bronze.jpg";
 import Footer from "../../components/footer";
+import Loading from "../../components/loading";
 
 
 export default () => {
@@ -251,11 +251,7 @@ export default () => {
       </section>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
         {loading ? (
-            <div className="col-span-3 text-center text-gray-500">
-              <FontAwesomeIcon icon={faSpinner} spin className="text-8xl" />
-              <h2 className="text-xl mb-3 font-semibold">  {t("loading")}</h2>
-              <p>{t("pleaseWait")}</p>
-            </div>
+            <Loading />
           ) : activeTab === "notSheduled" ? (items.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
