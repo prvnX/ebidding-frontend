@@ -10,12 +10,12 @@
 
   & div {
     & label {
-      @apply block text-sm font-medium;
+      @apply block text-sm font-medium mb-2;
     }
     & input,
     & textarea,
     & select {
-      @apply w-full mt-1 px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500;
+      @apply flex w-full rounded-md border border-gray-200 px-3 py-2 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm;
     }
   }
 }

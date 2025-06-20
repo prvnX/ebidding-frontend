@@ -168,6 +168,7 @@ export default () => {
   }
 
   useEffect(() => {
+    setSelectedItems([]);
     fetchItems();
   }, [activeTab]);
 
