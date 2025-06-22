@@ -11,7 +11,7 @@ const ImageUploader = () => {
 
   return (
     <div className="flex flex-col gap-2">
-        <div className="w-full aspect-[3/2] mt-1 border rounded shadow-sm flex items-center justify-center cursor-pointer relative overflow-hidden">
+        <div className="w-full aspect-[3/2] mt-1 border-2 border-dashed border-gray-300 rounded shadow-sm flex items-center justify-center cursor-pointer relative overflow-hidden">
         <input
             type="file"
             accept="image/*"
