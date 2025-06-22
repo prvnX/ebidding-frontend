@@ -9,6 +9,8 @@ import ItemDetails from './pages/item_details'
 import AuctionHome from './pages/AuctionMan/home'
 import AddItem from './pages/AuctionMan/addItem'
 
+import Dashboard from './pages/RegisteredUser/dashboard';
+
 import { Routes,Route } from 'react-router-dom'
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
@@ -26,7 +28,9 @@ function App() {
         <Route path="/item/:itemId" element={<ItemDetails />}/>
 
         <Route path="/profile" element={<ProfilePage />} />
-          
+        
+        <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/AuctionMan">
           <Route index element={<AuctionHome />} />
           <Route path="addItem" element={<AddItem />} />
