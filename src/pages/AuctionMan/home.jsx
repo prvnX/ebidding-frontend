@@ -288,7 +288,7 @@ export default () => {
       </div>
       { !loading && activeTab === "notSheduled" && items.length > 0 && (
         <div className="px-5 md:px-20 lg:px-60 my-5 flex gap-2 justify-end">
-          <Link to="/auctionman/additem" className={`bg-[#1e3a5f] text-white hover:bg-[#1e3a5f]/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer ${
+          <Link to="/auctionman/scheduleauctions" className={`bg-[#1e3a5f] text-white hover:bg-[#1e3a5f]/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer ${
             selectedItems.length > 0 ? "opacity-100" : "opacity-50 pointer-events-none"
           }`}>
             <Gavel className="mr-2"/> Schedule Auction

@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleInfo, faImages, faDollarSign, faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import CustomHeader from "../../components/custom-header";
@@ -8,6 +7,7 @@ import ImageUploader from "../../components/ui/imagesUpload";
 import custombanner from "../../assets/custom-banner.png";
 import LocationMap from "../../components/locationmap";
 import Footer from "../../components/footer";
+import BredCrumb from "../../components/ui/breadCrumb";
 
 const AddItem = () => {
     return (
@@ -32,11 +32,9 @@ const AddItem = () => {
                     </div>
                 </div>
             </header>
-            <div className="flex items-center text-sm text-gray-500 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <Link to="/AuctionMan" className="hover:text-blue-600">Home</Link>
-                <span className="mx-2">/</span>
-                <span className="font-medium text-gray-900">Add New Items</span>
-            </div>
+            <BredCrumb page="Add New Item" breadCrumbs={[
+                { title: "Home", link: "/AuctionMan" },
+            ]} />
             <form className="flex flex-col items-center justify-center gap-5 px-4 form-style">
                 <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
                     <div className="flex items-center gap-4">
