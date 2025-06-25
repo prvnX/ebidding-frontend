@@ -39,6 +39,7 @@ import Footer from "../components/footer";
 // Sample profile picture - replace with actual path
 import profilePic from "../assets/profile.jpg";
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch";
+import BredCrumb from "../components/ui/breadCrumb";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("bids"); // Start with bids tab active for testing
@@ -232,11 +233,9 @@ export default function ProfilePage() {
       <div className="bg-gray-50 min-h-screen pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Breadcrumb */}
-          <div className="flex items-center text-sm text-gray-500 mb-6">
-            <Link to="/" className="hover:text-blue-600">Home</Link>
-            <span className="mx-2">/</span>
-            <span className="font-medium text-gray-900">Profile</span>
-          </div>
+          <BredCrumb page="Profile" breadCrumbs={[
+            { title: "Home", link: "/" },
+          ]} />
 
           {/* Profile Header - IMPROVED */}
           <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
