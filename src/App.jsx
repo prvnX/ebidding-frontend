@@ -10,6 +10,8 @@ import AuctionHome from './pages/AuctionMan/home'
 import AddItem from './pages/AuctionMan/addItem'
 
 import { Routes,Route } from 'react-router-dom'
+import Appadmin from './pages/AppAdmin/home'
+
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
 
@@ -22,6 +24,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Loginpage />}/>
+
+        <Route path="/AppAdmin" element={<Appadmin />} />
 
         <Route path="/item/:itemId" element={<ItemDetails />}/>
 
