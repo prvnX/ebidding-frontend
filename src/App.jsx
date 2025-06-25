@@ -6,7 +6,7 @@ import Loginpage from './pages/login'
 import AuctionHome from './pages/AuctionMan/home'
 import AddItem from './pages/AuctionMan/addItem'
 import { Routes,Route } from 'react-router-dom'
-
+import Appadmin from './pages/AppAdmin/home'
 function App() {
   const [count, setCount] = useState(0)
 
@@ -18,6 +18,8 @@ function App() {
         <Route path="/login" element={<Loginpage />}/>
         <Route path="/AuctionMan/Home" element={<AuctionHome/> }/>
         <Route path="/AuctionMan/addItem" element={<AddItem/> }/>
+        <Route path="/AppAdmin" element={<Appadmin />} />
+
       </Routes>
     </>
   )
