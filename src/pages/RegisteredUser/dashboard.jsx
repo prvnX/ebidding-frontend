@@ -176,13 +176,13 @@ const Dashboard = () => {
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "bidHistory"
+              activeTab === "myBids"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("bidHistory")}
+            onClick={() => setActiveTab("myBids")}
           >
-            Bid History
+            My Bids
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
@@ -236,7 +236,7 @@ const Dashboard = () => {
           )}
         </div>
       )}
-      {activeTab === "bidHistory" && (
+      {activeTab === "myBids" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {bidHistoryItems.map((item) => (
             <Card key={item.id} item={item} />
@@ -247,7 +247,7 @@ const Dashboard = () => {
                 icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">No Bid History</h2>
+              <h2 className="text-xl mb-3 font-semibold">No Bids</h2>
               <p>You have not placed any bids yet.</p>
             </div>
           )}
