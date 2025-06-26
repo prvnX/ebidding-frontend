@@ -101,13 +101,15 @@ const Dashboard = () => {
       location: "Batticaloa, Sri Lanka",
     },
   ];
+
+  const favoriteItems = items.filter((item) => item.id === 1 || item.id === 2); // Example
+  const bidHistoryItems = items.filter((item) => item.id === 3 || item.id === 4); // Example
+  const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
+
   return (
     <>
       <CustomHeader />
       <NavBar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6">Hello user</h1>
-      </div>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           {/* Search Input */}
@@ -150,47 +152,59 @@ const Dashboard = () => {
             <Filter size={15} className="mr-2" /> {t("moreFilters")}
           </button>
         </div>
-        <div className=" w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
+        {/* New Tabs */}
+        <div className="w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
           <button
-            className={`px-4 py-2 flex-1 text-sm font-medium rounded  cursor-pointer ${
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
               activeTab === "active"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
             onClick={() => setActiveTab("active")}
           >
-            {t("activeAuctionsTab")}
+            Active Auctions
           </button>
-
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "ending-soon"
-                ? "bg-white text-black"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 "
-            }`}
-            onClick={() => setActiveTab("ending-soon")}
-          >
-            {t("endingSoon")}
-          </button>
-
-          <button
-            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "completed"
+              activeTab === "favorite"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("completed")}
+            onClick={() => setActiveTab("favorite")}
           >
-            {t("completed")}
+            Favorite
+          </button>
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "bidHistory"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("bidHistory")}
+          >
+            Bid History
+          </button>
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "pending"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("pending")}
+          >
+            Pending Auctions
           </button>
         </div>
       </section>
+      {/* Tab Content */}
       {activeTab === "active" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-          {items.map((item) => (
-            <Card key={item.id} item={item} />
-          ))}
-          {items.length === 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+          {items
+            .filter((item) => item.status === "active")
+            .map((item) => (
+              <Card key={item.id} item={item} />
+            ))}
+          {items.filter((item) => item.status === "active").length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
@@ -205,55 +219,57 @@ const Dashboard = () => {
           )}
         </div>
       )}
-
-      {activeTab === "ending-soon" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-          {items.map(
-            (item) =>
-              item.status === "ending-somon" && (
-                <Card key={item.id} item={item} />
-              )
-          )}
-          {items.filter((item) => item.status === "ending-somon").length ===
-            0 && (
+      {activeTab === "favorite" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+          {favoriteItems.map((item) => (
+            <Card key={item.id} item={item} />
+          ))}
+          {favoriteItems.length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
-                icon={faClock}
+                icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">
-                {" "}
-                {t("noEndingSoonAuctions")}
-              </h2>
-              <p>{t("noEndingSoonAuctionsPara")}</p>
+              <h2 className="text-xl mb-3 font-semibold">No Favorites</h2>
+              <p>You have not added any favorites yet.</p>
             </div>
           )}
         </div>
       )}
-
-      {activeTab === "completed" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-          {items.map(
-            (item) =>
-              item.status === "completed" && <Card key={item.id} item={item} />
-          )}
-
-          {items.filter((item) => item.status === "completed").length === 0 && (
+      {activeTab === "bidHistory" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+          {bidHistoryItems.map((item) => (
+            <Card key={item.id} item={item} />
+          ))}
+          {bidHistoryItems.length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
-                icon={faCheckCircle}
+                icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">
-                {" "}
-                {t("noCompletedAuctions")}
-              </h2>
-              <p>{t("noCompletedAuctionsPara")}</p>
+              <h2 className="text-xl mb-3 font-semibold">No Bid History</h2>
+              <p>You have not placed any bids yet.</p>
             </div>
           )}
         </div>
       )}
-
+      {activeTab === "pending" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+          {pendingItems.map((item) => (
+            <Card key={item.id} item={item} />
+          ))}
+          {pendingItems.length === 0 && (
+            <div className="col-span-3 text-center text-gray-500">
+              <FontAwesomeIcon
+                icon={faSearch}
+                className="text-4xl mb-4 text-gray-400"
+              />
+              <h2 className="text-xl mb-3 font-semibold">No Pending Auctions</h2>
+              <p>No pending auctions at the moment.</p>
+            </div>
+          )}
+        </div>
+      )}
       <Footer />
     </>
   );

@@ -1,13 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import custombanner from "../assets/custom-banner.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell } from "@fortawesome/free-solid-svg-icons"; 
+import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { faCircleUser } from "@fortawesome/free-solid-svg-icons";
-import { useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next";
 
 export default function NavBar() {
-
-      const {t} = useTranslation();
+  const { t } = useTranslation();
 
     return (
         <header className="bg-[#1e3a5f] shadow-sm py-1">  
@@ -25,13 +24,13 @@ export default function NavBar() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button variant="outline" size="sm" >
+              <button className="relative bg-white/10 hover:bg-white/20 transition-colors rounded-full p-3 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300" aria-label="Notifications">
                 {/* <Bell className="h-4 w-4 mr-2" /> */}
-                <FontAwesomeIcon icon={faBell} className="h-4 w-4 mr-2 text-white" />
+                <FontAwesomeIcon icon={faBell} className="h-5 w-5 text-white" />
 
               </button>
-              <button variant="outline" size="sm" >
-                <FontAwesomeIcon icon={faCircleUser} className="h-4 w-4 mr-2 text-white"/>
+              <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-full p-3 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300"aria-label="Profile">
+                <FontAwesomeIcon icon={faCircleUser} className="h-5 w-5 text-white"/>
               </button>
             </div>
           </div>
@@ -39,3 +38,6 @@ export default function NavBar() {
         </header>
     );
 }
+
+
+
