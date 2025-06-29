@@ -24,9 +24,9 @@ export default function NavBar() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <button 
-              className="relative bg-white/10 hover:bg-white/20 transition-colors rounded-full p-3 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300" 
+              className="relative hover:bg-white/20 transition-colors rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-300" 
               aria-label="Notifications"
             >
               <FontAwesomeIcon icon={faBell} className="h-5 w-5 text-white" />
