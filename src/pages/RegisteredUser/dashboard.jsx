@@ -103,13 +103,57 @@ const Dashboard = () => {
   ];
 
   const favoriteItems = items.filter((item) => item.id === 1 || item.id === 2); // Example
-  const bidHistoryItems = items.filter((item) => item.id === 3 || item.id === 4); // Example
+  const bidHistoryItems = items.filter(
+    (item) => item.id === 3 || item.id === 4
+  ); // Example
   const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
 
   return (
     <>
       <CustomHeader />
       <NavBar />
+      <div className="max-w-sm mx-auto bg-white rounded-xl shadow-md p-5 mt-4">
+        <div className="flex items-center mb-3">
+          <FontAwesomeIcon
+            icon={faCheckCircle}
+            className="text-blue-600 mr-2 h-5 w-5"
+          />
+          <h2 className="text-sm font-semibold text-gray-700">Bidding Limit</h2>
+        </div>
+
+        <p className="text-xs text-gray-500 mb-2">Your current bidding power</p>
+
+        <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Available Limit</span>
+          <span>Total Limit</span>
+        </div>
+
+        <div className="flex justify-between items-baseline mb-2">
+          <span className="text-lg font-bold text-blue-800">LKR 65,000</span>
+          <span className="text-sm font-semibold text-gray-700">
+            LKR 100,000
+          </span>
+        </div>
+
+        <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <span>LKR 35,000 used</span>
+          <span>LKR 100,000 total</span>
+        </div>
+
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+          <div
+            className="bg-blue-600 h-2 rounded-full"
+            style={{ width: "35%" }}
+          ></div>
+        </div>
+
+        <p className="text-xs text-gray-500 mb-4">35% of limit used</p>
+
+        <button className="w-full bg-blue-800 text-white py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition">
+          Increase Limit
+        </button>
+      </div>
+
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           {/* Search Input */}
@@ -176,13 +220,13 @@ const Dashboard = () => {
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "bidHistory"
+              activeTab === "myBids"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("bidHistory")}
+            onClick={() => setActiveTab("myBids")}
           >
-            Bid History
+            My Bids
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
@@ -236,7 +280,7 @@ const Dashboard = () => {
           )}
         </div>
       )}
-      {activeTab === "bidHistory" && (
+      {activeTab === "myBids" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {bidHistoryItems.map((item) => (
             <Card key={item.id} item={item} />
@@ -247,7 +291,7 @@ const Dashboard = () => {
                 icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">No Bid History</h2>
+              <h2 className="text-xl mb-3 font-semibold">No Bids</h2>
               <p>You have not placed any bids yet.</p>
             </div>
           )}
@@ -264,7 +308,9 @@ const Dashboard = () => {
                 icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">No Pending Auctions</h2>
+              <h2 className="text-xl mb-3 font-semibold">
+                No Pending Auctions
+              </h2>
               <p>No pending auctions at the moment.</p>
             </div>
           )}
