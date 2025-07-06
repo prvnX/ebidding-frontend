@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import './App.css'
 import Home from './pages/home'
 import About from './pages/about'
@@ -10,7 +11,8 @@ import AuctionHome from './pages/AuctionMan/home'
 import AddItem from './pages/AuctionMan/addItem'
 import ScheduleAuctions from './pages/AuctionMan/scheduleAuctions'
 
-import { Routes, Route, useLocation } from 'react-router-dom'
+import Dashboard from './pages/RegisteredUser/dashboard';
+
 import Appadmin from './pages/AppAdmin/home'
 
 import ProfilePage from './pages/profile'
@@ -35,7 +37,9 @@ function App() {
         <Route path="/item/:itemId" element={<ItemDetails />}/>
 
         <Route path="/profile" element={<ProfilePage />} />
-          
+        
+        <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/AuctionMan">
           <Route index element={<AuctionHome />} />
           <Route path="addItem" element={<AddItem />} />

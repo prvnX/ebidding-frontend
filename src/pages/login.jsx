@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom';
+
 
 export default function Loginpage() {
   const [formData, setFormData] = useState({
@@ -11,6 +13,8 @@ export default function Loginpage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -50,8 +54,10 @@ export default function Loginpage() {
       if (
         formData.email === 'admin@customs.gov.lk' &&
         formData.password === 'admin123'
-      ) {
+      ) {        
         setSuccess('Login successful!')
+        // Redirect to dashboard
+        navigate('/dashboard');
       } else {
         setError('Invalid credentials.')
       }
