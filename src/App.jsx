@@ -10,17 +10,21 @@ import AuctionHome from './pages/AuctionMan/home'
 import AddItem from './pages/AuctionMan/addItem'
 import ScheduleAuctions from './pages/AuctionMan/scheduleAuctions'
 
-import { Routes,Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Appadmin from './pages/AppAdmin/home'
 
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
 
+import FlashMessage from './components/ui/flashMessage'
+
 function App() {
-  const [count, setCount] = useState(0)
+
+  const location = useLocation();
 
   return (
     <>
+      <FlashMessage locationState={location.state} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />

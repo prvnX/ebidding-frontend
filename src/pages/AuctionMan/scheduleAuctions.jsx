@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { DndContext, closestCorners } from "@dnd-kit/core";
 import { arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
+import { useNavigate } from "react-router-dom";
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -183,6 +184,8 @@ export default () => {
         setAllFieldsFilled(flag);
     }, [auctions]);
 
+    const navigate = useNavigate();
+
     return (
         <>
             <CustomHeader />
@@ -317,6 +320,9 @@ export default () => {
                                     className={`bg-[#1e3a5f] text-white hover:bg-[#2d4a6b] rounded-lg py-2 px-4
                                                 mt-auto flex items-center border border-gray-200 shadow-sm
                                                 ${allFieldsField ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+                                    onClick={() => {
+                                        navigate('/auctionMan', { state: { success: 'Auctions scheduled succefully' } });
+                                    }}
                                 >
                                     Done
                                 </button>

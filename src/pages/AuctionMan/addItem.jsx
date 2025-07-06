@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleInfo, faImages, faDollarSign, faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import CustomHeader from "../../components/custom-header";
@@ -10,6 +10,9 @@ import Footer from "../../components/footer";
 import BredCrumb from "../../components/ui/breadCrumb";
 
 const AddItem = () => {
+
+    const navigate = useNavigate();
+
     return (
         <>
             <CustomHeader />
@@ -224,7 +227,13 @@ const AddItem = () => {
                         className="bg-white text-[#1e3a5f] hover:bg-[#e0e0ee] rounded-lg py-2 px-4 flex items-center border border-gray-200 shadow-sm cursor-pointer">
                             Save as Draft
                     </button>
-                    <button type="submit" className="bg-[#1e3a5f] text-white hover:bg-[#2d4a6b] rounded-lg py-2 px-4 flex items-center border border-gray-200 shadow-sm cursor-pointer">
+                    <button 
+                        // type="submit" 
+                        className="bg-[#1e3a5f] text-white hover:bg-[#2d4a6b] rounded-lg py-2 px-4 flex items-center border border-gray-200 shadow-sm cursor-pointer"
+                        onClick={(e) => {
+                            navigate('/auctionMan', { state: { success: 'Item added successfully' } });
+                        }}
+                        >
                         Create Auction Item
                     </button>
                 </div>
