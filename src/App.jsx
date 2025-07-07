@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import './App.css'
 import Home from './pages/home'
 import About from './pages/about'
@@ -12,17 +13,20 @@ import ScheduleAuctions from './pages/AuctionMan/scheduleAuctions'
 
 import Dashboard from './pages/RegisteredUser/dashboard';
 
-import { Routes,Route } from 'react-router-dom'
 import Appadmin from './pages/AppAdmin/home'
 
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
 
+import FlashMessage from './components/ui/flashMessage'
+
 function App() {
-  const [count, setCount] = useState(0)
+
+  const location = useLocation();
 
   return (
     <>
+      <FlashMessage locationState={location.state} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />

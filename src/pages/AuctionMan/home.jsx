@@ -4,7 +4,7 @@ import CountUp from "react-countup";
 import { Plus, Box, Gavel, Users, CircleDollarSign } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatCurrency } from "../../function";
 
 import CustomHeader from "../../components/custom-header"
@@ -172,6 +172,13 @@ export default () => {
     fetchItems();
   }, [activeTab]);
 
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
+    navigate("/auctionman/scheduleauctions");
+  };
+
   return (
     <>
       <CustomHeader />
@@ -288,11 +295,16 @@ export default () => {
       </div>
       { !loading && activeTab === "notSheduled" && items.length > 0 && (
         <div className="px-5 md:px-20 lg:px-60 my-5 flex gap-2 justify-end">
-          <Link to="/auctionman/scheduleauctions" className={`bg-[#1e3a5f] text-white hover:bg-[#1e3a5f]/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer ${
-            selectedItems.length > 0 ? "opacity-100" : "opacity-50 pointer-events-none"
-          }`}>
-            <Gavel className="mr-2"/> Schedule Auction
-          </Link>
+          <button
+            onClick={handleClick}
+            className={`bg-[#1e3a5f] text-white hover:bg-[#1e3a5f]/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer ${
+              selectedItems.length > 0 ? "opacity-100" : "opacity-50 pointer-events-none"
+            }`}
+            disabled={selectedItems.length === 0}
+          >
+            <Gavel className="mr-2" />
+            Schedule Auction
+          </button>
         </div>
       )}
       <Footer />

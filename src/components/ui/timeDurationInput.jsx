@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 /**
  * A custom React component for inputting time duration in HH:MM format.
@@ -69,17 +69,43 @@ const TimeDurationInput = ({
     <div className="flex items-center justify-start">
       <input
         type="number"
-        className="w-[4em]!"
+        className="
+          w-[4em]! h-10
+          border border-gray-300 rounded-sm
+          px-3 py-2
+          text-center
+          text-gray-900
+          placeholder-gray-500
+          bg-white
+          focus:outline-none
+          focus:border-blue-700
+          focus:ring-1 focus:ring-blue-700
+          hover:border-gray-500
+          appearance-none
+        "
         value={hours}
         onChange={handleHoursChange}
         min="0"
         placeholder={hoursPlaceholder}
         aria-label="Hours"
       />
-      <span className='mx-1 font-bold'>:</span>
+      <span className='mx-1 font-bold text-nowrap'>h :</span>
       <input
         type="number"
-        className="w-[4em]!"
+        className="
+          w-[4em]! h-10
+          border border-gray-300 rounded-sm
+          px-3 py-2
+          text-center
+          text-gray-900
+          placeholder-gray-500
+          bg-white
+          focus:outline-none
+          focus:border-blue-700
+          focus:ring-1 focus:ring-blue-700
+          hover:border-gray-500
+          appearance-none
+        "
         value={minutes}
         onChange={handleMinutesChange}
         min="0"
@@ -87,6 +113,7 @@ const TimeDurationInput = ({
         placeholder={minutesPlaceholder}
         aria-label="Minutes"
       />
+      <span className='mx-1 font-bold'>m</span>
       {error && <p style={{ color: 'red', fontSize: '0.8em', marginLeft: '10px' }}>{error}</p>}
     </div>
   );
