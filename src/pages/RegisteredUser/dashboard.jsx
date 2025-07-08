@@ -112,7 +112,12 @@ const Dashboard = () => {
     <>
       <CustomHeader />
       <NavBar />
-      <div className="max-w-sm mx-auto bg-white rounded-xl shadow-md p-5 mt-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-2">
+        <h2 className="text-2xl font-semibold text-gray-800">
+          Hello, John! Welcome
+        </h2>
+      </div>
+      {/* <div className="max-w-sm mx-auto bg-white rounded-xl shadow-md p-5 mt-4">
         <div className="flex items-center mb-3">
           <FontAwesomeIcon
             icon={faCheckCircle}
@@ -152,7 +157,7 @@ const Dashboard = () => {
         <button className="w-full bg-blue-800 text-white py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition">
           Increase Limit
         </button>
-      </div>
+      </div> */}
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
