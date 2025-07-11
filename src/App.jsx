@@ -17,8 +17,9 @@ import Appadmin from './pages/AppAdmin/home'
 
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
+import FlashMessageCenter from './flashMessageCenter'
 
-import FlashMessage from './components/ui/flashMessage'
+// import MessageToast from './components/ui/messageToast.jsx';
 
 function App() {
 
@@ -26,7 +27,8 @@ function App() {
 
   return (
     <>
-      <FlashMessage locationState={location.state} />
+      {/* <MessageToast locationState={location.state} /> */}
+      <FlashMessageCenter />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />

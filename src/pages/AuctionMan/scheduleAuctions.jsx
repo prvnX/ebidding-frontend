@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { DndContext, closestCorners } from "@dnd-kit/core";
 import { arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
@@ -19,11 +19,11 @@ import { SortableContext } from "@dnd-kit/sortable";
 import custombanner from "../../assets/custom-banner.png";
 import TimeDurationInput from "../../components/ui/timeDurationInput";
 import SortableItem from "../../components/ui/sortableItem";
+import { addFlashMessage } from "../../flashMessageCenter";
 
-import mustang from "../../assets/mustang.jpg";
-import sword from "../../assets/sword.png";
-import bicycle from "../../assets/bicycle.JPG";
 import Footer from "../../components/footer";
+import Loading from "../../components/loading";
+import axios from "axios";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -45,59 +45,8 @@ export default () => {
     const [endTimeError, setEndTimerError] = useState(false);
     const [gapError, setGapError] = useState(false);
 
-    const staticItems = [
-        {
-            id: 1,
-            title: "Classic Car",
-            description: "A well-maintained 1967 Ford Mustang in original condition.",
-            images: [mustang, "mustang.png"],
-            status: 'notSheduled',
-            increment: 10000,
-            startingBid: 200000,
-            timeLeft: "3 days 4 hours",
-            totalBids: 15,
-            location: "Colombo, Sri Lanka",
-            caseNumber: "SL-12345",
-        },
-        {
-            id: 3,
-            title: "Antique Bicycle",
-            description: "Classic Raleigh bicycle from the 1940s, in working order.",
-            images: [bicycle, "bicycle.png"],
-            status: 'notSheduled',
-            increment: 5000,
-            startingBid: 90000,
-            timeLeft: "2 days 2 hours",
-            totalBids: 7,
-            location: "Galle, Sri Lanka",
-            caseNumber: "SL-12346"
-        },
-        {
-            id: 5,
-            title: "Ancient Sword",
-            description: "An ancient ceremonial sword with intricate designs.",
-            images: [sword, "sword.png"],
-            status: 'notSheduled',
-            increment: 500,
-            startingBid: 2000,
-            timeLeft: "3 days 8 hours",
-            totalBids: 19,
-            location: "Anuradhapura, Sri Lanka",
-            caseNumber: "SL-12347"
-        }
-    ];
-
-    const [items, setItmes] = useState(() => {
-        const saved = localStorage.getItem("selectedItems");
-        const selectedIds = saved ? JSON.parse(saved) : [];
-        return staticItems.filter(item => selectedIds.includes(item.id));
-    });
-
-    const [auctions, setAuctions] = useState(items.map(item => ({
-        id: item.id,
-        start: "",
-        end: ""
-    })));
+    const [items, setItmes] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const startDate = startingDateTime ? dayjs(startingDateTime) : null;
@@ -116,75 +65,111 @@ export default () => {
         setGapError(isGapInvalid);
     }, [startingDateTime, endingDateTime]);
 
-    const handleDragEnd = (event) => {
+    const handleDragEnd = useCallback((event) => {
         const { active, over } = event;
         if (active.id !== over?.id) {
-            setItmes((selectedItems) => {
-                const oldIndex = selectedItems.findIndex((item) => item.id === active.id);
-                const newIndex = selectedItems.findIndex((item) => item.id === over.id);
-                return arrayMove(selectedItems, oldIndex, newIndex);
+            setItmes((itmes) => {
+                const oldIndex = itmes.findIndex((item) => item.id === active.id);
+                const newIndex = itmes.findIndex((item) => item.id === over.id);
+                return arrayMove(itmes, oldIndex, newIndex);
             });
         }
-    };
+    }, []); // No dependencies, so empty array
 
-    const handleStart = (id, start) => {
-        setAuctions((auctions) =>
-            auctions.map((auction) =>
-                auction.id === id ? { ...auction, start } : auction
+    const handleStart = useCallback((id, startingTime) => {
+        setItmes((items) =>
+            items.map((item) =>
+                item.id === id ? { ...item, startingTime } : item
             )
         );
-    };
+    }, []); // No dependencies
 
-    const handleEnd = (id, end) => {
-        setAuctions((auctions) =>
-            auctions.map((auction) =>
-                auction.id === id ? { ...auction, end } : auction
+    const handleEnd = useCallback((id, endingTime) => {
+        setItmes((items) =>
+            items.map((item) =>
+                item.id === id ? { ...item, endingTime } : item
             )
         );
-    };
+    }, []); // No dependencies
 
-    const autoPopulate = () => {
-        // Convert state strings to dayjs objects for calculations
+    const autoPopulate = useCallback(() => {
         const startDayjs = dayjs(startingDateTime);
         const endDayjs = dayjs(endingDateTime);
-        console.log(startDayjs);
+        if (!startDayjs.isValid() || !endDayjs.isValid()) {
+            console.warn("Invalid starting or ending date/time for auto-population. Please select valid initial dates.");
+            return;
+        }
         let i = 0;
-        const newAuctions = items.map((item) => {
-
-            // Basic validation to ensure dates are valid before manipulation
-            if (!startDayjs.isValid() || !endDayjs.isValid()) {
-                console.warn("Invalid starting or ending date/time for auto-population. Please select valid initial dates.");
-                // Return existing auction state or a default if dates are invalid
-                return auctions.find(auction => auction.id === item.id) || { id: item.id, start: "", end: "" };
-            }
-
+        const newItems = items.map((item) => {
             const calculatedStart = startDayjs.add(startingTimeGap * i, 'minute');
             const calculatedEnd = endDayjs.add(endingTimeGap * i, 'minute');
-
-            i++; // Increment for the next item
-
+            i++;
             return {
-                id: item.id,
-                start: calculatedStart,
-                end: calculatedEnd
-            }
+                ...item,
+                startingTime: calculatedStart,
+                endingTime: calculatedEnd
+            };
         });
-        setAuctions(newAuctions);
-    };
+        setItmes(newItems);
+    }, [startingDateTime, endingDateTime, startingTimeGap, endingTimeGap, items]); // dependencies
+
 
     useEffect(() => {
-        console.log(auctions);
         let flag = true;
-        for (const auction of auctions) {
-            if (!auction.start || !auction.end) {
+        for (const item of items) {
+            if (!item.startingTime || !item.endingTime) {
                 flag = false;
                 break;
             }
         }
         setAllFieldsFilled(flag);
-    }, [auctions]);
+    }, [items]);
+
+    useEffect(() => {
+        const saved = localStorage.getItem("selectedItems");
+        const selectedIds = saved ? JSON.parse(saved) : [];
+
+        axios.post("http://localhost:8082/is/v1/itemsToSchedule", selectedIds)
+        .then((response) => {
+            setItmes(response.data.map(item => ({
+                ...item,
+                startingTime: "",
+                endingTime: ""
+            })))
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        })
+        .finally(() => {
+            setLoading(false);
+        });
+    }, []);
 
     const navigate = useNavigate();
+
+    const schedule = useCallback(() => {
+        console.log(items);
+        const itemsToSchedule = items.map(item => (
+            {
+                id: item.id,
+                startingTime: item.startingTime,
+                endingTime: item.endingTime
+            }
+        ));
+        console.log(itemsToSchedule);
+        axios.post("http://localhost:8082/is/v1/schedule", itemsToSchedule)
+        .then(res => {
+            const {status, data} = res;
+            if (status === 200 && data.success) {
+                addFlashMessage('success', 'Auctions scheduled successfully');
+                navigate('/auctionMan');
+            }
+        })
+        .catch(error => {
+            console.error('Error scheduling auctions:', error);
+            addFlashMessage('error', 'Failed to schedule auctions. Please try again.');
+        });
+    }, [items]);
 
     return (
         <>
@@ -294,39 +279,42 @@ export default () => {
                 <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis, restrictToParentElement]}>
                     <SortableContext items={items} strategy={verticalListSortingStrategy}>
                         <div className="w-full max-w-6xl grid border-y sm:border border-gray-200 rounded-lg pb-2 sm:p-2">
-                            <div className="text-gray-600 rounded-lg p-3 my-1 items-end gap-3 select-none grid grid-cols-[subgrid] col-span-5">
-                                <div />
-                                <div />
-                                <div>
-                                    <p className="font-bold text-md">Title</p>
-                                    <p className="text-sm">Case Number</p>
-                                </div>
-                                <div className="hidden lg:block">
-                                    <p className="text-lg font-bold text-green-600">Starting Bid</p>
-                                    <p className="text-sm">Increment</p>
-                                </div>
-                                <div className="flex flex-col md:flex-row gap-1">
-                                    <p className="text-sm flex-1"><strong>Starting and Ending Times.</strong> (An auction should last for at least 6 hours)</p>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-[subgrid] col-span-5">
-                                {items.map((item) => (
-                                    <SortableItem key={item.id} item={item} time={auctions.find(auction => auction.id === item.id)} setStart={handleStart} setEnd={handleEnd} />
-                                ))}
-                            </div>
-                            <div className="flex items-center justify-end col-span-5 mt-3">
-                                <button
-                                    type="button"
-                                    className={`bg-[#1e3a5f] text-white hover:bg-[#2d4a6b] rounded-lg py-2 px-4
-                                                mt-auto flex items-center border border-gray-200 shadow-sm
-                                                ${allFieldsField ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
-                                    onClick={() => {
-                                        navigate('/auctionMan', { state: { success: 'Auctions scheduled succefully' } });
-                                    }}
-                                >
-                                    Done
-                                </button>
-                            </div>
+                            
+                            {loading ? (<Loading />) : (
+                                <>
+                                    <div className="text-gray-600 rounded-lg p-3 my-1 items-end gap-3 select-none grid grid-cols-[subgrid] col-span-5">
+                                        <div />
+                                        <div />
+                                        <div>
+                                            <p className="font-bold text-md">Title</p>
+                                            <p className="text-sm">Case Number</p>
+                                        </div>
+                                        <div className="hidden lg:block">
+                                            <p className="text-lg font-bold text-green-600">Starting Bid</p>
+                                            <p className="text-sm">Increment</p>
+                                        </div>
+                                        <div className="flex flex-col md:flex-row gap-1">
+                                            <p className="text-sm flex-1"><strong>Starting and Ending Times.</strong> (An auction should last for at least 6 hours)</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-[subgrid] col-span-5">
+                                        {items.map((item) => (
+                                            <SortableItem key={item.id} item={item} setStart={handleStart} setEnd={handleEnd} />
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center justify-end col-span-5 mt-3">
+                                        <button
+                                            type="button"
+                                            className={`bg-[#1e3a5f] text-white hover:bg-[#2d4a6b] rounded-lg py-2 px-4
+                                                        mt-auto flex items-center border border-gray-200 shadow-sm
+                                                        ${allFieldsField ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+                                            onClick={schedule}
+                                        >
+                                            Done
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </SortableContext>
                 </DndContext>

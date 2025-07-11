@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { useTranslation } from "react-i18next";
 import CountUp from "react-countup";
 import { Plus, Box, Gavel, Users, CircleDollarSign } from "lucide-react";
@@ -13,12 +14,6 @@ import PendingCard from "../../components/ui/cards/pending";
 import Completed from "../../components/ui/cards/completed";
 
 import custombanner from "../../assets/custom-banner.png";
-import avimg from "../../assets/av1.png";
-import mustang from "../../assets/mustang.jpg";
-import royal from "../../assets/royal.jpg";
-import sword from "../../assets/sword.png";
-import bicycle from "../../assets/bicycle.JPG";
-import bronze from "../../assets/bronze.jpg";
 import Footer from "../../components/footer";
 import Loading from "../../components/loading";
 
@@ -62,84 +57,6 @@ export default () => {
       color: "text-red-500"
     }
   ];
-  const staticItems = [
-    {
-        id: 1,
-        title: "Classic Car",
-        description: "A well-maintained 1967 Ford Mustang in original condition.",
-        images: [mustang, "mustang.png"],
-        status: 'notSheduled',
-        currentBid: 25000000,
-        startingBid: 200000,
-        timeLeft: "3 days 4 hours",
-        totalBids: 15,
-        location: "Colombo, Sri Lanka"
-    },
-    {
-        id: 2,
-        title: "Vintage Motorcycle",
-        description: "A rare 1950s Royal Enfield Bullet, fully restored.",
-        images: [royal, "enfield.png"],
-        status: 'completed',
-        currentBid: 800000,
-        startingBid: 600000,
-        timeLeft: "1 day 8 hours",
-        totalBids: 10,
-        location: "Kandy, Sri Lanka",
-        endingTime: "2023-10-01T10:00:00Z",
-    },
-    {
-        id: 3,
-        title: "Antique Bicycle",
-        description: "Classic Raleigh bicycle from the 1940s, in working order.",
-        images: [bicycle, "bicycle.png"],
-        status: 'notSheduled',
-        currentBid: 120000,
-        startingBid: 90000,
-        timeLeft: "2 days 2 hours",
-        totalBids: 7,
-        location: "Galle, Sri Lanka"
-    },
-    {
-        id: 4,
-        title: "Bronze Sculpture",
-        description: "Handcrafted bronze sculpture from the 19th century.",
-        images: [bronze, "sculpture.png"],
-        status: 'pending',
-        currentBid: 1800000,
-        startingBid: 120000,
-        timeLeft: "2 days 10 hours",
-        totalBids: 18,
-        location: "Negombo, Sri Lanka",
-        startingTime: "2023-10-01T10:00:00Z",
-        endingTime: "2023-10-05T10:00:00Z"
-    },
-    {
-        id: 5,
-        title: "Ancient Sword",
-        description: "An ancient ceremonial sword with intricate designs.",
-        images: [sword, "sword.png"],
-        status: 'notSheduled',
-        currentBid: 2700,
-        startingBid: 2000,
-        timeLeft: "3 days 8 hours",
-        totalBids: 19,
-        location: "Anuradhapura, Sri Lanka"
-    },
-    {
-        id: 6,
-        title: "Ancient Vass",
-        description: "An ancient vass from Itali.",
-        images: [avimg, "figurine.png"],
-        status: 'completed',
-        currentBid: 600,
-        startingBid: 400,
-        timeLeft: "8 hours",
-        totalBids: 10,
-        location: "Batticaloa, Sri Lanka",
-        endingTime: "2023-10-01T10:00:00Z"
-    }
-  ];
 
   const [selectedItems, setSelectedItems] = useState([]);
 
@@ -152,19 +69,28 @@ export default () => {
 
   const { t } = useTranslation();
 
-  const [items, setItems] = useState(staticItems);
+  const [notSheduledItems, setNotSheduledItems] = useState([]);
+  const [pendingItems, setPendingItems] = useState([]);
+  const [completeItmes, setCompleteItems] = useState([]);
   const [activeTab, setActiveTab] = useState('notSheduled');
   const [loading, setLoading] = useState(false);
 
-  const fetchItems = async() => {
+  const fetchItems = () => {
     setLoading(true);
-    
-    let filteredItems = staticItems.filter(item => item.status === activeTab); // Simulate fetching items based on the active tab
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
 
-    setItems(filteredItems);
-    setLoading(false);
-    return;
+    const endPoint = activeTab === 'notSheduled' ? 'getItemsNotScheduled' : activeTab === 'pending' ? 'getItemsPending' : 'getItemsComplete';
+    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : setCompleteItems;
+
+    axios.get(`http://localhost:8082/is/v1/${endPoint}`)
+      .then((response) => {
+        setter(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   useEffect(() => {
@@ -260,40 +186,40 @@ export default () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
         {loading ? (
             <Loading />
-          ) : activeTab === "notSheduled" ? (items.length === 0 ? (
+          ) : activeTab === "notSheduled" ? (notSheduledItems.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noNotShedItemsText")}</h2>
               <p>{t("noNotShedItemsDis")}</p>
             </div>
             ) : (
-            items.map((item) => (
+            notSheduledItems.map((item) => (
               <NotSheduled key={item.id} item={item} select={select} />
             ))
-          )) : activeTab === "pending" ? (items.length === 0 ? (
+          )) : activeTab === "pending" ? (pendingItems.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noPendingItemsText")}</h2>
               <p>{t("noPendingItemsDis")}</p>
             </div>
             ) : (
-            items.map((item) => (
+            pendingItems.map((item) => (
               <PendingCard key={item.id} item={item} />
             ))
-          )) : (items.length === 0 ? (
+          )) : (completeItmes.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noCompletedItemsText")}</h2>
               <p>{t("noCompletedItemsDis")}</p>
             </div>
             ) : (
-            items.map((item) => (
+            completeItmes.map((item) => (
               <Completed key={item.id} item={item} />
             )
           )))
         }
       </div>
-      { !loading && activeTab === "notSheduled" && items.length > 0 && (
+      { !loading && activeTab === "notSheduled" && notSheduledItems.length > 0 && (
         <div className="px-5 md:px-20 lg:px-60 my-5 flex gap-2 justify-end">
           <button
             onClick={handleClick}
