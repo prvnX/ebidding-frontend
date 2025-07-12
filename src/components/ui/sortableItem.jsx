@@ -4,8 +4,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGripVertical } from "@fortawesome/free-solid-svg-icons";
 
 // Assuming these functions still work as expected with string/Date inputs if needed elsewhere
-import { formatCurrency, handleBlurValidate, formatLocalDateForInput } from "../../function";
-import { useState, useEffect, useRef } from "react";
+import { formatCurrency } from "../../function";
+import { useState, useEffect, useRef, memo } from "react";
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -21,7 +21,7 @@ dayjs.extend(timezone);
 // ✅ Set default timezone to Sri Lanka
 dayjs.tz.setDefault('Asia/Colombo');
 
-export default ({ item, time, setStart, setEnd }) => {
+export default memo(({ item, setStart, setEnd }) => {
     // initialMinTime should also be a dayjs object for minDateTime prop
     const initialMinTime = useRef(dayjs().endOf('minute')); // Set to current time as a dayjs object
 
@@ -36,8 +36,8 @@ export default ({ item, time, setStart, setEnd }) => {
     // It assumes `time.start` and `time.end` are managed as ISO strings by the parent,
     // so we convert them to dayjs objects for validation.
     useEffect(() => {
-        const startDate = time.start ? dayjs(time.start) : null;
-        const endDate = time.end ? dayjs(time.end) : null;
+        const startDate = item.startingTime ? dayjs(item.startingTime) : null;
+        const endDate = item.endingTime ? dayjs(item.endingTime) : null;
 
         // Check if start/end dates are in the past
         // Use dayjs().startOf('minute') for more accurate "now" comparison
@@ -50,18 +50,18 @@ export default ({ item, time, setStart, setEnd }) => {
         setStartTimeError(isStartInvalid);
         setEndTimerError(isEndInvalid);
         setGapError(isGapInvalid);
-    }, [time.start, time.end]);
+    }, [item.startingTime, item.endingTime]);
 
     // This useEffect updates the minimum ending time based on the starting time
     useEffect(() => {
-        if (!time.start) {
+        if (!item.startingTime) {
             // If start time is not set, min ending time defaults to initialMinTime (current time)
             setMinEndingTime(initialMinTime.current);
             return;
         }
 
-        // Convert the string time.start to a dayjs object
-        const startDate = dayjs(time.start);
+        // Convert the string item.start to a dayjs object
+        const startDate = dayjs(item.startingTime);
 
         // Set min ending time to 6 hours after the starting time (as a dayjs object)
         const minEnd = startDate.add(6, 'hour');
@@ -70,7 +70,7 @@ export default ({ item, time, setStart, setEnd }) => {
         // This makes sure the min date for the end picker is never before the current time
         // even if start date is in the past (which should be caught by startTimeError)
         setMinEndingTime(minEnd.isBefore(dayjs(initialMinTime.current)) ? dayjs(initialMinTime.current) : minEnd);
-    }, [time.start]);
+    }, [item.startingTime]);
 
     const {
         attributes,
@@ -83,7 +83,8 @@ export default ({ item, time, setStart, setEnd }) => {
 
     const style = {
         transform: CSS.Transform.toString(transform),
-        transition
+        transition,
+        zIndex: isDragging ? 1000 : "auto",
     };
 
     return (
@@ -102,7 +103,7 @@ export default ({ item, time, setStart, setEnd }) => {
                 </span>
             </div>
             <picture>
-                <source srcSet={item.images[0]} media="(min-width: 640px)" />
+                <source srcSet={item.images ? item.images[0] : null} media="(min-width: 640px)" />
                 <img className="w-20 object-cover hidden sm:block" />
             </picture>
             <div>
@@ -123,7 +124,7 @@ export default ({ item, time, setStart, setEnd }) => {
                             seconds: renderTimeViewClock,
                         }}
                         // Ensure value is a dayjs object or null
-                        value={time.start ? dayjs(time.start) : null}
+                        value={item.startingTime ? dayjs(item.startingTime) : null}
                         onChange={(newValue) => {
                             // newValue is a dayjs object or null
                             // Convert it back to ISO string for parent state if that's what setStart expects
@@ -149,7 +150,7 @@ export default ({ item, time, setStart, setEnd }) => {
                             seconds: renderTimeViewClock,
                         }}
                         // Ensure value is a dayjs object or null
-                        value={time.end ? dayjs(time.end) : null}
+                        value={item.endingTime ? dayjs(item.endingTime) : null}
                         onChange={(newValue) => {
                             // newValue is a dayjs object or null
                             // Convert it back to ISO string for parent state if that's what setEnd expects
@@ -171,4 +172,4 @@ export default ({ item, time, setStart, setEnd }) => {
             </div>
         </div>
     );
-};
+});

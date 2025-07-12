@@ -3,11 +3,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleInfo, faImages, faDollarSign, faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import CustomHeader from "../../components/custom-header";
 import ImageUploader from "../../components/ui/imagesUpload";
+import { addFlashMessage } from "../../flashMessageCenter";
 
 import custombanner from "../../assets/custom-banner.png";
 import LocationMap from "../../components/locationmap";
 import Footer from "../../components/footer";
 import BredCrumb from "../../components/ui/breadCrumb";
+import { add } from "@dnd-kit/utilities";
 
 const AddItem = () => {
 
@@ -231,7 +233,8 @@ const AddItem = () => {
                         // type="submit" 
                         className="bg-[#1e3a5f] text-white hover:bg-[#2d4a6b] rounded-lg py-2 px-4 flex items-center border border-gray-200 shadow-sm cursor-pointer"
                         onClick={(e) => {
-                            navigate('/auctionMan', { state: { success: 'Item added successfully' } });
+                            addFlashMessage('success', 'Item Added');
+                            navigate('/auctionMan');
                         }}
                         >
                         Create Auction Item
