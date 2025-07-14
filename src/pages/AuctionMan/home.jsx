@@ -71,15 +71,15 @@ export default () => {
 
   const [notSheduledItems, setNotSheduledItems] = useState([]);
   const [pendingItems, setPendingItems] = useState([]);
-  const [completeItmes, setCompleteItems] = useState([]);
+  const [activeItems, setActiveItems] = useState([]);
   const [activeTab, setActiveTab] = useState('notSheduled');
   const [loading, setLoading] = useState(false);
 
   const fetchItems = () => {
     setLoading(true);
 
-    const endPoint = activeTab === 'notSheduled' ? 'getItemsNotScheduled' : activeTab === 'pending' ? 'getItemsPending' : 'getItemsComplete';
-    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : setCompleteItems;
+    const endPoint = activeTab === 'notSheduled' ? 'getItemsNotScheduled' : activeTab === 'pending' ? 'getItemsPending' : 'getItemsActive';
+    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : setActiveItems;
 
     axios.get(`http://localhost:8082/is/v1/${endPoint}`)
       .then((response) => {
@@ -179,7 +179,7 @@ export default () => {
             }`}
             onClick={() => setActiveTab("completed")}
           >
-            {t("completed")}
+            {t("active")}
           </button>
         </div>
       </section>
@@ -206,14 +206,14 @@ export default () => {
             pendingItems.map((item) => (
               <PendingCard key={item.id} item={item} />
             ))
-          )) : (completeItmes.length === 0 ? (
+          )) : (activeItems.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noCompletedItemsText")}</h2>
               <p>{t("noCompletedItemsDis")}</p>
             </div>
             ) : (
-            completeItmes.map((item) => (
+            activeItems.map((item) => (
               <Completed key={item.id} item={item} />
             )
           )))

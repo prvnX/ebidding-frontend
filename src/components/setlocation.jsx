@@ -53,11 +53,12 @@ export default function SetLocation() {
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   return (
-    <div className="flex flex-col items-center justify-center p-4">
+    <div className="flex flex-col items-center justify-center border p-2 rounded-lg bg-white border-gray-200 h-full">
+      <label>Select a location on map</label>
       <MapContainer
         center={[6.9271, 79.8612]} 
         zoom={15}
-        className='h-[500px] w-full'
+        className='h-full w-full'
       >
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
@@ -66,11 +67,11 @@ export default function SetLocation() {
         <LocationSelector onLocationChange={(loc) => setSelectedLocation(loc)} />
       </MapContainer>
 
-      {selectedLocation && (
+      {/* {selectedLocation && (
         <p>
           Selected Location: Lat: {selectedLocation.lat}, Lng: {selectedLocation.lng}
         </p>
-      )}
+      )} */}
     </div>
   );
 }
