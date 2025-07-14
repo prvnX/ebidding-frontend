@@ -26,7 +26,8 @@ import {
   faUserShield,
   faSort,
   faDownload,
-  faGavel
+  faGavel,
+  faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function AppAdminHome() {
@@ -338,6 +339,37 @@ export default function AppAdminHome() {
   const handlePermissionChange = (managerId, permissions) => {
     // Handle permission change logic here
     console.log(`Changing permissions for manager ${managerId}`, permissions);
+  };
+
+  // System settings state for System Configuration
+  const [settings, setSettings] = useState({
+    registration: {
+      autoApproveVerified: false,
+      requireDocuments: true,
+      emailVerificationRequired: true
+    },
+    security: {
+      sessionTimeout: '30',
+      maxLoginAttempts: '5',
+      passwordMinLength: '8',
+      lockoutDuration: '24'
+    }
+  });
+
+  const handleSettingChange = (category, setting, value) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [setting]: value
+      }
+    }));
+  };
+
+  const handleSaveSettings = () => {
+    // Handle saving settings logic
+    console.log('Saving settings:', settings);
+    alert('Configuration saved successfully!');
   };
 
   const stats = [
@@ -1063,18 +1095,291 @@ export default function AppAdminHome() {
             )}
 
             {activeTab === 'analytics' && (
-              <div className="text-center py-12">
-                <FontAwesomeIcon icon={faChartLine} className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">System Analytics</h3>
-                <p className="text-gray-600">View detailed analytics and system performance metrics.</p>
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <FontAwesomeIcon icon={faChartLine} className="h-6 w-6 text-[#1e3a5f]" />
+                    <h3 className="text-xl font-semibold text-gray-900">System Analytics</h3>
+                  </div>
+                  <p className="text-sm text-gray-600">View detailed analytics and system performance metrics</p>
+                </div>
+
+                {/* User Growth and System Health Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  
+                  {/* User Growth Card */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <FontAwesomeIcon icon={faChartLine} className="h-5 w-5 text-[#1e3a5f]" />
+                      <h4 className="text-lg font-semibold text-gray-900">User Growth</h4>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">This Month:</span>
+                        <span className="text-sm font-semibold text-green-600">+342 users</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Last Month:</span>
+                        <span className="text-sm font-semibold text-green-600">+298 users</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Growth Rate:</span>
+                        <span className="text-sm font-semibold text-green-600">+14.8%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm text-gray-700 transition-colors">
+                        <FontAwesomeIcon icon={faEye} className="h-4 w-4" />
+                        <span>View Detailed Report</span>
+                      </button>
+                    </div>
+                  </div>
+                   <div className="grid grid-cols-1 gap-6">
+                  
+                  
+                
+                  {/* User Activity */}
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">User Activity</h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Daily Active Users</span>
+                        <span className="text-sm font-semibold text-gray-900">2,340</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">New Registrations</span>
+                        <span className="text-sm font-semibold text-gray-900">156</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Session Duration</span>
+                        <span className="text-sm font-semibold text-gray-900">24.5 min</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Bounce Rate</span>
+                        <span className="text-sm font-semibold text-gray-900">15.2%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                 </div>
+
+                {/* Additional Analytics Content */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                        <p className="text-2xl font-bold text-green-600">LKR 125.5M</p>
+                        <p className="text-xs text-green-500 mt-1">+18.2% from last month</p>
+                      </div>
+                      <div className="bg-green-100 rounded-full p-3">
+                        <FontAwesomeIcon icon={faChartLine} className="h-5 w-5 text-green-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Active Auctions</p>
+                        <p className="text-2xl font-bold text-blue-600">142</p>
+                        <p className="text-xs text-blue-500 mt-1">+12 from yesterday</p>
+                      </div>
+                      <div className="bg-blue-100 rounded-full p-3">
+                        <FontAwesomeIcon icon={faGavel} className="h-5 w-5 text-blue-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Bids</p>
+                        <p className="text-2xl font-bold text-purple-600">8,947</p>
+                        <p className="text-xs text-purple-500 mt-1">+234 today</p>
+                      </div>
+                      <div className="bg-purple-100 rounded-full p-3">
+                        <FontAwesomeIcon icon={faUsers} className="h-5 w-5 text-purple-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Success Rate</p>
+                        <p className="text-2xl font-bold text-orange-600">89.2%</p>
+                        <p className="text-xs text-orange-500 mt-1">+2.1% improvement</p>
+                      </div>
+                      <div className="bg-orange-100 rounded-full p-3">
+                        <FontAwesomeIcon icon={faShieldAlt} className="h-5 w-5 text-orange-600" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Performance Metrics */}
+                <div className="grid grid-cols-1 gap-6">
+                  
+                  
+                </div>
               </div>
             )}
 
             {activeTab === 'settings' && (
-              <div className="text-center py-12">
-                <FontAwesomeIcon icon={faCog} className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">System Settings</h3>
-                <p className="text-gray-600">Configure system-wide settings and preferences.</p>
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <FontAwesomeIcon icon={faCog} className="h-6 w-6 text-[#1e3a5f]" />
+                    <h3 className="text-xl font-semibold text-gray-900">System Configuration</h3>
+                  </div>
+                  <p className="text-sm text-gray-600">Configure system-wide settings and parameters</p>
+                </div>
+
+                {/* Settings Container */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                  
+                  {/* User Registration Settings Section */}
+                  <div className="p-6 border-b border-gray-200">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">User Registration Settings</h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between py-2">
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">Auto-approve verified users</span>
+                        </div>
+                        <button
+                          onClick={() => handleSettingChange('registration', 'autoApproveVerified', !settings.registration?.autoApproveVerified)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.registration?.autoApproveVerified ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              settings.registration?.autoApproveVerified ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between py-2">
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">Require document verification</span>
+                        </div>
+                        <button
+                          onClick={() => handleSettingChange('registration', 'requireDocuments', !settings.registration?.requireDocuments)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.registration?.requireDocuments ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              settings.registration?.requireDocuments ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between py-2">
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">Email verification required</span>
+                        </div>
+                        <button
+                          onClick={() => handleSettingChange('registration', 'emailVerificationRequired', !settings.registration?.emailVerificationRequired)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.registration?.emailVerificationRequired ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              settings.registration?.emailVerificationRequired ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Security Settings Section */}
+                  <div className="p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h4>
+                    <div className="space-y-6">
+                      
+                      {/* Session timeout and Max login attempts in grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Session timeout (minutes)</label>
+                          <input
+                            type="number"
+                            value={settings.security?.sessionTimeout || '30'}
+                            onChange={(e) => handleSettingChange('security', 'sessionTimeout', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            placeholder="30"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Max login attempts</label>
+                          <input
+                            type="number"
+                            value={settings.security?.maxLoginAttempts || '5'}
+                            onChange={(e) => handleSettingChange('security', 'maxLoginAttempts', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            placeholder="5"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Password minimum length and Account lockout duration in grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Password minimum length</label>
+                          <input
+                            type="number"
+                            value={settings.security?.passwordMinLength || '8'}
+                            onChange={(e) => handleSettingChange('security', 'passwordMinLength', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            placeholder="8"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Account lockout duration (hours)</label>
+                          <input
+                            type="number"
+                            value={settings.security?.lockoutDuration || '24'}
+                            onChange={(e) => handleSettingChange('security', 'lockoutDuration', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            placeholder="24"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Warning Message */}
+                  <div className="p-4 bg-orange-50 border-t border-orange-200 rounded-b-lg">
+                    <div className="flex items-center space-x-2">
+                      <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4 text-orange-600" />
+                      <span className="text-sm text-orange-800">
+                        Changes to system settings will affect all users. Please review carefully before applying.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Configuration Button */}
+                <div className="mt-6 flex justify-start">
+                  <button 
+                    onClick={handleSaveSettings}
+                    className="bg-[#1e3a5f] text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors"
+                  >
+                    Save Configuration
+                  </button>
+                </div>
               </div>
             )}
           </div>
