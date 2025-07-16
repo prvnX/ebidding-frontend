@@ -1,19 +1,185 @@
+import { useRef, useState, useEffect, use } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleInfo, faImages, faDollarSign, faCalendarDays } from "@fortawesome/free-solid-svg-icons";
+import { faCircleInfo, faClipboardList, faImages, faDollarSign, faCalendarDays, faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import CustomHeader from "../../components/custom-header";
-import ImageUploader from "../../components/ui/imagesUpload";
+import ImagesUploader from "../../components/ui/imagesUpload";
 import { addFlashMessage } from "../../flashMessageCenter";
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 
 import custombanner from "../../assets/custom-banner.png";
-import LocationMap from "../../components/locationmap";
+import SetLocation from "../../components/setlocation";
 import Footer from "../../components/footer";
 import BredCrumb from "../../components/ui/breadCrumb";
-import { add } from "@dnd-kit/utilities";
+import axios from "axios";
 
 const AddItem = () => {
 
     const navigate = useNavigate();
+    //Basic information
+
+    const [basicInfo, setBasicInfo] = useState({
+        title: '',
+        caseNumber: '',
+        description: '',
+        category: '',
+        condition: '',
+    });
+
+    const handleBasicInfoChange = (e) => {
+        const { name, value } = e.target;
+        setBasicInfo((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    //Location
+
+    const [locationId, setLocationId] = useState('');
+
+    //Specifications
+
+    const [specs, setSpecs] = useState([{ key: '', value: '' }]);
+
+    const handleSpecChange = (index, field, value) => {
+        const updated = [...specs];
+        updated[index][field] = value;
+        setSpecs(updated);
+    };
+
+    const addRow = () => {
+        setSpecs([...specs, { key: '', value: '' }]);
+    };
+
+    const removeRow = (index) => {
+        const updated = specs.filter((_, i) => i !== index);
+        setSpecs(updated);
+    };
+
+    //Images
+
+    const [coverImage, setCoverImage] = useState('');
+    const [images, setImages] = useState([]);
+
+    //Financial Details
+
+    const [finacInfo, setFinacInfo] = useState({
+        startingBid: '',
+        increment: '',
+        valuation: ''
+    });
+
+    const handleFinacInfoChange = (e) => {
+        const {name, value} = e.target;
+        setFinacInfo((prev) => ({
+            ...prev,
+            [name]: value
+        })
+        )
+    }
+
+    //auction details
+
+    dayjs.extend(utc);
+    dayjs.extend(timezone);
+    
+    // ✅ Set default timezone to Sri Lanka
+    dayjs.tz.setDefault('Asia/Colombo');
+    
+    const initialMinTime = useRef(dayjs().endOf('minute')); // Initialize with current date/time using dayjs
+    const [endingTimeMin, setEndingTimeMin] = useState(initialMinTime.current); // Initialize endingTimeMin with initialMinTime
+    const [startTimeError, setStartTimeError] = useState(false);
+    const [endTimeError, setEndTimerError] = useState(false);
+    const [gapError, setGapError] = useState(false);
+    const [startingTime, setStartingTime] = useState();
+    const [endingTime, setEndingTime] = useState();
+
+    useEffect(() => {
+        const startDate = startingTime ? dayjs(startingTime) : null;
+        const endDate = endingTime ? dayjs(endingTime) : null;
+
+        // Check if start/end dates are in the past
+        // Use dayjs().startOf('minute') for more accurate "now" comparison
+        const isStartInvalid = startDate && startDate.isBefore(initialMinTime.current);
+        const isEndInvalid = endDate && endDate.isBefore(initialMinTime.current);
+
+        // Check if gap is less than 6 hours
+        const isGapInvalid = startDate && endDate && endDate.diff(startDate, 'hour') < 6;
+
+        setStartTimeError(isStartInvalid);
+        setEndTimerError(isEndInvalid);
+        setGapError(isGapInvalid);
+    }, [startingTime, endingTime]);
+
+
+    //Handle form submission
+
+    const handleFormSubmition = (e) => {
+        e.preventDefault();
+        const form = e.target;
+
+        if (form.checkValidity() === false) {
+            addFlashMessage('error', 'Please fill all the required fields.');
+            form.reportValidity();
+            return;
+        }
+
+        if (endTimeError || startTimeError || gapError) {
+            addFlashMessage('error', 'Please provide valid auction dates');
+            return;
+        }
+
+        //convert specs array to object
+        // const specifications = {};
+        // specs.forEach(({key, value}) => {
+        //     if (key && value) specifications[key] = value;
+        // });
+
+
+        const newItem = {
+            ...basicInfo,
+            specs,
+            ...finacInfo,
+            auction: {
+                startingTime,
+                endingTime
+            },
+            location : {
+                id: locationId,
+            }
+        }
+
+        const formData = new FormData();
+        formData.append('item', JSON.stringify(newItem));
+        formData.append("cover", coverImage);  // append cover image
+        images.forEach((imageFile) => {
+            formData.append("images", imageFile);  // append each image with same key
+        });
+
+        for (let pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+
+        axios.post("http://localhost:8082/is/v1/createItem", formData)
+             .then(res => {
+                const {status, data} = res;
+                if (status === 200 && data.success) {
+                    addFlashMessage('success', 'Item added successfully');
+                    navigate('/auctionMan');
+                }
+            })
+            .catch(error => {
+                console.error('Error scheduling auctions:', error);
+                addFlashMessage('error', 'Failed to add item. Please try again.');
+            });
+    }
 
     return (
         <>
@@ -40,7 +206,7 @@ const AddItem = () => {
             <BredCrumb page="Add New Item" breadCrumbs={[
                 { title: "Home", link: "/AuctionMan" },
             ]} />
-            <form className="flex flex-col items-center justify-center gap-5 px-4 form-style">
+            <form onSubmit={handleFormSubmition} className="flex flex-col items-center justify-center gap-5 px-4 form-style">
                 <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
                     <div className="flex items-center gap-4">
                         <FontAwesomeIcon icon={faCircleInfo} size="xl" />
@@ -54,7 +220,9 @@ const AddItem = () => {
                             <label>Item Title *</label>
                             <input
                                 type="text"
-                                name="itemName"
+                                name="title"
+                                value={basicInfo.title}
+                                onChange={handleBasicInfoChange}
                                 placeholder="Enter item name"
                                 required
                                 />
@@ -63,7 +231,9 @@ const AddItem = () => {
                             <label>Case Number *</label>
                             <input
                                 type="text"
-                                name="itemName"
+                                name="caseNumber"
+                                value={basicInfo.caseNumber}
+                                onChange={handleBasicInfoChange}
                                 placeholder="Enter item name"
                                 required
                                 />
@@ -74,6 +244,8 @@ const AddItem = () => {
                         <label>Description *</label>
                         <textarea
                             name="description"
+                            value={basicInfo.description}
+                            onChange={handleBasicInfoChange}
                             placeholder="Detailed description of the item..."
                             rows="4"
                             required
@@ -85,25 +257,32 @@ const AddItem = () => {
                             <label>Category *</label>
                             <select
                                 name="category"
+                                value={basicInfo.category}
+                                onChange={handleBasicInfoChange}
+                                required
                             >
                                 <option value="">Select category</option>
-                                <option value="vehicles">Vehicles</option>
-                                <option value="electronics">Electronics</option>
+                                <option value="Vehicle">Vehicles</option>
+                                <option value="Jewelry">Jewelry</option>
+                                {/* <option value="electronics">Electronics</option>
                                 <option value="furniture">Furniture</option>
-                                <option value="clothing">Clothing</option>
-                                <option value="other">Other</option>
+                                <option value="clothing">Clothing</option> */}
+                                <option value="General">General</option>
                             </select>
                         </div>
                         <div className="flex-1">
                             <label>Condition *</label>
                             <select
-                                name="category"
+                                name="condition"
+                                value={basicInfo.condition}
+                                onChange={handleBasicInfoChange}
+                                required
                             >
-                                <option value="">Select category</option>
-                                <option value="vehicles">Excellent</option>
-                                <option value="electronics">Good</option>
-                                <option value="furniture">Fair</option>
-                                <option value="clothing">Poor</option>
+                                <option value="">Select Condition</option>
+                                <option value="Excellent">Excellent</option>
+                                <option value="Good">Good</option>
+                                <option value="Fair">Fair</option>
+                                <option value="Poor">Poor</option>
                             </select>
                         </div>
                     </div>
@@ -112,13 +291,16 @@ const AddItem = () => {
                         <div className="flex-1">
                             <label>Location *</label>
                             <select
-                                name="location"
+                                name="locationId"
+                                value={basicInfo.locationId}
+                                onChange={(e) => setLocationId(e.target.value)}
                             >
                                 <option value="">Select Location</option>
-                                <option value="vehicles">Yard 1</option>
-                                <option value="electronics">Yard 2</option>
-                                <option value="furniture">Yard 3</option>
-                                <option value="clothing">Pic on Map</option>
+                                <option value="HQ">Head Quarters</option>
+                                {/* <option value="Y-1">Yard 1</option>
+                                <option value="Y-2">Yard 2</option>
+                                <option value="Y-3">Yard 3</option> */}
+                                <option value="Pic">Pic on Map</option>
                             </select>
                         </div>
                         <div className="flex-1">
@@ -127,18 +309,62 @@ const AddItem = () => {
                                 name="address"
                                 placeholder="Enter the Addres"
                                 min="0"
-                                required
+                                // required
                             />
                         </div>
                     </div>
-                    <div className="aspect-square mx-auto max-h-100">
-                        <LocationMap 
-                            itemDetail={{
-                                position: [6.9271, 79.8612], // Example coordinates
-                                locationName: "Colombo",
-                            }} />
+                    <div className="mx-auto aspect-square max-w-100">
+                        <SetLocation />
                     </div>
                 </div>
+
+                <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
+                    <div className="flex items-center gap-4 mb-2">
+                        <FontAwesomeIcon icon={faClipboardList} size="xl" />
+                        <h2 className="text-2xl font-semibold">Specification</h2>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                        Add any additional specifications or details about the item
+                    </p>
+
+                    <div className="space-y-2">
+                        {specs.map((spec, index) => (
+                        <div key={index} className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="Key"
+                                value={spec.key}
+                                onChange={(e) => handleSpecChange(index, 'key', e.target.value)}
+                                className="flex-1 border border-gray-300 rounded px-3 py-1 text-sm"
+                            />
+                            <input
+                                type="text"
+                                placeholder="Value"
+                                value={spec.value}
+                                onChange={(e) => handleSpecChange(index, 'value', e.target.value)}
+                                className="flex-2 border border-gray-300 rounded px-3 py-1 text-sm"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => removeRow(index)}
+                                className="text-red-500 hover:text-red-700"
+                                title="Remove"
+                                >
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        </div>
+                        ))}
+                        <div className="w-full">
+                            <button
+                                type="button"
+                                onClick={addRow}
+                                className="mt-3 ml-auto text-sm text-blue-600 hover:underline flex items-center gap-1"
+                                >
+                                <FontAwesomeIcon icon={faPlus} />
+                            </button>
+                        </div>
+                    </div>
+                    </div>
 
                 <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
                     <div className="flex items-center gap-4">
@@ -148,7 +374,7 @@ const AddItem = () => {
                     <p className="text-sm text-gray-600 mb-4">
                         Upload up to 10 images of the item
                     </p>
-                    <ImageUploader />
+                    <ImagesUploader images={images} setImages={setImages} coverImage={coverImage} setCoverImage={setCoverImage} />
                 </div>
 
                 <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
@@ -165,6 +391,8 @@ const AddItem = () => {
                             <input
                                 type="number"
                                 name="startingBid"
+                                value={finacInfo.startingBid}
+                                onChange={handleFinacInfoChange}
                                 placeholder="Enter starting bid"
                                 required
                                 />
@@ -174,6 +402,8 @@ const AddItem = () => {
                             <input
                                 type="number"
                                 name="increment"
+                                value={finacInfo.increment}
+                                onChange={handleFinacInfoChange}
                                 placeholder="Enter Increment Value"
                                 required
                                 />
@@ -201,21 +431,61 @@ const AddItem = () => {
                         This data can also be set later.
                     </p>
                     <div className="flex flex-col md:flex-row gap-4 my-3">
-                        <div className="flex-1">
-                            <label>Auction Start Date and Time</label>
-                            <input
-                                type="datetime-local"
-                                name="startingTime"
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <div className="flex-1">
+                                <label>Auction Start Date and Time</label>
+                                <DateTimePicker
+                                    value={startingTime ? dayjs(startingTime) : null}
+                                    viewRenderers={{
+                                        hours: renderTimeViewClock,
+                                        minutes: renderTimeViewClock,
+                                        seconds: renderTimeViewClock,
+                                    }}
+                                    onChange={(newValue) => {
+                                        // Update the startingDateTime state
+                                        setStartingTime(newValue);
+                                        // Set the minimum for the ending picker to the newly selected starting time
+                                        setEndingTimeMin(newValue ? dayjs(newValue).add(6, 'hour') : initialMinTime.current);
+                                    }}
+                                    minDateTime={initialMinTime.current}
+                                    // Removed maxDateTime prop as startingTimeMax is not defined
+                                    format="DD/MM/YYYY HH:mm"
+                                    slotProps={{ textField: { 
+                                        size: "small", 
+                                        error: startTimeError,
+                                        helperText: startTimeError ? "Cannot be in the past." : null
+                                        }}}
+                                    ampm={false}
+                                    className="w-full"
                                 />
-                        </div>
-                        <div className="flex-1">
-                            <label>Auction End Date and Time</label>
-                            <input
-                                type="dateTime-local"
-                                name="endingTime"
+                            </div>
+                            <div className="flex-1">
+                                <label>Auction End Date and Time</label>
+                                <DateTimePicker
+                                    value={endingTime ? dayjs(endingTime) : null}
+                                    viewRenderers={{
+                                        hours: renderTimeViewClock,
+                                        minutes: renderTimeViewClock,
+                                        seconds: renderTimeViewClock,
+                                    }}
+                                    onChange={(newValue) => {
+                                        setEndingTime(newValue);
+                                    }}
+                                    minDateTime={endingTimeMin}
+                                    format="DD/MM/YYYY HH:mm"
+                                    ampm={false}
+                                    slotProps={{ textField: {
+                                        size: "small",
+                                        error: endTimeError || gapError,
+                                        helperText: endTimeError ? "Cannot be in the past." : gapError ? "There should be at least 6 hours gap" : null
+                                        }}}
+                                    className="w-full"
                                 />
-                        </div>
+                            </div>
+                        </LocalizationProvider>
                     </div>
+                    <p className="text-sm text-gray-600"><strong>Note:</strong> An auction should last for at least 6 hours</p>
+                    <p className="text-sm text-gray-600"><strong>Note:</strong> All times on this page are shown in Sri Lanka Time (GMT+5:30)</p>
                 </div>
 
                 <div className="max-w-4xl w-full flex justify-end gap-2">
@@ -230,12 +500,8 @@ const AddItem = () => {
                             Save as Draft
                     </button>
                     <button 
-                        // type="submit" 
+                        type="submit" 
                         className="bg-[#1e3a5f] text-white hover:bg-[#2d4a6b] rounded-lg py-2 px-4 flex items-center border border-gray-200 shadow-sm cursor-pointer"
-                        onClick={(e) => {
-                            addFlashMessage('success', 'Item Added');
-                            navigate('/auctionMan');
-                        }}
                         >
                         Create Auction Item
                     </button>

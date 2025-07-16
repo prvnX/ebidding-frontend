@@ -9,7 +9,6 @@ import noImage from "../../../assets/mustang.jpg"; // ToDo: Should be replaced b
 
 
 export default ({item}) => {
-
     const { t } = useTranslation();
     
     const handleItemClick = (id) => {
@@ -20,7 +19,11 @@ export default ({item}) => {
         <div className="relative" onClick={() => handleItemClick(item.id)}>
           <div className="relative h-48 overflow-hidden">
             <img
-              src={item.images ? item.images[0] : noImage}
+              src={
+                item.images && item.images.length > 0
+                  ? `http://localhost:8082/${item.caseNumber}-${item.id}/${item.images.find(img => img.cover)?.url || item.images[0].url}`
+                  : noImage
+              }
               alt={item.title}
               className="w-full h-full object-cover transition-transform hover:scale-105"
             />
@@ -36,7 +39,7 @@ export default ({item}) => {
         <div className="px-4 text-xs text-gray-500 mb-2 flex justify-start items-center gap-2">
             <FontAwesomeIcon icon={faLocationDot}/>
             <div className="h-full border-l border-gray-300"></div>
-            <div>{item.locationId}</div>
+            <div>{item.location.name}</div>
         </div>
 
         <div className="px-4 mb-2">
@@ -48,7 +51,7 @@ export default ({item}) => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-gray-500">{t("increment")}</div>
-                <div className="text-sm font-medium">{formatCurrency(item.startingBid)}</div>
+                <div className="text-sm font-medium">{formatCurrency(item.increment)}</div>
               </div>
             </div>
           </div>
