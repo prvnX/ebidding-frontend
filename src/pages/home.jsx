@@ -204,10 +204,10 @@ export default function Home() {
                 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
             {items.map((item) => (
-                item.status === "ending-somon" &&
+                item.status === "ending-soon" &&
                     <Card key={item.id} item={item} />
             ))}
-            { items.filter(item => item.status === "ending-somon").length === 0 &&
+            { items.filter(item => item.status === "ending-soon").length === 0 &&
             <div className="col-span-3 text-center text-gray-500">
                 <FontAwesomeIcon icon={faClock} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noEndingSoonAuctions")}</h2>
@@ -235,9 +235,6 @@ export default function Home() {
            
         </div>}
 
-      <button className="mt-10 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition" onClick={()=> window.location.href = '/about'}>
-        Go to about
-        </button> 
         <Footer />
     </>
     );

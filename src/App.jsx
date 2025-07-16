@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import './App.css'
 import Home from './pages/home'
 import About from './pages/about'
@@ -11,14 +12,26 @@ import AuctionHome from './pages/AuctionMan/home'
 import AddItem from './pages/AuctionMan/addItem'
 import Hello  from './pages/hello'
 import BidderHome from './pages/RegisteredUser/dashboard'
+import ScheduleAuctions from './pages/AuctionMan/scheduleAuctions'
 
-import { Routes,Route } from 'react-router-dom'
+import Dashboard from './pages/RegisteredUser/dashboard';
+
+import Appadmin from './pages/AppAdmin/home'
+
+import ProfilePage from './pages/profile'
+import 'leaflet/dist/leaflet.css';
+import FlashMessageCenter from './flashMessageCenter'
+
+// import MessageToast from './components/ui/messageToast.jsx';
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const location = useLocation();
 
   return (
     <>
+      {/* <MessageToast locationState={location.state} /> */}
+      <FlashMessageCenter />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -26,10 +39,22 @@ function App() {
         <Route path="/register" element={<RegisterPage />}/>
         <Route path="/hello" element={<Hello />}/>
 
+        <Route path="/AppAdmin" element={<Appadmin />} />
+
         <Route path="/item/:itemId" element={<ItemDetails />}/>
         <Route path="/RegisteredUser/dashboard" element={<BidderHome />}/>
         <Route path="/AuctionMan/Home" element={<AuctionHome/> }/>
         <Route path="/AuctionMan/addItem" element={<AddItem/> }/>
+
+        <Route path="/profile" element={<ProfilePage />} />
+        
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route path="/AuctionMan">
+          <Route index element={<AuctionHome />} />
+          <Route path="addItem" element={<AddItem />} />
+          <Route path="scheduleAuctions" element={<ScheduleAuctions />} />
+        </Route>
 
       </Routes>
     </>

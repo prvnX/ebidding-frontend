@@ -1,72 +1,514 @@
-import ImageUploader from "../../components/ui/imageUpload";
+import { useRef, useState, useEffect, use } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleInfo, faClipboardList, faImages, faDollarSign, faCalendarDays, faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
+import CustomHeader from "../../components/custom-header";
+import ImagesUploader from "../../components/ui/imagesUpload";
+import { addFlashMessage } from "../../flashMessageCenter";
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
+
+import custombanner from "../../assets/custom-banner.png";
+import SetLocation from "../../components/setlocation";
+import Footer from "../../components/footer";
+import BredCrumb from "../../components/ui/breadCrumb";
+import axios from "axios";
 
 const AddItem = () => {
-    return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-        <div className="max-w-5xl w-full bg-white shadow-md rounded p-6">
-            <h2 className="text-2xl font-bold mb-6 text-center">Add an Item to the Inventory</h2>
-            <form className="flex">
-                <div className="w-1/3 mr-4">
-                    <label className="block text-sm font-medium">Upload Image</label>
-                    <ImageUploader />
-                    <p className="text-xs text-gray-500 mt-1">Max size: 2MB. Supported formats: JPG, PNG.</p>
-                </div>
-                <div className="form-style flex-1">
 
-                    <div>
-                        <label>Item Name</label>
-                        <input
-                            type="text"
-                            name="itemName"
-                            placeholder="Enter item name"
-                            />
+    const navigate = useNavigate();
+    //Basic information
+
+    const [basicInfo, setBasicInfo] = useState({
+        title: '',
+        caseNumber: '',
+        description: '',
+        category: '',
+        condition: '',
+    });
+
+    const handleBasicInfoChange = (e) => {
+        const { name, value } = e.target;
+        setBasicInfo((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    //Location
+
+    const [locationId, setLocationId] = useState('');
+
+    //Specifications
+
+    const [specs, setSpecs] = useState([{ key: '', value: '' }]);
+
+    const handleSpecChange = (index, field, value) => {
+        const updated = [...specs];
+        updated[index][field] = value;
+        setSpecs(updated);
+    };
+
+    const addRow = () => {
+        setSpecs([...specs, { key: '', value: '' }]);
+    };
+
+    const removeRow = (index) => {
+        const updated = specs.filter((_, i) => i !== index);
+        setSpecs(updated);
+    };
+
+    //Images
+
+    const [coverImage, setCoverImage] = useState('');
+    const [images, setImages] = useState([]);
+
+    //Financial Details
+
+    const [finacInfo, setFinacInfo] = useState({
+        startingBid: '',
+        increment: '',
+        valuation: ''
+    });
+
+    const handleFinacInfoChange = (e) => {
+        const {name, value} = e.target;
+        setFinacInfo((prev) => ({
+            ...prev,
+            [name]: value
+        })
+        )
+    }
+
+    //auction details
+
+    dayjs.extend(utc);
+    dayjs.extend(timezone);
+    
+    // ✅ Set default timezone to Sri Lanka
+    dayjs.tz.setDefault('Asia/Colombo');
+    
+    const initialMinTime = useRef(dayjs().endOf('minute')); // Initialize with current date/time using dayjs
+    const [endingTimeMin, setEndingTimeMin] = useState(initialMinTime.current); // Initialize endingTimeMin with initialMinTime
+    const [startTimeError, setStartTimeError] = useState(false);
+    const [endTimeError, setEndTimerError] = useState(false);
+    const [gapError, setGapError] = useState(false);
+    const [startingTime, setStartingTime] = useState();
+    const [endingTime, setEndingTime] = useState();
+
+    useEffect(() => {
+        const startDate = startingTime ? dayjs(startingTime) : null;
+        const endDate = endingTime ? dayjs(endingTime) : null;
+
+        // Check if start/end dates are in the past
+        // Use dayjs().startOf('minute') for more accurate "now" comparison
+        const isStartInvalid = startDate && startDate.isBefore(initialMinTime.current);
+        const isEndInvalid = endDate && endDate.isBefore(initialMinTime.current);
+
+        // Check if gap is less than 6 hours
+        const isGapInvalid = startDate && endDate && endDate.diff(startDate, 'hour') < 6;
+
+        setStartTimeError(isStartInvalid);
+        setEndTimerError(isEndInvalid);
+        setGapError(isGapInvalid);
+    }, [startingTime, endingTime]);
+
+
+    //Handle form submission
+
+    const handleFormSubmition = (e) => {
+        e.preventDefault();
+        const form = e.target;
+
+        if (form.checkValidity() === false) {
+            addFlashMessage('error', 'Please fill all the required fields.');
+            form.reportValidity();
+            return;
+        }
+
+        if (endTimeError || startTimeError || gapError) {
+            addFlashMessage('error', 'Please provide valid auction dates');
+            return;
+        }
+
+        //convert specs array to object
+        // const specifications = {};
+        // specs.forEach(({key, value}) => {
+        //     if (key && value) specifications[key] = value;
+        // });
+
+
+        const newItem = {
+            ...basicInfo,
+            specs,
+            ...finacInfo,
+            auction: {
+                startingTime,
+                endingTime
+            },
+            location : {
+                id: locationId,
+            }
+        }
+
+        const formData = new FormData();
+        formData.append('item', JSON.stringify(newItem));
+        formData.append("cover", coverImage);  // append cover image
+        images.forEach((imageFile) => {
+            formData.append("images", imageFile);  // append each image with same key
+        });
+
+        for (let pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+
+        axios.post("http://localhost:8082/is/v1/createItem", formData)
+             .then(res => {
+                const {status, data} = res;
+                if (status === 200 && data.success) {
+                    addFlashMessage('success', 'Item added successfully');
+                    navigate('/auctionMan');
+                }
+            })
+            .catch(error => {
+                console.error('Error scheduling auctions:', error);
+                addFlashMessage('error', 'Failed to add item. Please try again.');
+            });
+    }
+
+    return (
+        <>
+            <CustomHeader />
+
+            {/* dashboard header */}
+            <header className="bg-[#1e3a5f] shadow-sm py-1">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-20">
+                        <div className="flex items-center space-x-4">
+                            <img 
+                            src={custombanner} 
+                            alt="Sri Lanka Customs" 
+                            className="hidden md:block h-16 w-auto rounded-lg" 
+                            />              
+                            <div className="md:border-l md:border-[#2d4a6b] pl-4">
+                                <h1 className="text-lg  md:text-2xl font-bold text-white">Add a New Item</h1>
+                                <p className="text-xs md:text-sm text-white/80">Create a new auction item</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <BredCrumb page="Add New Item" breadCrumbs={[
+                { title: "Home", link: "/AuctionMan" },
+            ]} />
+            <form onSubmit={handleFormSubmition} className="flex flex-col items-center justify-center gap-5 px-4 form-style">
+                <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
+                    <div className="flex items-center gap-4">
+                        <FontAwesomeIcon icon={faCircleInfo} size="xl" />
+                        <h2 className="text-2xl font-semibold">Basic Information</h2>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                        Enter the basic information of the item
+                    </p>
+                    <div className="flex flex-col md:flex-row gap-4 my-3">
+                        <div className="flex-1">
+                            <label>Item Title *</label>
+                            <input
+                                type="text"
+                                name="title"
+                                value={basicInfo.title}
+                                onChange={handleBasicInfoChange}
+                                placeholder="Enter item name"
+                                required
+                                />
+                        </div>
+                        <div className="flex-1">
+                            <label>Case Number *</label>
+                            <input
+                                type="text"
+                                name="caseNumber"
+                                value={basicInfo.caseNumber}
+                                onChange={handleBasicInfoChange}
+                                placeholder="Enter item name"
+                                required
+                                />
+                        </div>
                     </div>
 
-                    <div>
-                        <label>Description</label>
+                    <div className="my-3">
+                        <label>Description *</label>
                         <textarea
                             name="description"
-                            placeholder="Enter item description"
+                            value={basicInfo.description}
+                            onChange={handleBasicInfoChange}
+                            placeholder="Detailed description of the item..."
                             rows="4"
+                            required
                         ></textarea>
                     </div>
 
-                    <div>
-                        <label>Category</label>
-                        <select
-                            name="category"
-                        >
-                            <option value="">Select category</option>
-                            <option value="vehicles">Vehicles</option>
-                            <option value="electronics">Electronics</option>
-                            <option value="furniture">Furniture</option>
-                            <option value="clothing">Clothing</option>
-                            <option value="other">Other</option>
-                        </select>
+                    <div className="flex flex-col md:flex-row gap-4 my-3">
+                        <div className="flex-1">
+                            <label>Category *</label>
+                            <select
+                                name="category"
+                                value={basicInfo.category}
+                                onChange={handleBasicInfoChange}
+                                required
+                            >
+                                <option value="">Select category</option>
+                                <option value="Vehicle">Vehicles</option>
+                                <option value="Jewelry">Jewelry</option>
+                                {/* <option value="electronics">Electronics</option>
+                                <option value="furniture">Furniture</option>
+                                <option value="clothing">Clothing</option> */}
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div className="flex-1">
+                            <label>Condition *</label>
+                            <select
+                                name="condition"
+                                value={basicInfo.condition}
+                                onChange={handleBasicInfoChange}
+                                required
+                            >
+                                <option value="">Select Condition</option>
+                                <option value="Excellent">Excellent</option>
+                                <option value="Good">Good</option>
+                                <option value="Fair">Fair</option>
+                                <option value="Poor">Poor</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label>Starting Bid</label>
-                        <input
-                            type="number"
-                            name="startingBid"
-                            placeholder="Enter starting bid amount"
-                            min="0"
-                        />
+                    <div className="flex flex-col md:flex-row gap-4 my-3">
+                        <div className="flex-1">
+                            <label>Location *</label>
+                            <select
+                                name="locationId"
+                                value={basicInfo.locationId}
+                                onChange={(e) => setLocationId(e.target.value)}
+                            >
+                                <option value="">Select Location</option>
+                                <option value="HQ">Head Quarters</option>
+                                {/* <option value="Y-1">Yard 1</option>
+                                <option value="Y-2">Yard 2</option>
+                                <option value="Y-3">Yard 3</option> */}
+                                <option value="Pic">Pic on Map</option>
+                            </select>
+                        </div>
+                        <div className="flex-1">
+                            <label>Address *</label>
+                            <input
+                                name="address"
+                                placeholder="Enter the Addres"
+                                min="0"
+                                // required
+                            />
+                        </div>
                     </div>
-
-                    <div>
-                        <label>Location</label>
-                        <input
-                            type="text"
-                            name="location"
-                            placeholder="Enter item location"
-                        />
+                    <div className="mx-auto aspect-square max-w-100">
+                        <SetLocation />
                     </div>
                 </div>
+
+                <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
+                    <div className="flex items-center gap-4 mb-2">
+                        <FontAwesomeIcon icon={faClipboardList} size="xl" />
+                        <h2 className="text-2xl font-semibold">Specification</h2>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                        Add any additional specifications or details about the item
+                    </p>
+
+                    <div className="space-y-2">
+                        {specs.map((spec, index) => (
+                        <div key={index} className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="Key"
+                                value={spec.key}
+                                onChange={(e) => handleSpecChange(index, 'key', e.target.value)}
+                                className="flex-1 border border-gray-300 rounded px-3 py-1 text-sm"
+                            />
+                            <input
+                                type="text"
+                                placeholder="Value"
+                                value={spec.value}
+                                onChange={(e) => handleSpecChange(index, 'value', e.target.value)}
+                                className="flex-2 border border-gray-300 rounded px-3 py-1 text-sm"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => removeRow(index)}
+                                className="text-red-500 hover:text-red-700"
+                                title="Remove"
+                                >
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        </div>
+                        ))}
+                        <div className="w-full">
+                            <button
+                                type="button"
+                                onClick={addRow}
+                                className="mt-3 ml-auto text-sm text-blue-600 hover:underline flex items-center gap-1"
+                                >
+                                <FontAwesomeIcon icon={faPlus} />
+                            </button>
+                        </div>
+                    </div>
+                    </div>
+
+                <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
+                    <div className="flex items-center gap-4">
+                        <FontAwesomeIcon icon={faImages} size="xl" />
+                        <h2 className="text-2xl font-semibold">Item Images</h2>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                        Upload up to 10 images of the item
+                    </p>
+                    <ImagesUploader images={images} setImages={setImages} coverImage={coverImage} setCoverImage={setCoverImage} />
+                </div>
+
+                <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
+                    <div className="flex items-center gap-4">
+                        <FontAwesomeIcon icon={faDollarSign} size="xl" />
+                        <h2 className="text-2xl font-semibold">Financial Details</h2>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                        Set pricing and valuation information
+                    </p>
+                    <div className="flex flex-col md:flex-row gap-4 my-3">
+                        <div className="flex-1">
+                            <label>Starting Bid *</label>
+                            <input
+                                type="number"
+                                name="startingBid"
+                                value={finacInfo.startingBid}
+                                onChange={handleFinacInfoChange}
+                                placeholder="Enter starting bid"
+                                required
+                                />
+                        </div>
+                        <div className="flex-1">
+                            <label>Increment Value *</label>
+                            <input
+                                type="number"
+                                name="increment"
+                                value={finacInfo.increment}
+                                onChange={handleFinacInfoChange}
+                                placeholder="Enter Increment Value"
+                                required
+                                />
+                        </div>
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-4 my-3">
+                        <div className="flex-1">
+                            <label>Valuation</label>
+                            <input
+                                type="number"
+                                name="startingBid"
+                                placeholder="Enter starting bid"
+                                />
+                        </div>
+                        <div className="flex-1" />
+                    </div>
+                </div>
+                
+                <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
+                    <div className="flex items-center gap-4">
+                        <FontAwesomeIcon icon={faCalendarDays} size="xl" />
+                        <h2 className="text-2xl font-semibold">Auction Dates</h2>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                        This data can also be set later.
+                    </p>
+                    <div className="flex flex-col md:flex-row gap-4 my-3">
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <div className="flex-1">
+                                <label>Auction Start Date and Time</label>
+                                <DateTimePicker
+                                    value={startingTime ? dayjs(startingTime) : null}
+                                    viewRenderers={{
+                                        hours: renderTimeViewClock,
+                                        minutes: renderTimeViewClock,
+                                        seconds: renderTimeViewClock,
+                                    }}
+                                    onChange={(newValue) => {
+                                        // Update the startingDateTime state
+                                        setStartingTime(newValue);
+                                        // Set the minimum for the ending picker to the newly selected starting time
+                                        setEndingTimeMin(newValue ? dayjs(newValue).add(6, 'hour') : initialMinTime.current);
+                                    }}
+                                    minDateTime={initialMinTime.current}
+                                    // Removed maxDateTime prop as startingTimeMax is not defined
+                                    format="DD/MM/YYYY HH:mm"
+                                    slotProps={{ textField: { 
+                                        size: "small", 
+                                        error: startTimeError,
+                                        helperText: startTimeError ? "Cannot be in the past." : null
+                                        }}}
+                                    ampm={false}
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label>Auction End Date and Time</label>
+                                <DateTimePicker
+                                    value={endingTime ? dayjs(endingTime) : null}
+                                    viewRenderers={{
+                                        hours: renderTimeViewClock,
+                                        minutes: renderTimeViewClock,
+                                        seconds: renderTimeViewClock,
+                                    }}
+                                    onChange={(newValue) => {
+                                        setEndingTime(newValue);
+                                    }}
+                                    minDateTime={endingTimeMin}
+                                    format="DD/MM/YYYY HH:mm"
+                                    ampm={false}
+                                    slotProps={{ textField: {
+                                        size: "small",
+                                        error: endTimeError || gapError,
+                                        helperText: endTimeError ? "Cannot be in the past." : gapError ? "There should be at least 6 hours gap" : null
+                                        }}}
+                                    className="w-full"
+                                />
+                            </div>
+                        </LocalizationProvider>
+                    </div>
+                    <p className="text-sm text-gray-600"><strong>Note:</strong> An auction should last for at least 6 hours</p>
+                    <p className="text-sm text-gray-600"><strong>Note:</strong> All times on this page are shown in Sri Lanka Time (GMT+5:30)</p>
+                </div>
+
+                <div className="max-w-4xl w-full flex justify-end gap-2">
+                    <Link
+                        to="/AuctionMan" 
+                        className="bg-white text-[#1e3a5f] hover:bg-[#e0e0ee] rounded-lg py-2 px-4 flex items-center border border-gray-200 shadow-sm cursor-pointer">
+                            Cancel
+                    </Link>
+                    <button 
+                        type="button"
+                        className="bg-white text-[#1e3a5f] hover:bg-[#e0e0ee] rounded-lg py-2 px-4 flex items-center border border-gray-200 shadow-sm cursor-pointer">
+                            Save as Draft
+                    </button>
+                    <button 
+                        type="submit" 
+                        className="bg-[#1e3a5f] text-white hover:bg-[#2d4a6b] rounded-lg py-2 px-4 flex items-center border border-gray-200 shadow-sm cursor-pointer"
+                        >
+                        Create Auction Item
+                    </button>
+                </div>
             </form>
-        </div>
-    </div>
+            <Footer />
+        </>
     );
 }
 

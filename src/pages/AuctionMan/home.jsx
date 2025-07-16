@@ -1,249 +1,239 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { useTranslation } from "react-i18next";
+import CountUp from "react-countup";
+import { Plus, Box, Gavel, Users, CircleDollarSign } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch, faClock, faCheckCircle } from "@fortawesome/free-solid-svg-icons";
-import { Filter } from "lucide-react";
-import { Link } from "react-router-dom";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import { Link, useNavigate } from "react-router-dom";
+import { formatCurrency } from "../../function";
 
-import CustomHeader from "../../components/custom-header";
-import BidderHeader from "../../components/bidder-header";
-import HeroSection from "../../components/hero-header";
+import CustomHeader from "../../components/custom-header"
+import NotSheduled from "../../components/ui/cards/notSheduled";
+import PendingCard from "../../components/ui/cards/pending";
+import Completed from "../../components/ui/cards/completed";
+
+import custombanner from "../../assets/custom-banner.png";
 import Footer from "../../components/footer";
-import Card from "../../components/ui/card";
-
-import avimg from "../../assets/av1.png";
-import mustang from "../../assets/mustang.jpg";
-import royal from "../../assets/royal.jpg";
-import sword from "../../assets/sword.png";
-import bicycle from "../../assets/bicycle.JPG";
-import bronze from "../../assets/bronze.jpg";
-
-export default function Home() {
-    const { t } = useTranslation();
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("all");
-    const [activeTab, setActiveTab] = useState("active");
+import Loading from "../../components/loading";
 
 
-        const items = [
-            {
-                id: 1,
-                title: "Classic Car",
-                description: "A well-maintained 1967 Ford Mustang in original condition.",
-                images: [mustang, "mustang.png"],
-                status: "ending-soon",
-                currentBid: 25000000,
-                startingBid: 2000000,
-                timeLeft: "3 days 4 hours",
-                totalBids: 15,
-                location: "Colombo, Sri Lanka"
-            },
-            {
-                id: 2,
-                title: "Vintage Motorcycle",
-                description: "A rare 1950s Royal Enfield Bullet, fully restored.",
-                images: [royal, "enfield.png"],
-                status: "active",
-                currentBid: 800000,
-                startingBid: 600000,
-                timeLeft: "1 day 8 hours",
-                totalBids: 10,
-                location: "Kandy, Sri Lanka"
-            },
-            {
-                id: 3,
-                title: "Antique Bicycle",
-                description: "Classic Raleigh bicycle from the 1940s, in working order.",
-                images: [bicycle, "bicycle.png"],
-                status: "ending-soon",
-                currentBid: 120000,
-                startingBid: 90000,
-                timeLeft: "2 days 2 hours",
-                totalBids: 7,
-                location: "Galle, Sri Lanka"
-            },
-            {
-                id: 4,
-                title: "Bronze Sculpture",
-                description: "Handcrafted bronze sculpture from the 19th century.",
-                images: [bronze, "sculpture.png"],
-                status: "active",
-                currentBid: 1800000,
-                startingBid: 120000,
-                timeLeft: "2 days 10 hours",
-                totalBids: 18,
-                location: "Negombo, Sri Lanka"
-            },
-            {
-                id: 5,
-                title: "Ancient Sword",
-                description: "An ancient ceremonial sword with intricate designs.",
-                images: [sword, "sword.png"],
-                status: "active",
-                currentBid: 2700,
-                startingBid: 2000,
-                timeLeft: "3 days 8 hours",
-                totalBids: 19,
-                location: "Anuradhapura, Sri Lanka"
-            },
-            {
-                id: 6,
-                title: "Ancient Vass",
-                description: "An ancient vass from Itali.",
-                images: [avimg, "figurine.png"],
-                status: "active",
-                currentBid: 600,
-                startingBid: 400,
-                timeLeft: "8 hours",
-                totalBids: 10,
-                location: "Batticaloa, Sri Lanka"
-            }
-        ];
-    return (
+export default () => {
+  const cards = [
+    {
+      title: 'Total Items',
+      amount: <CountUp start={0} end={234} duration={1} />,
+      icon: Box,
+      color: "text-blue-1000"
+    },
+    {
+      title: 'Total Expenses',
+      amount: formatCurrency(100000),
+      icon: Gavel,
+      color: "text-green-600"
+    },
+    {
+      title: 'Rating',
+      amount: '4.5 Stars',
+      icon: Users,
+      color: "text-blue-400"
+    },
+    {
+      title: 'Total Revenue',
+      amount: formatCurrency(200000),
+      icon: CircleDollarSign,
+      color: "text-orange-500"
+    },
+    {
+      title: 'Pending Items',
+      amount: <CountUp start={0} end={36} duration={1} />,
+      icon: Box,
+      color: "text-purple-500"
+    },
+    {
+      title: 'Ending Soon',
+      amount: <CountUp start={0} end={12} duration={1} />,
+      icon: Box,
+      color: "text-red-500"
+    }
+  ];
+
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  const select = (id, flag) => {
+    if(flag)
+      setSelectedItems([...selectedItems, id]);
+    else
+      setSelectedItems(selectedItems.filter(item => item !== id));
+  }
+
+  const { t } = useTranslation();
+
+  const [notSheduledItems, setNotSheduledItems] = useState([]);
+  const [pendingItems, setPendingItems] = useState([]);
+  const [activeItems, setActiveItems] = useState([]);
+  const [activeTab, setActiveTab] = useState('notSheduled');
+  const [loading, setLoading] = useState(false);
+
+  const fetchItems = () => {
+    setLoading(true);
+
+    const endPoint = activeTab === 'notSheduled' ? 'getItemsNotScheduled' : activeTab === 'pending' ? 'getItemsPending' : 'getItemsActive';
+    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : setActiveItems;
+
+    axios.get(`http://localhost:8082/is/v1/${endPoint}`)
+      .then((response) => {
+        setter(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+
+  useEffect(() => {
+    setSelectedItems([]);
+    fetchItems();
+  }, [activeTab]);
+
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
+    navigate("/auctionman/scheduleauctions");
+  };
+
+  return (
     <>
-        <CustomHeader />
-        <HeroSection />
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div className="flex flex-col md:flex-row gap-4 mb-8">
+      <CustomHeader />
 
-    {/* Search Input */}
-    <div className="flex-1 relative">
-      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-    <div className="relative">
-        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-    <FontAwesomeIcon icon={faSearch} />
-  </span>
-      
-      <input
-        type="text"
-        placeholder={t("searchPlaceholder")}
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-800"
-      />
-    </div>
-    </div>
-
-    <div className="w-full md:w-48">
-      <select
-        value={selectedCategory}
-        onChange={(e) => setSelectedCategory(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="all">{t("allCategories")}</option>
-        <option value="vehicles">{t("vehicles")}</option>
-        <option value="electronics">{t("electronics")}</option>
-        <option value="jewelry">{t("jewelryWatches")}</option>
-        <option value="clothing">{t("clothingAccessories")}</option>
-        <option value="machinery">{t("machinery")}</option>
-        <option value="other">{t("otherItems")}</option>
-      </select>
-    </div>
-    <button
-      type="button"
-      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-    >
-      <Filter size={15} className="mr-2" /> {t("moreFilters")}
-    </button>
-    <Link
-      to="/auctionMan/addItem"
-      className="border px-2 bg-[#1e3a5f] text-white rounded-md cursor-pointe flex items-center justify-center"
-      >
-      Add New Item
-    </Link>
-
-  </div>
-      <div className=" w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
-        <button
-          className={`px-4 py-2 flex-1 text-sm font-medium rounded  cursor-pointer ${
-            activeTab === "yetToStart"
-              ? "bg-white text-black"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => setActiveTab("yetToStart")}
-        >
-          Yet to Start
-        </button>
-
-        <button
-          className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-            activeTab === "active"
-              ? "bg-white text-black"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200 "
-          }`}
-          onClick={() => setActiveTab("active")}
-        >
-          {t("activeAuctionsTab")}
-        </button>
-
-        <button
-          className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-            activeTab === "completed"
-              ? "bg-white text-black"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => setActiveTab("completed")}
-        >
-          {t("completed")}
-        </button>
-      </div>
-    </section>
-        {activeTab === "yetToStart" && 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-          {items.map((item) => (
-            item.status === "yet-to-start" &&
-              <Card key={item.id} item={item} />
-          ))}
-          {items.filter(item => item.status === "yet-to-start").length === 0 && (
-              <div className="col-span-3 text-center text-gray-500">
-                  <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
-                <h2 className="text-xl mb-3 font-semibold">  No Items</h2>
-                <p>No items in the inventory that is not published for auction</p>
+      {/* dashboard header */}
+      <header className="bg-[#1e3a5f] shadow-sm py-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center space-x-4">
+              <img 
+              src={custombanner} 
+              alt="Sri Lanka Customs" 
+              className="hidden md:block h-16 w-auto rounded-lg" 
+              />              
+              <div className="md:border-l md:border-[#2d4a6b] pl-4">
+                <h1 className="text-lg  md:text-2xl font-bold text-white">Auction Management Dashboard</h1>
+                <p className="text-xs md:text-sm text-white/80">Bidding Management System</p>
               </div>
-          )}
+            </div>
+            <Link to="/auctionman/additem" className="bg-white text-[#1e3a5f] hover:bg-[#e0e0ee] rounded-lg py-2 px-4 flex items-center border-1 cursor-pointer">
+              <Plus size={15} className="mr-3"/> Add Items
+            </Link>
+          </div>
         </div>
-        
+      </header>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 max-w-7xl my-5 mx-auto px-4 gap-2 sm:px-6 lg:px-8">
+        {cards.map((card, index) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={index}
+              className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg border border-[#e5e7eb] backdrop-blur-md p-4"
+            >
+              <div className="flex flex-col items-start justify-start">
+                <p>{card.title}</p>
+                <strong><h1 className={`${card.color} text-2xl`}>{card.amount}</h1></strong>
+              </div>
+              <Icon size={30} className={`${card.color}`} />
+            </div>
+      )})}
+      </div>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded  cursor-pointer ${
+              activeTab === "notSheduled"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("notSheduled")}
+          >
+            {t("notSheduled")}
+          </button>
+
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "pending"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 "
+            }`}
+            onClick={() => setActiveTab("pending")}
+          >
+            {t("pending")}
+          </button>
+
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "completed"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("completed")}
+          >
+            {t("active")}
+          </button>
+        </div>
+      </section>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+        {loading ? (
+            <Loading />
+          ) : activeTab === "notSheduled" ? (notSheduledItems.length === 0 ? (
+            <div className="col-span-3 text-center text-gray-500">
+              <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
+              <h2 className="text-xl mb-3 font-semibold">  {t("noNotShedItemsText")}</h2>
+              <p>{t("noNotShedItemsDis")}</p>
+            </div>
+            ) : (
+            notSheduledItems.map((item) => (
+              <NotSheduled key={item.id} item={item} select={select} />
+            ))
+          )) : activeTab === "pending" ? (pendingItems.length === 0 ? (
+            <div className="col-span-3 text-center text-gray-500">
+              <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
+              <h2 className="text-xl mb-3 font-semibold">  {t("noPendingItemsText")}</h2>
+              <p>{t("noPendingItemsDis")}</p>
+            </div>
+            ) : (
+            pendingItems.map((item) => (
+              <PendingCard key={item.id} item={item} />
+            ))
+          )) : (activeItems.length === 0 ? (
+            <div className="col-span-3 text-center text-gray-500">
+              <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
+              <h2 className="text-xl mb-3 font-semibold">  {t("noCompletedItemsText")}</h2>
+              <p>{t("noCompletedItemsDis")}</p>
+            </div>
+            ) : (
+            activeItems.map((item) => (
+              <Completed key={item.id} item={item} />
+            )
+          )))
         }
-
-
-        {activeTab === "active" && 
-                
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-            {items.map((item) => (
-                    <Card key={item.id} item={item} />
-            ))}
-            {items.length === 0 &&
-            <div className="col-span-3 text-center text-gray-500">
-                <FontAwesomeIcon icon={faClock} className="text-4xl mb-4 text-gray-400" />
-              <h2 className="text-xl mb-3 font-semibold">  {t("noActiveAuctions")}</h2>
-              <p>{t("noActiveAuctionsPara")}</p>
-
-            </div>
-            }
-        </div>}
-
-        {activeTab === "completed" &&         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-            {items.map((item) => (
-                item.status === "completed" &&
-                    <Card key={item.id} item={item} />
-            ))}
-
-            { items.filter(item => item.status === "completed").length === 0 &&
-            <div className="col-span-3 text-center text-gray-500">
-                <FontAwesomeIcon icon={faCheckCircle} className="text-4xl mb-4 text-gray-400" />
-              <h2 className="text-xl mb-3 font-semibold">  {t("noCompletedAuctions")}</h2>
-              <p>{t("noCompletedAuctionsPara")}</p>
-
-            </div>
-            }
-           
-        </div>}
-
-      <button className="mt-10 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition" onClick={()=> window.location.href = '/about'}>
-        Go to about
-        </button> 
-        <Footer />
-    </>
-    );
+      </div>
+      { !loading && activeTab === "notSheduled" && notSheduledItems.length > 0 && (
+        <div className="px-5 md:px-20 lg:px-60 my-5 flex gap-2 justify-end">
+          <button
+            onClick={handleClick}
+            className={`bg-[#1e3a5f] text-white hover:bg-[#1e3a5f]/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer ${
+              selectedItems.length > 0 ? "opacity-100" : "opacity-50 pointer-events-none"
+            }`}
+            disabled={selectedItems.length === 0}
+          >
+            <Gavel className="mr-2" />
+            Schedule Auction
+          </button>
+        </div>
+      )}
+      <Footer />
+      </>
+  )
 }
