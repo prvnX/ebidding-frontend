@@ -11,6 +11,7 @@ import AddItem from './pages/AuctionMan/addItem'
 import ScheduleAuctions from './pages/AuctionMan/scheduleAuctions'
 
 import Dashboard from './pages/RegisteredUser/dashboard';
+import AuctionHistory from './pages/RegisteredUser/auctionHistory';
 
 import { Routes,Route } from 'react-router-dom'
 import Appadmin from './pages/AppAdmin/home'
@@ -35,6 +36,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path='/auctionHistory' element={<AuctionHistory />} />
 
         <Route path="/AuctionMan">
           <Route index element={<AuctionHome />} />
