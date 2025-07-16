@@ -9,11 +9,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { formatCurrency } from "../../function";
 
 import CustomHeader from "../../components/custom-header"
+import AuctionManHeader from "../../components/auctionMan-header";
 import NotSheduled from "../../components/ui/cards/notSheduled";
 import PendingCard from "../../components/ui/cards/pending";
+import Active from "../../components/ui/cards/active";
 import Completed from "../../components/ui/cards/completed";
 
-import custombanner from "../../assets/custom-banner.png";
 import Footer from "../../components/footer";
 import Loading from "../../components/loading";
 
@@ -23,38 +24,32 @@ export default () => {
     {
       title: 'Total Items',
       amount: <CountUp start={0} end={234} duration={1} />,
-      icon: Box,
       color: "text-blue-1000"
     },
     {
-      title: 'Total Expenses',
-      amount: formatCurrency(100000),
-      icon: Gavel,
-      color: "text-green-600"
-    },
-    {
-      title: 'Rating',
-      amount: '4.5 Stars',
-      icon: Users,
-      color: "text-blue-400"
-    },
-    {
-      title: 'Total Revenue',
-      amount: formatCurrency(200000),
-      icon: CircleDollarSign,
-      color: "text-orange-500"
+      title: 'Not Sheduled Items',
+      amount: <CountUp start={0} end={234} duration={1} />,
+      color: "text-yellow-600"
     },
     {
       title: 'Pending Items',
-      amount: <CountUp start={0} end={36} duration={1} />,
-      icon: Box,
-      color: "text-purple-500"
+      amount: <CountUp start={0} end={234} duration={1} />,
+      color: "text-blue-700"
+    },
+    {
+      title: 'Active Items',
+      amount: <CountUp start={0} end={234} duration={1} />,
+      color: "text-green-600"
     },
     {
       title: 'Ending Soon',
       amount: <CountUp start={0} end={12} duration={1} />,
-      icon: Box,
-      color: "text-red-500"
+      color: "text-orange-500"
+    },
+    {
+      title: 'Completed Items',
+      amount: <CountUp start={0} end={36} duration={1} />,
+      color: "text-red-800"
     }
   ];
 
@@ -73,13 +68,14 @@ export default () => {
   const [pendingItems, setPendingItems] = useState([]);
   const [activeItems, setActiveItems] = useState([]);
   const [activeTab, setActiveTab] = useState('notSheduled');
+  const [completedItems, setCompletedItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchItems = () => {
     setLoading(true);
 
-    const endPoint = activeTab === 'notSheduled' ? 'getItemsNotScheduled' : activeTab === 'pending' ? 'getItemsPending' : 'getItemsActive';
-    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : setActiveItems;
+    const endPoint = activeTab === 'notSheduled' ? 'getItemsNotScheduled' : activeTab === 'pending' ? 'getItemsPending' : activeTab === 'active' ? 'getItemsActive' : 'getItemsComplete';
+    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : activeTab === 'active' ? setActiveItems : setCompletedItems;
 
     axios.get(`http://localhost:8082/is/v1/${endPoint}`)
       .then((response) => {
@@ -110,26 +106,11 @@ export default () => {
       <CustomHeader />
 
       {/* dashboard header */}
-      <header className="bg-[#1e3a5f] shadow-sm py-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-4">
-              <img 
-              src={custombanner} 
-              alt="Sri Lanka Customs" 
-              className="hidden md:block h-16 w-auto rounded-lg" 
-              />              
-              <div className="md:border-l md:border-[#2d4a6b] pl-4">
-                <h1 className="text-lg  md:text-2xl font-bold text-white">Auction Management Dashboard</h1>
-                <p className="text-xs md:text-sm text-white/80">Bidding Management System</p>
-              </div>
-            </div>
-            <Link to="/auctionman/additem" className="bg-white text-[#1e3a5f] hover:bg-[#e0e0ee] rounded-lg py-2 px-4 flex items-center border-1 cursor-pointer">
-              <Plus size={15} className="mr-3"/> Add Items
-            </Link>
-          </div>
-        </div>
-      </header>
+      <AuctionManHeader>
+        <Link to="/auctionman/additem" className="bg-white text-[#1e3a5f] hover:bg-[#e0e0ee] rounded-lg py-2 px-4 flex items-center border-1 cursor-pointer">
+          <Plus size={15} className="mr-3"/> Add Items
+        </Link>
+      </AuctionManHeader>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 max-w-7xl my-5 mx-auto px-4 gap-2 sm:px-6 lg:px-8">
         {cards.map((card, index) => {
@@ -143,7 +124,6 @@ export default () => {
                 <p>{card.title}</p>
                 <strong><h1 className={`${card.color} text-2xl`}>{card.amount}</h1></strong>
               </div>
-              <Icon size={30} className={`${card.color}`} />
             </div>
       )})}
       </div>
@@ -173,13 +153,24 @@ export default () => {
 
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "active"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("active")}
+          >
+            {t("active")}
+          </button>
+
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
               activeTab === "completed"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
             onClick={() => setActiveTab("completed")}
           >
-            {t("active")}
+            {t("completed")}
           </button>
         </div>
       </section>
@@ -206,17 +197,27 @@ export default () => {
             pendingItems.map((item) => (
               <PendingCard key={item.id} item={item} />
             ))
-          )) : (activeItems.length === 0 ? (
+          )) : activeTab === "active" ? (activeItems.length === 0 ? (
+            <div className="col-span-3 text-center text-gray-500">
+              <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
+              <h2 className="text-xl mb-3 font-semibold">  {t("noActiveItemsText")}</h2>
+              <p>{t("noActiveItemsDis")}</p>
+            </div>
+            ) : (
+            activeItems.map((item) => (
+              <Active key={item.id} item={item} />
+            )
+          ))) : ( completedItems.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noCompletedItemsText")}</h2>
               <p>{t("noCompletedItemsDis")}</p>
             </div>
             ) : (
-            activeItems.map((item) => (
+            completedItems.map((item) => (
               <Completed key={item.id} item={item} />
-            )
-          )))
+            ))
+          ))
         }
       </div>
       { !loading && activeTab === "notSheduled" && notSheduledItems.length > 0 && (

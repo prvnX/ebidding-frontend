@@ -148,7 +148,6 @@ export default () => {
     const navigate = useNavigate();
 
     const schedule = useCallback(() => {
-        console.log(items);
         const itemsToSchedule = items.map(item => (
             {
                 id: item.id,
@@ -163,6 +162,8 @@ export default () => {
             if (status === 200 && data.success) {
                 addFlashMessage('success', 'Auctions scheduled successfully');
                 navigate('/auctionMan');
+            } else {
+                addFlashMessage('error', 'Failed to schedule auctions. Please try again.');
             }
         })
         .catch(error => {

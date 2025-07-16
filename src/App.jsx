@@ -10,6 +10,7 @@ import ItemDetails from './pages/item_details'
 import AuctionHome from './pages/AuctionMan/home'
 import AddItem from './pages/AuctionMan/addItem'
 import ScheduleAuctions from './pages/AuctionMan/scheduleAuctions'
+import AuctionManItemDetails from './pages/AuctionMan/item_details'
 
 import Dashboard from './pages/RegisteredUser/dashboard';
 
@@ -46,6 +47,7 @@ function App() {
           <Route index element={<AuctionHome />} />
           <Route path="addItem" element={<AddItem />} />
           <Route path="scheduleAuctions" element={<ScheduleAuctions />} />
+          <Route path="item/:itemId" element={<AuctionManItemDetails />} />
         </Route>
 
       </Routes>

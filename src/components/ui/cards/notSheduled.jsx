@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSquareCheck } from '@fortawesome/free-solid-svg-icons';
 import { faSquare } from '@fortawesome/free-regular-svg-icons';
@@ -6,10 +7,14 @@ import { faLocationDot } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import { formatCurrency } from "../../../function";
 
-import noImage from "../../../assets/mustang.jpg"; // ToDo: Should be replaced by a proper 'No image'
+import noImage from "../../../assets/ImageNotAvailable.png";
 
 
 export default ({item, select}) => {
+    const navigate = useNavigate();
+    const handleItemClick = (id) => {
+        navigate(`/AuctionMan/item/${id}`);
+    };
     const [isSelected, setSelected] = useState(false);
     const handleSelct = (e, flag) => {
         e.stopPropagation(); // Prevent triggering the item click
@@ -17,22 +22,24 @@ export default ({item, select}) => {
         setSelected(flag);
     }
     const { t } = useTranslation();
-    const handleItemClick = (id) => {
-        console.log(`Item clicked: ${id}`);
-    };
     return(
       <div key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer rounded-md bg-white shadow-sm gap-0 pb-1 grid grid-rows-[subgrid] row-span-6">
         <div className="relative" onClick={() => handleItemClick(item.id)}>
           <div className="relative h-48 overflow-hidden">
-            <img
-              src={
-                item.images && item.images.length > 0
-                  ? `http://localhost:8082/${item.caseNumber}-${item.id}/${item.images.find(img => img.cover)?.url || item.images[0].url}`
-                  : noImage
-              }
-              alt={item.title}
-              className="w-full h-full object-cover transition-transform hover:scale-105"
-            />
+            {item.images && item.images.length > 0 ? (
+              <img
+                src={`http://localhost:8082/${item.caseNumber}-${item.id}/${item.images.find(img => img.cover)?.url || item.images[0].url}`}
+                alt={item.title}
+                className="w-full h-full object-cover transition-transform hover:scale-105"
+              />
+            ) : (
+              <img
+                src={noImage}
+                alt={item.title}
+                className="w-full h-full object-contain transition-transform hover:scale-105"
+              />
+            )
+            }
             {item.images?.length > 1 && (
               <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
                 +{item.images.length - 1} {t("more")}
