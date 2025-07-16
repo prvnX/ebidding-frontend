@@ -1,155 +1,205 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react';
+import { login } from './authApi';
+import useAuthStore from '../components/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 
-
-export default function Loginpage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false,
-  })
-
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+const Loginpage = () => {
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value,
-    })
-  }
+  const { jwtToken, role, username } = useAuthStore();
 
   const validateForm = () => {
-    const { email, password } = formData
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email.')
-      return false
+    if (!formData.username || !formData.password) {
+      setError('Both username and password are required.');
+      return false;
     }
-    if (!password || password.length < 6) {
-      setError('Password must be at least 6 characters.')
-      return false
-    }
-    setError('')
-    return true
-  }
+    return true;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
+    e.preventDefault();
+    setIsLoading(true);
+    setSuccess('');
+    setError('');
 
-    setIsLoading(true)
-    setSuccess('')
-    setError('')
+    if (!validateForm()) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise((res) => setTimeout(res, 1000))
-
-      // Example login condition (you would replace this with your API logic)
-      if (
-        formData.email === 'admin@customs.gov.lk' &&
-        formData.password === 'admin123'
-      ) {        
-        setSuccess('Login successful!')
-        // Redirect to dashboard
-        navigate('/dashboard');
+      const data = await login({ username: formData.username, password: formData.password });
+      setSuccess('Login successful!');
+      
+      if (data.role === 'Bidder') {
+        navigate('/RegisteredUser/dashboard');
+      } else if (data.role === 'AuctionManager') {
+        navigate('/auction/dashboard');
+      } else if (data.role === 'UserManager') {
+        navigate('/user-manager/overview');
       } else {
-        setError('Invalid credentials.')
+        navigate('/unauthorized');
       }
     } catch (err) {
-      setError('Something went wrong. Please try again.')
+      setError(err.message);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    console.log('Current jwtToken in useEffect:', jwtToken);
+    if (jwtToken) {
+      navigate('/hello');
+    }
+  }, [jwtToken, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="max-w-md w-full bg-white shadow-md rounded p-6">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div className="min-h-screen flex items-center justify-center relative">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://www.maga.lk/wp-content/uploads/2015/04/103-customs-headquarters-10.jpg')`,
+        }}
+      >
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-[#1e3a5f]/40"></div>
+      </div>
 
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-        {success && <p className="text-green-600 text-sm mb-4">{success}</p>}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="admin@customs.gov.lk"
-              disabled={isLoading}
-              className="w-full mt-1 px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                disabled={isLoading}
-                className="w-full mt-1 px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500"
+      {/* Login Form */}
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-white/95 backdrop-blur-sm border border-[#2e4a7f] shadow-2xl rounded-lg">
+          <div className="space-y-1 text-center p-6">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-[#1e3a5f] flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                {showPassword ? '🙈' : '👁️'}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-[#152a4a]">Sri Lanka Customs</h2>
+            <p className="text-[#1e3a5f]">Enter your credentials to access your account</p>
+          </div>
+          <div className="space-y-4 p-6">
+            {error && (
+              <p className="text-red-600 text-sm text-center" id="error-message">
+                {error}
+              </p>
+            )}
+            {success && <p className="text-green-600 text-sm text-center">{success}</p>}
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete='off'>
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-[#152a4a] font-medium">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="202243589736"
+                  autoComplete='off'
+                  required
+                  disabled={isLoading}
+                  aria-describedby={error ? 'error-message' : undefined}
+                  className="w-full border border-[#2e4a7f] focus:border-[#1e3a5f] focus:ring focus:ring-[#1e3a5f] focus:ring-opacity-50 rounded-md p-2"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-[#152a4a] font-medium">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    autoComplete='off'
+                    placeholder="••••••••"
+                    required
+                    disabled={isLoading}
+                    aria-describedby={error ? 'error-message' : undefined}
+                    className="w-full border border-[#2e4a7f] focus:border-[#1e3a5f] focus:ring focus:ring-[#1e3a5f] focus:ring-opacity-50 rounded-md p-2 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute top-1/2 right-3 -translate-y-1/2 text-[#1e3a5f]"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center space-x-2 text-[#1e3a5f]">
+                  <input
+                    type="checkbox"
+                    name="rememberMe"
+                    checked={formData.rememberMe}
+                    onChange={handleChange}
+                    className="rounded border-[#2e4a7f] text-[#1e3a5f] focus:ring-[#1e3a5f]"
+                  />
+                  <span>Remember me</span>
+                </label>
+                <a href="#" className="text-[#1e3a5f] hover:text-[#152a4a] hover:underline">
+                  Forgot password?
+                </a>
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#1e3a5f] hover:bg-[#152a4a] text-white font-medium py-2.5 rounded-md cursor-pointer disabled:opacity-50"
+              >
+                {isLoading ? 'Logging in...' : 'Sign In'}
               </button>
+            </form>
+            <p className="text-center text-sm text-[#1e3a5f]">
+              Don’t have an account?{' '}
+              <a href="/register" className="text-[#1e3a5f] hover:text-[#152a4a] hover:underline font-medium">
+                Register
+              </a>
+            </p>
+            {import.meta.env.VITE_NODE_ENV !== 'production' && (
+              <div className="mt-6 bg-[#f3f4f6] p-3 rounded text-xs text-[#1e3a5f]">
+                <p className="font-medium mb-1">Demo Credentials:</p>
+                <p>Email: admin@customs.gov.lk</p>
+                <p>Password: admin123</p>
+              </div>
+            )}
+            <div className="text-center text-sm text-[#1e3a5f]">
+              Need help?{' '}
+              <a href="#" className="text-[#1e3a5f] hover:text-[#152a4a] hover:underline font-medium">
+                Contact Support
+              </a>
             </div>
           </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-              />
-              Remember Me
-            </label>
-            <a href="#" className="text-blue-600 hover:underline">
-              Forgot Password?
-            </a>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-900 text-white py-2 rounded-lg hover:bg-blue-800 transition"
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-
-        <p className="mt-4 text-sm text-center text-gray-600">
-          Don’t have an account?{' '}
-          <a href="/register" className="text-blue-600 hover:underline">
-            Register
-          </a>
-        </p>
-
-        {/* Demo Credentials */}
-        <div className="mt-6 bg-gray-100 p-3 rounded text-xs text-gray-600">
-          <p className="font-medium mb-1">Demo Credentials:</p>
-          <p>Email: admin@customs.gov.lk</p>
-          <p>Password: admin123</p>
         </div>
       </div>
     </div>
-  )
+  );
 }
+
+export default Loginpage;
