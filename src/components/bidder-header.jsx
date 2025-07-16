@@ -33,7 +33,7 @@ export default function BidderHeader() {
               <button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer" onClick={()=> window.location.href = '/login'}>
                 Login
               </button>
-              <button size="sm" className="bg-white text-[#1e3a5f] hover:bg-white/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer">
+              <button size="sm" className="bg-white text-[#1e3a5f] hover:bg-white/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer" onClick={()=> window.location.href = '/register'}>
                 Register
               </button>
             </div>
