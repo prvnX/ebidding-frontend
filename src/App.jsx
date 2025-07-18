@@ -16,6 +16,8 @@ import ScheduleAuctions from './pages/AuctionMan/scheduleAuctions'
 import AuctionManItemDetails from './pages/AuctionMan/item_details'
 
 import Dashboard from './pages/RegisteredUser/dashboard';
+import AuctionHistory from './pages/RegisteredUser/auctionHistory';
+import AuctionSummary from './pages/RegisteredUser/auctionSummary';
 
 import Appadmin from './pages/AppAdmin/home'
 
@@ -50,6 +52,8 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path='/auctionHistory' element={<AuctionHistory />} />
+        <Route path="/auctionSummary" element={<AuctionSummary />}/>
 
         <Route path="/AuctionMan">
           <Route index element={<AuctionHome />} />
