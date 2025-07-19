@@ -21,6 +21,8 @@ import AuctionSummary from './pages/RegisteredUser/auctionSummary';
 
 import Appadmin from './pages/AppAdmin/home'
 
+import InventoryManagerHome from './pages/InventoryManager/home'
+
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
 import FlashMessageCenter from './flashMessageCenter'
@@ -64,6 +66,8 @@ function App() {
           <Route path="scheduleAuctions" element={<ScheduleAuctions />} />
           <Route path="item/:itemId" element={<AuctionManItemDetails />} />
         </Route>
+
+        <Route path="/InventoryManager" element={<InventoryManagerHome />} />
 
       </Routes>
     </>
