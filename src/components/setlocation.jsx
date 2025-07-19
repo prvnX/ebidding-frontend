@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLocation } from '@fortawesome/free-solid-svg-icons';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { toast } from 'react-toastify';
 import { addFlashMessage } from "../flashMessageCenter";
 
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -45,7 +46,8 @@ export default function SetLocation({selectedLocation, setSelectedLocation}) {
 
   function handleGetCurrentLocation() {
     if (!navigator.geolocation) {
-      addFlashMessage("error", "Geolocation is not supported by your browser.");
+      // addFlashMessage("error", "Geolocation is not supported by your browser.");
+      toast.error("Geolocation is not supported by your browser.");
       return;
     }
 
@@ -53,10 +55,12 @@ export default function SetLocation({selectedLocation, setSelectedLocation}) {
       (position) => {
         setSelectedLocation([position.coords.latitude, position.coords.longitude]);
         if (position.coords.accuracy > 1000)
-          addFlashMessage("info", "Location may be inaccurate on devices without GPS. Please make sure it's correct.");
+          // addFlashMessage("info", "Location may be inaccurate on devices without GPS. Please make sure it's correct.");
+          toast.info("Location may be inaccurate on devices without GPS. Please make sure it's correct.");
       },
       () => {
-        addFlashMessage("error", "Unable to retrieve your location. Please allow location access in your browser settings.");
+        // addFlashMessage("error", "Unable to retrieve your location. Please allow location access in your browser settings.");
+        toast.error("Unable to retrieve your location. Please allow location access in your browser settings.");
       }
     );
   }

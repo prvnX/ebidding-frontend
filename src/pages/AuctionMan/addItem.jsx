@@ -5,6 +5,7 @@ import { faCircleInfo, faClipboardList, faImages, faDollarSign, faCalendarDays, 
 import CustomHeader from "../../components/custom-header";
 import ImagesUploader from "../../components/ui/imagesUpload";
 import { addFlashMessage } from "../../flashMessageCenter";
+import { toast } from "react-toastify";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -158,13 +159,15 @@ const AddItem = () => {
         const form = e.target;
 
         if (form.checkValidity() === false) {
-            addFlashMessage('error', 'Please fill all the required fields.');
+            // addFlashMessage('error', 'Please fill all the required fields.');
+            toast.error("Please fill all the required fields.")
             form.reportValidity();
             return;
         }
 
         if (endTimeError || startTimeError || gapError) {
-            addFlashMessage('error', 'Please provide valid auction dates');
+            // addFlashMessage('error', 'Please provide valid auction dates');
+            toast.error("Please provide valid auction dates");
             return;
         }
 
@@ -203,13 +206,15 @@ const AddItem = () => {
              .then(res => {
                 const {status, data} = res;
                 if (status === 200 && data.success) {
-                    addFlashMessage('success', 'Item added successfully');
+                    // addFlashMessage('success', 'Item added successfully');
+                    toast.success("Item added successfully");
                     navigate('/auctionMan');
                 }
             })
             .catch(error => {
                 console.error('Error scheduling auctions:', error);
-                addFlashMessage('error', 'Failed to add item. Please try again.');
+                // addFlashMessage('error', 'Failed to add item. Please try again.');
+                toast.error("Failed to add item. Please try again.");
             });
     }
 
