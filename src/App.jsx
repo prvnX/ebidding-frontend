@@ -20,6 +20,7 @@ import AuctionHistory from './pages/RegisteredUser/auctionHistory';
 import AuctionSummary from './pages/RegisteredUser/auctionSummary';
 
 import Appadmin from './pages/AppAdmin/home'
+import AddUser from './pages/AppAdmin/addUser'
 
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
@@ -42,12 +43,13 @@ function App() {
         <Route path="/register" element={<RegisterPage />}/>
         <Route path="/hello" element={<Hello />}/>
 
-        <Route path="/AppAdmin" element={<Appadmin />} />
+        <Route path="/AppAdmin">
+          <Route index element={<Appadmin />} />
+          <Route path="addUser" element={<AddUser />} />
+        </Route>
 
         <Route path="/item/:itemId" element={<ItemDetails />}/>
         <Route path="/RegisteredUser/dashboard" element={<BidderHome />}/>
-        <Route path="/AuctionMan/Home" element={<AuctionHome/> }/>
-        <Route path="/AuctionMan/addItem" element={<AddItem/> }/>
 
         <Route path="/profile" element={<ProfilePage />} />
         

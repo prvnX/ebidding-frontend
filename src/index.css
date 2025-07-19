@@ -17,5 +17,10 @@
     & select {
       @apply flex w-full rounded-md border border-gray-200 px-3 py-2 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm;
     }
+
+    & input[readonly],
+    & textarea[readonly] {
+      @apply bg-gray-100 text-gray-500 cursor-not-allowed;
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, use } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleInfo, faClipboardList, faImages, faDollarSign, faCalendarDays, faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
@@ -14,7 +14,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 
 import custombanner from "../../assets/custom-banner.png";
-import SetLocation from "../../components/setlocation";
+import LocationMap from "../../components/locationmap";
 import Footer from "../../components/footer";
 import BredCrumb from "../../components/ui/breadCrumb";
 import axios from "axios";
@@ -42,7 +42,39 @@ const AddItem = () => {
 
     //Location
 
-    const [locationId, setLocationId] = useState('');
+    const [locationDetails, setLocationDetails] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState({});
+
+    const handleLocationChange = useCallback((e) => {
+        if(!e.target.value) {
+            setSelectedLocation({});
+            return;
+        }
+        let loc = locationDetails.find(location => location.id == e.target.value);
+        if (!loc) {
+            setSelectedLocation({});
+            return;
+        }
+        setSelectedLocation(
+            {
+                id: loc.id,
+                position: [loc.latitude, loc.longitude],
+                name: loc.name,
+                address: loc.address
+            }
+        )
+    })
+    
+
+    useEffect(() => {
+        axios.get('http://localhost:8082/is/v1/allLocations')
+            .then(response => {
+                setLocationDetails(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching location details:", error);
+            });
+    }, []);
 
     //Specifications
 
@@ -152,7 +184,7 @@ const AddItem = () => {
                 endingTime
             },
             location : {
-                id: locationId,
+                id: selectedLocation.id,
             }
         }
 
@@ -292,29 +324,27 @@ const AddItem = () => {
                             <label>Location *</label>
                             <select
                                 name="locationId"
-                                value={basicInfo.locationId}
-                                onChange={(e) => setLocationId(e.target.value)}
+                                value={selectedLocation.id || ''}
+                                onChange={handleLocationChange}
                             >
                                 <option value="">Select Location</option>
-                                <option value="HQ">Head Quarters</option>
-                                {/* <option value="Y-1">Yard 1</option>
-                                <option value="Y-2">Yard 2</option>
-                                <option value="Y-3">Yard 3</option> */}
-                                <option value="Pic">Pic on Map</option>
+                                {locationDetails && locationDetails.map((location, index) => (
+                                    <option key={index} value={location.id}>{location.name}</option>
+                                ))}
                             </select>
                         </div>
                         <div className="flex-1">
-                            <label>Address *</label>
+                            <label>Address</label>
                             <input
-                                name="address"
-                                placeholder="Enter the Addres"
+                                placeholder="Select the location first, address will be auto-filled"
                                 min="0"
-                                // required
+                                value={selectedLocation.address}
+                                readOnly
                             />
                         </div>
                     </div>
                     <div className="mx-auto aspect-square max-w-100">
-                        <SetLocation />
+                        <LocationMap itemDetail={selectedLocation} />
                     </div>
                 </div>
 

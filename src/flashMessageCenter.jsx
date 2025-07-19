@@ -1,6 +1,6 @@
 import { createContext, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faTimesCircle, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faTimesCircle, faTimes, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 /**
  * FlashMessageCenter - a global message UI with context
@@ -45,20 +45,19 @@ const FlashMessageCenter = () => {
   return (
     <FlashMessageContext.Provider value={{ addMessage }}>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30 z-40" />
+      <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setMessages(prev => prev.slice(1))} onDoubleClick={() => setMessages([])} />
 
       {/* Messages */}
       <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 space-y-3">
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`min-w-[280px] max-w-md px-5 py-3 rounded-lg shadow-lg flex items-center justify-between gap-3 select-none transition-all duration-300
-              ${msg.type === 'success' ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-red-500 text-white hover:bg-red-600'}
-            `}
+            className={`min-w-[280px] max-w-md px-5 py-3 rounded-lg shadow-lg flex items-center justify-between gap-3 select-none transition-all duration-300 text-white
+              ${msg.type === 'success' ? 'bg-green-500 hover:bg-green-600' : msg.type === 'error' ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-500 hover:bg-gray-600'}`}
           >
             <div className="flex items-center gap-3">
               <FontAwesomeIcon
-                icon={msg.type === 'success' ? faCheckCircle : faTimesCircle}
+                icon={msg.type === 'success' ? faCheckCircle : msg.type === 'error' ? faTimesCircle : faInfoCircle}
                 className="text-xl"
               />
               <span className="font-semibold">{msg.text}</span>
