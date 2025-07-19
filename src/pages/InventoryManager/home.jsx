@@ -20,7 +20,8 @@ import {
   faPrint,
   faFileExport,
   faPhone,
-  faIdCard
+  faIdCard,
+  faInfo
 } from "@fortawesome/free-solid-svg-icons";
 
 import CustomHeader from "../../components/custom-header";
@@ -140,6 +141,14 @@ export default function InventoryManagerHome() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showInspectionModal, setShowInspectionModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [showReleaseModal, setShowReleaseModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [notification, setNotification] = useState({ show: false, message: "", type: "" });
+  const [editForm, setEditForm] = useState({});
 
   const stats = [
     {
@@ -213,8 +222,97 @@ export default function InventoryManagerHome() {
     setShowInspectionModal(true);
   };
 
+  // Notification helper
+  const showNotification = (message, type = "success") => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: "", type: "" }), 3000);
+  };
+
+  // Handle Release Process
+  const handleRelease = (item) => {
+    setSelectedItem(item);
+    setShowReleaseModal(true);
+  };
+
+  const processRelease = () => {
+    // Simulate release process
+    showNotification(`Item ${selectedItem.itemName} has been successfully released!`, "success");
+    setShowReleaseModal(false);
+    setSelectedItem(null);
+  };
+
+  // Handle Edit Functions
+  const handleEdit = (item) => {
+    setSelectedItem(item);
+    setEditForm({
+      itemName: item.itemName,
+      status: item.status,
+      inspectionNotes: item.inspection.notes,
+      inspector: item.inspection.inspector
+    });
+    setShowEditModal(true);
+  };
+
+  const saveEdit = () => {
+    showNotification(`Item ${selectedItem.itemName} has been updated successfully!`, "success");
+    setShowEditModal(false);
+    setSelectedItem(null);
+    setEditForm({});
+  };
+
+  // Handle Export Functions
+  const handleExport = (type) => {
+    setShowExportModal(false);
+    showNotification(`${type} export started! Download will begin shortly.`, "info");
+  };
+
+  // Handle Report Generation
+  const generateReport = (reportType) => {
+    setSelectedReport(reportType);
+    setShowReportModal(true);
+  };
+
+  const confirmReportGeneration = () => {
+    showNotification(`${selectedReport.name} is being generated. You'll receive it via email.`, "info");
+    setShowReportModal(false);
+    setSelectedReport(null);
+  };
+
+  // Handle Refresh
+  const handleRefresh = () => {
+    showNotification("Data refreshed successfully!", "success");
+  };
+
+  // Handle More Filters
+  const handleMoreFilters = () => {
+    setShowFilterModal(true);
+  };
+
+  const applyFilters = () => {
+    setShowFilterModal(false);
+    showNotification("Filters applied successfully!", "info");
+  };
+
   return (
     <>
+      {/* Notification Toast */}
+      {notification.show && (
+        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg border-l-4 ${
+          notification.type === "success" ? "bg-green-50 border-green-500 text-green-800" :
+          notification.type === "error" ? "bg-red-50 border-red-500 text-red-800" :
+          "bg-blue-50 border-blue-500 text-blue-800"
+        }`}>
+          <div className="flex items-center space-x-2">
+            <FontAwesomeIcon 
+              icon={notification.type === "success" ? faCheckCircle : 
+                    notification.type === "error" ? faExclamationTriangle : faInfo} 
+              className="text-lg" 
+            />
+            <span className="font-medium">{notification.message}</span>
+          </div>
+        </div>
+      )}
+
       <CustomHeader />
       {/* Custom Header for Inventory Manager - without login/register buttons */}
       <header className="bg-[#1e3a5f] shadow-sm py-1">  
@@ -250,10 +348,6 @@ export default function InventoryManagerHome() {
                 <h1 className="text-2xl font-bold mb-1">Yard Management</h1>
                 <p className="text-blue-100 text-sm">Item Release & Inventory Control</p>
                 <div className="flex items-center mt-2 space-x-3">
-                  <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
-                    <FontAwesomeIcon icon={faQrcode} className="mr-1" />
-                    Scan QR
-                  </span>
                   <span className="text-blue-100 text-xs">Colombo Port Yard Manager: Manager Silva</span>
                 </div>
               </div>
@@ -371,11 +465,17 @@ export default function InventoryManagerHome() {
                   <option value="Overdue Collection">Overdue Collection</option>
                   <option value="Released">Released</option>
                 </select>
-                <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <button 
+                  onClick={handleMoreFilters}
+                  className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                >
                   <FontAwesomeIcon icon={faFilter} className="mr-2" />
                   More Filters
                 </button>
-                <button className="flex items-center px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b]">
+                <button 
+                  onClick={handleRefresh}
+                  className="flex items-center px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b] transition-colors"
+                >
                   <FontAwesomeIcon icon={faSync} className="mr-2" />
                   Refresh
                 </button>
@@ -585,14 +685,18 @@ export default function InventoryManagerHome() {
                             <FontAwesomeIcon icon={faEye} className="group-hover:scale-110 transition-transform" />
                           </button>
                           {item.status === "Ready for Release" && (
-                            <button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center">
+                            <button 
+                              onClick={() => handleRelease(item)}
+                              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
+                            >
                               <FontAwesomeIcon icon={faTruck} className="mr-1.5" />
                               Release
                             </button>
                           )}
                           <button 
+                            onClick={() => handleEdit(item)}
                             className="bg-gray-100 hover:bg-gray-200 text-gray-600 p-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                            title="More Options"
+                            title="Edit Item"
                           >
                             <FontAwesomeIcon icon={faEdit} />
                           </button>
@@ -611,11 +715,17 @@ export default function InventoryManagerHome() {
                   Showing <span className="font-semibold">{filteredData.length}</span> items
                 </div>
                 <div className="flex items-center space-x-2">
-                  <button className="bg-white border border-gray-300 text-gray-600 px-3 py-1.5 rounded-md text-xs hover:bg-gray-50 transition-colors">
+                  <button 
+                    onClick={() => setShowExportModal(true)}
+                    className="bg-white border border-gray-300 text-gray-600 px-3 py-1.5 rounded-md text-xs hover:bg-gray-50 transition-colors"
+                  >
                     <FontAwesomeIcon icon={faFileExport} className="mr-1" />
                     Export
                   </button>
-                  <button className="bg-[#1e3a5f] text-white px-3 py-1.5 rounded-md text-xs hover:bg-[#2c4a6b] transition-colors">
+                  <button 
+                    onClick={() => handleExport("Print")}
+                    className="bg-[#1e3a5f] text-white px-3 py-1.5 rounded-md text-xs hover:bg-[#2c4a6b] transition-colors"
+                  >
                     <FontAwesomeIcon icon={faPrint} className="mr-1" />
                     Print
                   </button>
@@ -654,11 +764,17 @@ export default function InventoryManagerHome() {
                   <option value="Overdue Collection">Overdue Collection</option>
                   <option value="Released">Released</option>
                 </select>
-                <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <button 
+                  onClick={handleMoreFilters}
+                  className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                >
                   <FontAwesomeIcon icon={faFilter} className="mr-2" />
                   More Filters
                 </button>
-                <button className="flex items-center px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b]">
+                <button 
+                  onClick={handleRefresh}
+                  className="flex items-center px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b] transition-colors"
+                >
                   <FontAwesomeIcon icon={faSync} className="mr-2" />
                   Refresh
                 </button>
@@ -727,7 +843,10 @@ export default function InventoryManagerHome() {
                       </div>
                     </div>
                     {item.status === "Ready for Release" && (
-                      <button className="w-full mt-4 bg-[#1e3a5f] text-white py-2 rounded-md hover:bg-[#2c4a6b] transition-colors">
+                      <button 
+                        onClick={() => handleRelease(item)}
+                        className="w-full mt-4 bg-[#1e3a5f] text-white py-2 rounded-md hover:bg-[#2c4a6b] transition-colors"
+                      >
                         Process Release
                       </button>
                     )}
@@ -775,11 +894,17 @@ export default function InventoryManagerHome() {
                   <option value="Overdue Collection">Overdue Collection</option>
                   <option value="Released">Released</option>
                 </select>
-                <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <button 
+                  onClick={handleMoreFilters}
+                  className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                >
                   <FontAwesomeIcon icon={faFilter} className="mr-2" />
                   More Filters
                 </button>
-                <button className="flex items-center px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b]">
+                <button 
+                  onClick={handleRefresh}
+                  className="flex items-center px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b] transition-colors"
+                >
                   <FontAwesomeIcon icon={faSync} className="mr-2" />
                   Refresh
                 </button>
@@ -881,7 +1006,10 @@ export default function InventoryManagerHome() {
                         <FontAwesomeIcon icon={faEye} className="mr-1" />
                         View
                       </button>
-                      <button className="flex items-center px-2 py-1 text-xs bg-[#1e3a5f] text-white rounded hover:bg-[#2c4a6b] transition-colors">
+                      <button 
+                        onClick={() => handleEdit(item)}
+                        className="flex items-center px-2 py-1 text-xs bg-[#1e3a5f] text-white rounded hover:bg-[#2c4a6b] transition-colors"
+                      >
                         <FontAwesomeIcon icon={faEdit} className="mr-1" />
                         Edit
                       </button>
@@ -903,7 +1031,10 @@ export default function InventoryManagerHome() {
             <div className="p-6">
               {/* Quick Report Generation */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <button className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 text-left hover:shadow-md transition-all">
+                <button 
+                  onClick={() => generateReport({name: "Daily Report", type: "daily"})}
+                  className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 text-left hover:shadow-md transition-all"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <FontAwesomeIcon icon={faFileExport} className="text-2xl text-blue-600" />
                     <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">Daily</span>
@@ -912,7 +1043,10 @@ export default function InventoryManagerHome() {
                   <p className="text-xs text-gray-600">Generate today's activity summary</p>
                 </button>
 
-                <button className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-4 text-left hover:shadow-md transition-all">
+                <button 
+                  onClick={() => generateReport({name: "Weekly Summary", type: "weekly"})}
+                  className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-4 text-left hover:shadow-md transition-all"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <FontAwesomeIcon icon={faChartBar} className="text-2xl text-green-600" />
                     <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">Weekly</span>
@@ -921,7 +1055,10 @@ export default function InventoryManagerHome() {
                   <p className="text-xs text-gray-600">7-day performance overview</p>
                 </button>
 
-                <button className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4 text-left hover:shadow-md transition-all">
+                <button 
+                  onClick={() => generateReport({name: "Monthly Report", type: "monthly"})}
+                  className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4 text-left hover:shadow-md transition-all"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <FontAwesomeIcon icon={faPrint} className="text-2xl text-purple-600" />
                     <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">Monthly</span>
@@ -930,7 +1067,10 @@ export default function InventoryManagerHome() {
                   <p className="text-xs text-gray-600">Complete monthly analysis</p>
                 </button>
 
-                <button className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-4 text-left hover:shadow-md transition-all">
+                <button 
+                  onClick={() => generateReport({name: "Custom Report", type: "custom"})}
+                  className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-4 text-left hover:shadow-md transition-all"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <FontAwesomeIcon icon={faSync} className="text-2xl text-orange-600" />
                     <span className="bg-orange-600 text-white text-xs px-2 py-1 rounded-full">Custom</span>
@@ -962,7 +1102,10 @@ export default function InventoryManagerHome() {
                             <div className="text-xs text-gray-600">{report.desc}</div>
                           </div>
                         </div>
-                        <button className="bg-[#1e3a5f] text-white px-3 py-1 rounded text-xs hover:bg-[#2c4a6b] transition-colors">
+                        <button 
+                          onClick={() => generateReport({name: report.name, type: "inventory"})}
+                          className="bg-[#1e3a5f] text-white px-3 py-1 rounded text-xs hover:bg-[#2c4a6b] transition-colors"
+                        >
                           Generate
                         </button>
                       </div>
@@ -990,7 +1133,10 @@ export default function InventoryManagerHome() {
                             <div className="text-xs text-gray-600">{report.desc}</div>
                           </div>
                         </div>
-                        <button className="bg-[#1e3a5f] text-white px-3 py-1 rounded text-xs hover:bg-[#2c4a6b] transition-colors">
+                        <button 
+                          onClick={() => generateReport({name: report.name, type: "financial"})}
+                          className="bg-[#1e3a5f] text-white px-3 py-1 rounded text-xs hover:bg-[#2c4a6b] transition-colors"
+                        >
                           Generate
                         </button>
                       </div>
@@ -1046,19 +1192,31 @@ export default function InventoryManagerHome() {
                   Export & Print Options
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-white hover:shadow-sm transition-all">
+                  <button 
+                    onClick={() => handleExport("Excel")}
+                    className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-white hover:shadow-sm transition-all"
+                  >
                     <FontAwesomeIcon icon={faFileExport} className="text-2xl text-[#1e3a5f] mb-2" />
                     <span className="text-sm font-medium">Export Excel</span>
                   </button>
-                  <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-white hover:shadow-sm transition-all">
+                  <button 
+                    onClick={() => handleExport("PDF")}
+                    className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-white hover:shadow-sm transition-all"
+                  >
                     <FontAwesomeIcon icon={faPrint} className="text-2xl text-[#1e3a5f] mb-2" />
                     <span className="text-sm font-medium">Print PDF</span>
                   </button>
-                  <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-white hover:shadow-sm transition-all">
+                  <button 
+                    onClick={() => showNotification("Charts view opened in new window!", "info")}
+                    className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-white hover:shadow-sm transition-all"
+                  >
                     <FontAwesomeIcon icon={faChartBar} className="text-2xl text-[#1e3a5f] mb-2" />
                     <span className="text-sm font-medium">Charts View</span>
                   </button>
-                  <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-white hover:shadow-sm transition-all">
+                  <button 
+                    onClick={() => showNotification("Auto schedule has been configured successfully!", "success")}
+                    className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-white hover:shadow-sm transition-all"
+                  >
                     <FontAwesomeIcon icon={faSync} className="text-2xl text-[#1e3a5f] mb-2" />
                     <span className="text-sm font-medium">Auto Schedule</span>
                   </button>
@@ -1172,10 +1330,317 @@ export default function InventoryManagerHome() {
                   >
                     Close
                   </button>
-                  <button className="px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b]">
+                  <button 
+                    onClick={() => {
+                      setShowInspectionModal(false);
+                      handleEdit(selectedItem);
+                    }}
+                    className="px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b]"
+                  >
                     Edit Inspection
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Release Process Modal */}
+      {showReleaseModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="bg-green-100 rounded-full p-3 mr-4">
+                  <FontAwesomeIcon icon={faTruck} className="text-green-600 text-xl" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Release Item</h2>
+                  <p className="text-sm text-gray-600">{selectedItem.itemName}</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">Are you sure you want to release this item to {selectedItem.winner.name}?</p>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="text-sm space-y-1">
+                    <div><strong>Winner:</strong> {selectedItem.winner.name}</div>
+                    <div><strong>NIC:</strong> {selectedItem.winner.nic}</div>
+                    <div><strong>Phone:</strong> {selectedItem.winner.phone}</div>
+                    <div><strong>Item Value:</strong> {selectedItem.value}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button 
+                  onClick={() => setShowReleaseModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={processRelease}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  Confirm Release
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Item Modal */}
+      {showEditModal && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Edit Item Details</h2>
+                <button 
+                  onClick={() => setShowEditModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                  <input 
+                    type="text" 
+                    value={editForm.itemName || ''} 
+                    onChange={(e) => setEditForm({...editForm, itemName: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select 
+                    value={editForm.status || ''} 
+                    onChange={(e) => setEditForm({...editForm, status: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+                  >
+                    <option value="Ready for Release">Ready for Release</option>
+                    <option value="Awaiting Payment">Awaiting Payment</option>
+                    <option value="Overdue Collection">Overdue Collection</option>
+                    <option value="Released">Released</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Inspector</label>
+                  <input 
+                    type="text" 
+                    value={editForm.inspector || ''} 
+                    onChange={(e) => setEditForm({...editForm, inspector: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Inspection Notes</label>
+                  <textarea 
+                    value={editForm.inspectionNotes || ''} 
+                    onChange={(e) => setEditForm({...editForm, inspectionNotes: e.target.value})}
+                    rows={3}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button 
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={saveEdit}
+                  className="px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b]"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced Filters Modal */}
+      {showFilterModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Advanced Filters</h2>
+                <button 
+                  onClick={() => setShowFilterModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="date" className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]" />
+                    <input type="date" className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]" />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Value Range</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="number" placeholder="Min value" className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]" />
+                    <input type="number" placeholder="Max value" className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]" />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Inspector</label>
+                  <select className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]">
+                    <option>All Inspectors</option>
+                    <option>S. Wickramasinghe</option>
+                    <option>R. Fernando</option>
+                    <option>A. Silva</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input type="checkbox" className="mr-2" />
+                      Paid
+                    </label>
+                    <label className="flex items-center">
+                      <input type="checkbox" className="mr-2" />
+                      Pending
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button 
+                  onClick={() => setShowFilterModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={applyFilters}
+                  className="px-4 py-2 bg-[#1e3a5f] text-white rounded-md hover:bg-[#2c4a6b]"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Options Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Export Options</h2>
+                <button 
+                  onClick={() => setShowExportModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <button 
+                  onClick={() => handleExport("Excel")}
+                  className="w-full flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faFileExport} className="text-green-600 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Export as Excel</div>
+                    <div className="text-sm text-gray-600">Download .xlsx file</div>
+                  </div>
+                </button>
+                
+                <button 
+                  onClick={() => handleExport("CSV")}
+                  className="w-full flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faFileExport} className="text-blue-600 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Export as CSV</div>
+                    <div className="text-sm text-gray-600">Download .csv file</div>
+                  </div>
+                </button>
+                
+                <button 
+                  onClick={() => handleExport("PDF")}
+                  className="w-full flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faPrint} className="text-red-600 mr-3" />
+                  <div className="text-left">
+                    <div className="font-medium">Export as PDF</div>
+                    <div className="text-sm text-gray-600">Download .pdf file</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Generation Modal */}
+      {showReportModal && selectedReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="bg-blue-100 rounded-full p-3 mr-4">
+                  <FontAwesomeIcon icon={faChartBar} className="text-blue-600 text-xl" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Generate Report</h2>
+                  <p className="text-sm text-gray-600">{selectedReport.name}</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">This report will be generated and sent to your email address.</p>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="text-sm space-y-1">
+                    <div><strong>Report Type:</strong> {selectedReport.name}</div>
+                    <div><strong>Format:</strong> PDF & Excel</div>
+                    <div><strong>Estimated Time:</strong> 2-5 minutes</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button 
+                  onClick={() => setShowReportModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmReportGeneration}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Generate Report
+                </button>
               </div>
             </div>
           </div>
