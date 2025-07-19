@@ -23,6 +23,8 @@ import CountDownDate from "../components/countdown";
 import CustomHeader from "../components/custom-header";
 import BidderHeader from "../components/bidder-header";
 import Footer from "../components/footer";
+import NavBar from "../components/navbar";  
+import { toast } from "react-toastify";
 
 // Import images
 import mustang from "../assets/mustang.jpg";
@@ -39,6 +41,7 @@ export default function ItemDetails() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
   const [activeTab, setActiveTab] = useState("description");
+  const [isUserLogged,setIsUserLogged] = useState(false);
 
   // Complete items data - matches your original data structure
   const items = [
@@ -354,11 +357,15 @@ export default function ItemDetails() {
 
   const handleBid = (e) => {
     e.preventDefault();
-    if (!bidAmount || parseInt(bidAmount) <= item.currentBid) {
-      alert(`Bid must be higher than current bid of ${formatCurrency(item.currentBid)}`);
+    if(!isUserLogged) {
+      toast.error("Please log in before placing a bid.");
       return;
     }
-    alert(`Bid placed: ${formatCurrency(parseInt(bidAmount))}`);
+    if (!bidAmount || parseInt(bidAmount) <= item.currentBid) {
+      toast.warn(`Bid must be higher than current bid of ${formatCurrency(item.currentBid)}`);
+      return;
+    }
+    toast.success(`Bid placed: ${formatCurrency(parseInt(bidAmount))}`);
     setBidAmount("");
   };
 
@@ -369,8 +376,7 @@ export default function ItemDetails() {
   return (
     <>
       <CustomHeader />
-      <BidderHeader />
-      
+      { isUserLogged ? <NavBar /> : <BidderHeader/>}      
       <div className="bg-gray-100 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Back to Auctions */}

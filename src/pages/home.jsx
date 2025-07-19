@@ -9,7 +9,7 @@ import CustomHeader from "../components/custom-header";
 import BidderHeader from "../components/bidder-header";
 import HeroSection from "../components/hero-header";
 import Footer from "../components/footer";
-import Card from "../components/ui/card";
+import Card from "../components/ui/nonUserCard"; 
 
 import avimg from "../assets/av1.png";
 import mustang from "../assets/mustang.jpg";
@@ -173,13 +173,13 @@ export default function Home() {
 
         <button
           className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-            activeTab === "completed"
+            activeTab === "starting-soon"
               ? "bg-white text-black"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
-          onClick={() => setActiveTab("completed")}
+          onClick={() => setActiveTab("starting-soon")}
         >
-          {t("completed")}
+          {t("startingSoon")}
         </button>
       </div>
     </section>
@@ -217,18 +217,18 @@ export default function Home() {
             }
         </div>}
 
-        {activeTab === "completed" &&         
+        {activeTab === "starting-soon" &&         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
             {items.map((item) => (
-                item.status === "completed" &&
+                item.status === "pending" &&
                     <Card key={item.id} item={item} />
             ))}
 
-            { items.filter(item => item.status === "completed").length === 0 &&
+            { items.filter(item => item.status === "pending").length === 0 &&
             <div className="col-span-3 text-center text-gray-500">
                 <FontAwesomeIcon icon={faCheckCircle} className="text-4xl mb-4 text-gray-400" />
-              <h2 className="text-xl mb-3 font-semibold">  {t("noCompletedAuctions")}</h2>
-              <p>{t("noCompletedAuctionsPara")}</p>
+              <h2 className="text-xl mb-3 font-semibold">  {t("noStartingSoon")}</h2>
+              <p>{t("noStartingSoonPara")}</p>
 
             </div>
             }
