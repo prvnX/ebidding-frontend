@@ -25,6 +25,8 @@ import AddUser from './pages/AppAdmin/addUser'
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
 import FlashMessageCenter from './flashMessageCenter'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // import MessageToast from './components/ui/messageToast.jsx';
 
@@ -36,6 +38,7 @@ function App() {
     <>
       {/* <MessageToast locationState={location.state} /> */}
       <FlashMessageCenter />
+      <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />

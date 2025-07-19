@@ -4,9 +4,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { useTranslation } from "react-i18next";
 import { UserDropdown } from "./user-dropdown"; // Ensure correct path
+import NotificationDropdown from "./notificationDropDown";
 
 export default function NavBar() {
   const { t } = useTranslation();
+  const [notificationClick, setNotificationClick] = React.useState(false);
 
   return (
     <header className="bg-[#1e3a5f] shadow-sm py-1">  
@@ -26,10 +28,14 @@ export default function NavBar() {
 
           <div className="flex items-center">
             <button 
-              className="relative hover:bg-white/20 transition-colors rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-300" 
+              className="relative transition-colors rounded-full p-3 focus:outline-none " 
               aria-label="Notifications"
+
+              onClick={()=>{setNotificationClick(!notificationClick)}}
+
+
             >
-              <FontAwesomeIcon icon={faBell} className="h-5 w-5 text-white" />
+              <FontAwesomeIcon icon={faBell} className="h-5 w-5 text-white text-xl" />
             </button>
             
             {/* Render UserDropdown here */}
@@ -37,6 +43,7 @@ export default function NavBar() {
           </div>
         </div>
       </div>
+      {notificationClick && <NotificationDropdown />}
     </header>
   );
 }

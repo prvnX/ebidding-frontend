@@ -30,12 +30,7 @@ export default function HeroSection (){
                 <div className="text-sm">{("Total Value")}</div>
               </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm border-white/20 text-white rounded-lg border border-[#2d4a6b]">
-              <div className="p-4 text-center">
-                <div className="text-2xl font-bold">LKR <CountUp start={0} end={45} duration={2.5} />M</div>
-                <div className="text-sm">Spend Up</div>
-              </div>
-            </div>
+
           </div>
         </div>
       </section>
