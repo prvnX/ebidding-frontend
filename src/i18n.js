@@ -21,6 +21,7 @@ const resources = {
       startingSoon: "Starting Soon",
       completed: "Completed",
       activeAuctionsTab: "Active Auctions",
+      viewItemDetails: "View Item Details",
       searchPlaceholder: "Search by item name, category, or location...",
       allCategories: "All Categories",
       moreFilters: "More Filters",
@@ -30,6 +31,7 @@ const resources = {
       noCompletedAuctionsPara: "There are currently no completed auctions. Please check back later.",
       noStartingSoon: "No starting soon auctions",
       noStartingSoonPara: "There are currently no auctions starting soon. Please check back later.",
+      myBid: "My Bid",
 
       //AuctionMan
       notSheduled: "Not Scheduled",
@@ -46,6 +48,7 @@ const resources = {
       increment: "Increment",
       winningBid: "Winning Bid",
       viewItemDetails: "View Item Details",
+      incrementBy: "Increment By",
 
     }
   },
@@ -76,6 +79,8 @@ const resources = {
       noStartingSoon: "ආරම්භ වීමට අසන්න ලංසු නොමැත",
       noStartingSoonPara: "දැනට ආරම්භ වීමට අසන්න ලංසු නොමැත. කරුණාකර පසුව නැවත පරික්ෂා කරන්න.",
       viewItemDetails: "විස්තර බලන්න",
+      myBid: "මගේ ලංසු",
+      
 
         //AuctionMan
         notSheduled: "පැවැත්වීමට නියමිත නැත",
@@ -91,6 +96,7 @@ const resources = {
         noCompletedItemsDis: "සම්පූර්ණ කළ භාණ්ඩ කිසිවක් නොමැත. කරුණාකර පසුව නැරඹීමට පැමිණෙන්න.",
         increment: "ඉහළ දැමීම",
         winningBid: "ජයග්‍රහණ ලංසු",
+        incrementBy : "ඉහළ දැමීම",
       
     }
   },

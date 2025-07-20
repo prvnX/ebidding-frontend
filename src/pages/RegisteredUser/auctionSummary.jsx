@@ -292,9 +292,9 @@ const AuctionSummary = () => {
 
           {/* Right Column - Bidding History */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
+            <div className="bg-white rounded-lg shadow-sm p-6 top-6 ">
               <h2 className="text-xl font-semibold mb-4">Bidding History</h2>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto min-h-[500px] max-h-[600px]">
                 {auctionData.biddingHistory.map((bid, index) => (
                   <div
                     key={index}

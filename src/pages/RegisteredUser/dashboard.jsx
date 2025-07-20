@@ -1,6 +1,8 @@
 import CustomHeader from "../../components/custom-header";
 import Footer from "../../components/footer";
 import NavBar from "../../components/navbar";
+import ViewCard from "../../components/ui/userCards/viewCard";
+import BidCard from "../../components/ui/userCards/myBidCard";
 
 import React, { useState } from "react";
 // import { Link } from "react-router-dom";
@@ -11,7 +13,7 @@ import {
   faClock,
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
-import { Filter } from "lucide-react";
+import { Filter, View } from "lucide-react";
 
 import Card from "../../components/ui/card";
 
@@ -81,7 +83,7 @@ const Dashboard = () => {
       title: "Ancient Sword",
       description: "An ancient ceremonial sword with intricate designs.",
       images: [sword, "sword.png"],
-      status: "active",
+      status: "pending",
       currentBid: 2700,
       startingBid: 2000,
       timeLeft: "3 days 8 hours",
@@ -100,6 +102,54 @@ const Dashboard = () => {
       totalBids: 10,
       location: "Batticaloa, Sri Lanka",
     },
+  ];
+
+  const MyBids = [
+    {
+      id: 1,
+      title: "Classic Car",
+      description: "A well-maintained 1967 Ford Mustang in original condition.",
+      images: [mustang, "mustang.png"],
+      status: "ending-soon",
+      currentBid: 25000000,
+      startingBid: 2000000,
+      myBid: 25000000,
+      timeLeft: "3 days 4 hours",
+      totalBids: 15,
+      location: "Colombo, Sri Lanka",
+      isWinning: true,
+      increment: 100000,
+    },
+    {
+      id: 2,
+      title: "Vintage Motorcycle",
+      description: "A rare 1950s Royal Enfield Bullet, fully restored.",
+      images: [royal, "enfield.png"],
+      status: "active",
+      currentBid: 800000,
+      startingBid: 600000,
+      myBid: 700000,
+      timeLeft: "1 day 8 hours",
+      totalBids: 10,
+      location: "Kandy, Sri Lanka",
+      isWinning: false,
+      increment: 5000,
+    },
+    {
+      id: 3,
+      title: "Antique Bicycle",
+      description: "Classic Raleigh bicycle from the 1940s, in working order.",
+      images: [bicycle, "bicycle.png"],
+      status: "ending-soon",
+      currentBid: 120000,
+      startingBid: 90000,
+      myBid: 100000,
+      timeLeft: "2 days 2 hours",
+      totalBids: 7,
+      location: "Galle, Sri Lanka",
+      isWinning: false,
+      increment: 10000,
+    }
   ];
 
   const favoriteItems = items.filter((item) => item.id === 1 || item.id === 2); // Example
@@ -209,7 +259,7 @@ const Dashboard = () => {
           {items
             .filter((item) => item.status === "active")
             .map((item) => (
-              <Card key={item.id} item={item} />
+              <ViewCard key={item.id} item={item} />
             ))}
           {items.filter((item) => item.status === "active").length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
@@ -229,7 +279,7 @@ const Dashboard = () => {
       {activeTab === "favorite" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {favoriteItems.map((item) => (
-            <Card key={item.id} item={item} />
+            <ViewCard key={item.id} item={item} />
           ))}
           {favoriteItems.length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
@@ -245,10 +295,10 @@ const Dashboard = () => {
       )}
       {activeTab === "myBids" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {bidHistoryItems.map((item) => (
-            <Card key={item.id} item={item} />
+          {MyBids.map((item) => (
+            <BidCard key={item.id} item={item} />
           ))}
-          {bidHistoryItems.length === 0 && (
+          {MyBids.length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
