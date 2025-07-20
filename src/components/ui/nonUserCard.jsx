@@ -8,6 +8,7 @@ import {
   faClock,
   faUsers,
   faEye,
+  faCalendar,
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 
@@ -27,10 +28,6 @@ export default function Card({ item }) {
     setIsFavorite(flag);
   };
 
-  const handleBidClick = (e, itemId) => {
-    e.stopPropagation(); // Prevent triggering the card click
-    navigate(`/item/${itemId}`);
-  };
 
   const handleViewClick = (e, itemId) => {
     e.stopPropagation(); // Prevent triggering the card click
@@ -68,21 +65,6 @@ export default function Card({ item }) {
         >
           {item.status === "ending-soon" ? t("endingSoon") : t("active")}
         </div>
-        <div className="absolute top-2 left-2 bg-white/80 hover:bg-white w-8 h-8 rounded-md flex items-center justify-center shadow-md text-red-500 ">
-          {isFavorite ? (
-            <FontAwesomeIcon
-              icon={faHeartSolid}
-              className="text-red-500"
-              onClick={(e) => handleFavoriteClick(e, false)}
-            />
-          ) : (
-            <FontAwesomeIcon
-              icon={faHeartRegular}
-              className="text-gray-500"
-              onClick={(e) => handleFavoriteClick(e, true)}
-            />
-          )}
-        </div>
       </div>
       <div className="px-4 text-lg font-bold mb-1">{item.title}</div>
       <div className="px-4 text-sm text-gray-500 mb-2">{item.description}</div>
@@ -95,7 +77,7 @@ export default function Card({ item }) {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <div>
-              <div className="text-sm text-gray-500">{t("currentBid")}</div>
+              <div className="text-sm text-green-600">{t("currentBid")}</div>
               <div className="text-xl font-bold text-green-600">
                 {formatCurrency(item.currentBid)}
               </div>
@@ -109,6 +91,10 @@ export default function Card({ item }) {
           </div>
 
           <div className="flex justify-between items-center text-sm">
+            {/* <div className="flex items-center text-gray-500">
+              <FontAwesomeIcon icon={faCalendar} className="mr-1" />
+                2025-08-11  
+            </div> */}
             <div className="flex items-center text-gray-500">
               <FontAwesomeIcon icon={faClock} className="mr-1" />
               {item.timeLeft}
@@ -117,31 +103,17 @@ export default function Card({ item }) {
               <FontAwesomeIcon icon={faUsers} className="mr-1" />
               {item.totalBids} {t("bids")}
             </div>
+
           </div>
 
           <div className="flex gap-2">
-            {item.status === "ended" ? (
               <button
                 className="flex-1 border bg-[#1e3a5f] text-white rounded-md p-1.5 cursor-pointer"
-                onClick={(e) => handleSummaryClick(e, item.id)}
+                onClick={(e) => handleViewClick(e, item.id)}
               >
-                {t("View Summary")}
+                {t("viewItemDetails")}
               </button>
-            ) : (
-              <button
-                className="flex-1 border bg-[#1e3a5f] text-white rounded-md p-1.5 cursor-pointer"
-                onClick={(e) => handleBidClick(e, item.id)}
-              >
-                {t("placeBid")}
-              </button>
-            )}
             
-            <button
-              className="text-sm flex items-center justify-center border bg-white rounded-md h-9 w-9 cursor-pointer border-gray-300 hover:bg-gray-100 transition text-gray-700"
-              onClick={(e) => handleViewClick(e, item.id)}
-            >
-              <FontAwesomeIcon icon={faEye} />
-            </button>
           </div>
         </div>
       </div>

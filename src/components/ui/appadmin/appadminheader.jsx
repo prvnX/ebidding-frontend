@@ -2,8 +2,12 @@ import React from "react";
 import custombanner from "../../../assets/custom-banner.png";
 import { faBell } from "@fortawesome/free-solid-svg-icons"; 
 import { useTranslation } from "react-i18next"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import NotificationDropdown from "../../notificationDropDown";
 
 export default function AppAdminHeader() {
+  const [notificationClick,setNotificationClick] = React.useState(false);
 
       const {t} = useTranslation();
 
@@ -18,8 +22,8 @@ export default function AppAdminHeader() {
                 className="hidden md:block h-16 w-auto rounded-lg" 
                 />              
                 <div className="md:border-l md:border-[#2d4a6b] pl-4">
-                <h1 className="text-lg  md:text-2xl font-bold text-white">System Administration</h1>
-                <p className="text-xs md:text-sm text-white/80">Super Admin  Dashboard  </p>
+                <h1 className="text-lg  md:text-2xl font-bold text-white">App Administration</h1>
+                <p className="text-xs md:text-sm text-white/80">App Admin  Dashboard  </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -29,15 +33,23 @@ export default function AppAdminHeader() {
                 {/* Notifications */}
 
               {/* </button> */}
-              <button variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer" onClick={()=> window.location.href = ''}>
-                Natification
-              </button>
+           <button 
+              className="relative transition-colors rounded-full p-3 cursor-pointer" 
+              aria-label="Notifications"
+              onClick={() => setNotificationClick(!notificationClick)}
+            >
+              <FontAwesomeIcon icon={faBell} className="h-5 w-5 text-white text-xl" />
+            </button>
               <button size="sm" className="bg-white text-[#1e3a5f] hover:bg-white/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer">
-                Add User
+                <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
+                 Add User
               </button>
             </div>
           </div>
           </div>
+          {
+            notificationClick && <NotificationDropdown />
+          }
         </header>
     );
 }

@@ -11,9 +11,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 
-import { formatCurrency } from "../../function";
+import { formatCurrency } from "../../../function";
 
-export default function Card({ item }) {
+export default function ViewCard({ item }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -27,19 +27,9 @@ export default function Card({ item }) {
     setIsFavorite(flag);
   };
 
-  const handleBidClick = (e, itemId) => {
-    e.stopPropagation(); // Prevent triggering the card click
-    navigate(`/item/${itemId}`);
-  };
-
   const handleViewClick = (e, itemId) => {
     e.stopPropagation(); // Prevent triggering the card click
     navigate(`/item/${itemId}`);
-  };
-
-  const handleSummaryClick = (e, itemId) => {
-    e.stopPropagation(); // Prevent triggering the card click
-    navigate(`/auctionSummary`);
   };
 
   return (
@@ -120,28 +110,16 @@ export default function Card({ item }) {
           </div>
 
           <div className="flex gap-2">
-            {item.status === "ended" ? (
-              <button
-                className="flex-1 border bg-[#1e3a5f] text-white rounded-md p-1.5 cursor-pointer"
-                onClick={(e) => handleSummaryClick(e, item.id)}
-              >
-                {t("View Summary")}
-              </button>
-            ) : (
+  
               <button
                 className="flex-1 border bg-[#1e3a5f] text-white rounded-md p-1.5 cursor-pointer"
                 onClick={(e) => handleBidClick(e, item.id)}
               >
-                {t("placeBid")}
+                {t("viewItemDetails")}
               </button>
-            )}
             
-            <button
-              className="text-sm flex items-center justify-center border bg-white rounded-md h-9 w-9 cursor-pointer border-gray-300 hover:bg-gray-100 transition text-gray-700"
-              onClick={(e) => handleViewClick(e, item.id)}
-            >
-              <FontAwesomeIcon icon={faEye} />
-            </button>
+            
+            
           </div>
         </div>
       </div>
