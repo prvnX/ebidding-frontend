@@ -19,6 +19,8 @@ import Dashboard from './pages/RegisteredUser/dashboard';
 import AuctionHistory from './pages/RegisteredUser/auctionHistory';
 import AuctionSummary from './pages/RegisteredUser/auctionSummary';
 import Wallet from './pages/RegisteredUser/wallet';
+import Payment from './pages/RegisteredUser/payment';
+import BankTransfer from './pages/RegisteredUser/bankTransfer';
 
 import Appadmin from './pages/AppAdmin/home'
 
@@ -56,6 +58,8 @@ function App() {
         <Route path='/auctionHistory' element={<AuctionHistory />} />
         <Route path="/auctionSummary" element={<AuctionSummary />}/>
         <Route path="/wallet" element={<Wallet />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/bankTransfer" element={<BankTransfer />} />
 
         <Route path="/AuctionMan">
           <Route index element={<AuctionHome />} />

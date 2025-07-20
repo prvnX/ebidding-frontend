@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faClock, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
+import CustomHeader from '../../components/custom-header';
+import NavBar from '../../components/navbar';
+import Footer from '../../components/footer';
 
 const Wallet = () => {
+  const navigate = useNavigate();
   const [showIncreaseModal, setShowIncreaseModal] = useState(false);
   const [selectedLimit, setSelectedLimit] = useState(100000);
   
@@ -56,9 +61,15 @@ const Wallet = () => {
   };
 
   const handleProceedToPay = () => {
-    // Handle payment processing
-    console.log('Proceeding to pay for limit:', selectedLimit);
-    // Close modal after processing
+    // Navigate to payment page with the selected amount
+    const amountToPay = calculateFee(selectedLimit);
+    navigate('/payment', { 
+      state: { 
+        amount: amountToPay,
+        newLimit: selectedLimit 
+      } 
+    });
+    // Close modal
     setShowIncreaseModal(false);
   };
 
@@ -72,7 +83,13 @@ const Wallet = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <>
+      <CustomHeader />
+      <NavBar />
+      
+
+      
+      <div className="min-h-screen bg-gray-50 pb-20">
       <div className="max-w-md mx-auto p-4 space-y-4">
         {/* Bidding Limit Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -346,6 +363,8 @@ const Wallet = () => {
         )}
       </div>
     </div>
+    <Footer />
+    </>
   );
 };
 
