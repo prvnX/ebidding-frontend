@@ -18,6 +18,7 @@ import AuctionManItemDetails from './pages/AuctionMan/item_details'
 import Dashboard from './pages/RegisteredUser/dashboard';
 import AuctionHistory from './pages/RegisteredUser/auctionHistory';
 import AuctionSummary from './pages/RegisteredUser/auctionSummary';
+import MyBiddingHistory from './pages/RegisteredUser/myBiddingHistory';
 
 import Appadmin from './pages/AppAdmin/home'
 import AddUser from './pages/AppAdmin/addUser'
@@ -61,6 +62,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path='/auctionHistory' element={<AuctionHistory />} />
         <Route path="/auctionSummary" element={<AuctionSummary />}/>
+        <Route path="/myBiddingHistory" element={<MyBiddingHistory />} />
 
         <Route path="/AuctionMan">
           <Route index element={<AuctionHome />} />
