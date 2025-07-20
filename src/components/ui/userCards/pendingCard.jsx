@@ -15,11 +15,11 @@ import  noImage   from '../../../assets/ImageNotAvailable.png';
 import { formatCurrency } from "../../../function";
 import CountDownDate from "../../countdown";
 
-export default function ViewCard({ item }) {
+export default function PendingCard({ item }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [isEndingSoon, setIsEndingSoon] = useState(false);
+  const [isStartingSoon, setIsStartingSoon] = useState(false);
 
 
   const handleItemClick = (itemId) => {
@@ -38,16 +38,15 @@ export default function ViewCard({ item }) {
 
   useEffect(() => {
   const currentTime = new Date();
-  const endingTime = new Date(item.auction?.endingTime);
+  const startingTime = new Date(item.auction?.startingTime);
 
-  const diffInHours = (endingTime - currentTime) / (1000 * 60 * 60);
-
+  const diffInHours = (startingTime - currentTime) / (1000 * 60 * 60);
   if (diffInHours <= 24 && diffInHours > 0) {
-    setIsEndingSoon(true);
+    setIsStartingSoon(true);
   } else {
-    setIsEndingSoon(false);
+    setIsStartingSoon(false);
   }
-  }, [item.auction?.endingTime]);
+  }, [item.auction?.startingTime]);
 
   return (
     <div
@@ -79,10 +78,10 @@ export default function ViewCard({ item }) {
         </div>
         <div
           className={`absolute top-2 right-2 text-xs font-semibold px-3 py-0.5 text-white rounded-xl shadow-sm ${
-            isEndingSoon ? "bg-red-500" : "bg-green-500"
+            isStartingSoon ? "bg-yellow-400" : "bg-blue-500"
           }`}
         >
-          {isEndingSoon ? t("endingSoon") : t("active")}
+          {isStartingSoon ? t("startingSoon") : t("pending")}
         </div>
         <div className="absolute top-2 left-2 bg-white/80 hover:bg-white w-8 h-8 rounded-md flex items-center justify-center shadow-md text-red-500 ">
           {isFavorite ? (
@@ -111,30 +110,24 @@ export default function ViewCard({ item }) {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <div>
-              <div className="text-sm text-gray-500">{t("currentBid")}</div>
+              <div className="text-sm text-gray-500">{t("startingBid")}</div>
               <div className="text-xl font-bold text-green-600">
-                {/* {formatCurrency(item.currentBid)} */} 
-                N/A
-                
+                {formatCurrency(item.startingBid)}                
                 </div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-500">{t("startingBid")}</div>
+              <div className="text-sm text-gray-500">{t("increment")}
+              </div>
               <div className="text-sm font-medium">
-                {formatCurrency(item.startingBid)}
+                {formatCurrency(item.increment)}
               </div>
             </div>
           </div>
 
           <div className="flex justify-between items-center text-sm">
             <div className="flex items-center text-gray-500">
-              <FontAwesomeIcon icon={faClock} className="mr-1" />
-              <CountDownDate dateTime={item.auction?.endingTime} />
-            </div>
-            <div className="flex items-center text-gray-500">
-              <FontAwesomeIcon icon={faUsers} className="mr-1" />
-              {/* {item.totalBids} {t("bids")} */}
-             N/A Bids
+              Starting in : &nbsp;
+              <CountDownDate dateTime={item.auction?.startingTime} style={{color:'green'}}/>
             </div>
           </div>
 

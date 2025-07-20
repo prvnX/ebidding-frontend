@@ -3,8 +3,11 @@ import Footer from "../../components/footer";
 import NavBar from "../../components/navbar";
 import ViewCard from "../../components/ui/userCards/viewCard";
 import BidCard from "../../components/ui/userCards/myBidCard";
+import loading from "../../components/loading";
+import PendingCard from "../../components/ui/userCards/pendingCard";
+import axios from "axios";
 
-import React, { useState } from "react";
+import React, { useState , useEffect, use} from "react";
 // import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -23,11 +26,40 @@ import royal from "../../assets/royal.jpg";
 import sword from "../../assets/sword.png";
 import bicycle from "../../assets/bicycle.JPG";
 import bronze from "../../assets/bronze.jpg";
+import active from "../../components/ui/cards/active";
 const Dashboard = () => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeTab, setActiveTab] = useState("active");
+  const [loading, setLoading] = useState(false);
+  const [notSheduledItems, setNotSheduledItems] = useState([]);
+  const [pendingItems, setPendingItems] = useState([]);
+  const [activeItems, setActiveItems] = useState([]);
+  const [completedItems, setCompletedItems] = useState([]);
+
+   const fetchItems = () => {
+    setLoading(true);
+
+    const endPoint = activeTab === 'pending' ? 'getItemsPending' : activeTab === 'active' ? 'getItemsActive' : 'getItemsComplete';
+    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : activeTab === 'active' ? setActiveItems : setCompletedItems;
+
+    axios.get(`http://localhost:8082/is/v1/${endPoint}`)
+      .then((response) => {
+        setter(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+  useEffect(() => {
+    setLoading(true);
+    fetchItems();
+  }, [activeTab]);
+  
 
   const items = [
     {
@@ -156,7 +188,7 @@ const Dashboard = () => {
   const bidHistoryItems = items.filter(
     (item) => item.id === 3 || item.id === 4
   ); // Example
-  const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
+  // const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
 
   return (
     <>
@@ -256,12 +288,10 @@ const Dashboard = () => {
       {/* Tab Content */}
       {activeTab === "active" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {items
-            .filter((item) => item.status === "active")
-            .map((item) => (
+          {activeItems.map((item) => (
               <ViewCard key={item.id} item={item} />
             ))}
-          {items.filter((item) => item.status === "active").length === 0 && (
+          {activeItems.length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
@@ -313,7 +343,7 @@ const Dashboard = () => {
       {activeTab === "pending" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {pendingItems.map((item) => (
-            <Card key={item.id} item={item} />
+            <PendingCard key={item.id} item={item} />
           ))}
           {pendingItems.length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
