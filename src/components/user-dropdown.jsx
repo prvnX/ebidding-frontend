@@ -42,28 +42,19 @@ export function UserDropdown() {
           <div className="py-1">
             <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-              onClick={() => {
-                navigate("/profile");
-                setOpen(false); // Close dropdown after navigation
-              }}
+              onClick={() => navigate("/profile")}
             >
               <User className="h-4 w-4 mr-2 text-blue-500" /> Profile
             </div>
                         <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-              onClick={() => {
-                navigate("/wallet");
-                setOpen(false); // Close dropdown after navigation
-              }}
+              onClick={() => {/* Navigate to wallet */}}
             >
               <Wallet className="h-4 w-4 mr-2 text-yellow-500" /> Wallet
             </div>
             <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-              onClick={() => {
-                navigate("/auctionHistory");
-                setOpen(false); // Close dropdown after navigation
-              }}
+              onClick={() => navigate("/auctionHistory")}
             >
               <History className="h-4 w-4 mr-2 text-green-500" /> Auction History
             </div>

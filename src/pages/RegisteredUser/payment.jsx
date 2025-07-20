@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faUniversity, faCreditCard } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate, useLocation, NavLink } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import CustomHeader from '../../components/custom-header';
 import NavBar from '../../components/navbar';
 import Footer from '../../components/footer';
