@@ -6,15 +6,12 @@ import {
   faUsers, 
   faClipboardCheck, 
   faUserTie, 
-  faServer, 
   faEye, 
   faCheck, 
   faTimes,
   faChartLine,
-  faShieldAlt,
   faCog,
   faSearch,
-  faFilter,
   faUserPlus,
   faEdit,
   faTrash,
@@ -23,11 +20,18 @@ import {
   faEnvelope,
   faPhone,
   faCalendar,
-  faUserShield,
-  faSort,
-  faDownload,
+  faShield,
   faGavel,
-  faExclamationTriangle
+  faChartBar,
+  faChartPie,
+  faArrowUp,
+  faArrowDown,
+  faMoneyBillWave,
+  faClock,
+  faMapMarkerAlt,
+  faFileAlt,
+  faPercent,
+  faSync
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function AppAdminHome() {
@@ -332,35 +336,57 @@ export default function AppAdminHome() {
     console.log(`Changing permissions for manager ${managerId}`, permissions);
   };
 
-  // System settings state for System Configuration
-  const [settings, setSettings] = useState({
-    registration: {
-      autoApproveVerified: false,
-      requireDocuments: true,
-      emailVerificationRequired: true
+  // Analytics data
+  const analyticsData = {
+    overview: {
+      totalUsers: { value: 2847, change: 12, trend: 'up' },
+      totalAuctions: { value: 342, change: 8, trend: 'up' },
+      totalRevenue: { value: 'LKR 125,000,000', change: 15, trend: 'up' },
+      activeUsers: { value: 2340, change: -2, trend: 'down' },
+      avgAuctionValue: { value: 'LKR 365,000', change: 5, trend: 'up' },
+      completionRate: { value: '94.5%', change: 3, trend: 'up' }
     },
-    security: {
-      sessionTimeout: '30',
-      maxLoginAttempts: '5',
-      passwordMinLength: '8',
-      lockoutDuration: '24'
-    }
-  });
-
-  const handleSettingChange = (category, setting, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [setting]: value
-      }
-    }));
-  };
-
-  const handleSaveSettings = () => {
-    // Handle saving settings logic
-    console.log('Saving settings:', settings);
-    alert('Configuration saved successfully!');
+    userGrowth: [
+      { month: 'Jan', users: 1200, registrations: 45 },
+      { month: 'Feb', users: 1450, registrations: 52 },
+      { month: 'Mar', users: 1680, registrations: 48 },
+      { month: 'Apr', users: 1920, registrations: 65 },
+      { month: 'May', users: 2180, registrations: 58 },
+      { month: 'Jun', users: 2420, registrations: 62 },
+      { month: 'Jul', users: 2847, registrations: 71 }
+    ],
+    auctionPerformance: [
+      { month: 'Jan', auctions: 28, revenue: 8500000 },
+      { month: 'Feb', auctions: 32, revenue: 9200000 },
+      { month: 'Mar', auctions: 35, revenue: 10800000 },
+      { month: 'Apr', auctions: 41, revenue: 12400000 },
+      { month: 'May', auctions: 38, revenue: 11900000 },
+      { month: 'Jun', auctions: 45, revenue: 13800000 },
+      { month: 'Jul', auctions: 52, revenue: 15200000 }
+    ],
+    topCategories: [
+      { category: 'Electronics', count: 89, percentage: 26 },
+      { category: 'Vehicles', count: 76, percentage: 22 },
+      { category: 'Jewelry', count: 54, percentage: 16 },
+      { category: 'Art & Antiques', count: 45, percentage: 13 },
+      { category: 'Industrial Equipment', count: 38, percentage: 11 },
+      { category: 'Others', count: 40, percentage: 12 }
+    ],
+    locationStats: [
+      { location: 'Colombo', users: 1245, percentage: 44 },
+      { location: 'Gampaha', users: 456, percentage: 16 },
+      { location: 'Kalutara', users: 298, percentage: 10 },
+      { location: 'Kandy', users: 267, percentage: 9 },
+      { location: 'Galle', users: 189, percentage: 7 },
+      { location: 'Others', users: 392, percentage: 14 }
+    ],
+    recentActivity: [
+      { type: 'auction_completed', title: 'Auction #A-2024-089 completed', time: '2 hours ago', value: 'LKR 2,450,000' },
+      { type: 'user_registered', title: 'New user registered: Kamal Perera', time: '3 hours ago', value: 'Bidder' },
+      { type: 'auction_started', title: 'Auction #A-2024-090 started', time: '4 hours ago', value: 'Electronics' },
+      { type: 'payment_received', title: 'Payment received for Auction #A-2024-087', time: '5 hours ago', value: 'LKR 1,850,000' },
+      { type: 'user_verified', title: 'User verification completed: Saman Silva', time: '6 hours ago', value: 'Verified' }
+    ]
   };
 
   const stats = [
@@ -820,7 +846,7 @@ export default function AppAdminHome() {
                           {Math.round(auctionManagers.reduce((sum, m) => sum + parseFloat(m.successRate), 0) / auctionManagers.length)}%
                         </p>
                       </div>
-                      <FontAwesomeIcon icon={faShieldAlt} className="h-8 w-8 text-orange-500" />
+                      <FontAwesomeIcon icon={faShield} className="h-8 w-8 text-orange-500" />
                     </div>
                   </div>
                 </div>
@@ -964,7 +990,7 @@ export default function AppAdminHome() {
                             onClick={() => handlePermissionChange(manager.id, manager.permissions)}
                             className="flex items-center px-3 py-1 bg-purple-50 text-purple-600 rounded-md text-sm font-medium hover:bg-purple-100 transition-colors"
                           >
-                            <FontAwesomeIcon icon={faShieldAlt} className="mr-1" />
+                            <FontAwesomeIcon icon={faShield} className="mr-1" />
                             Permissions
                           </button> */}
                         </div>
@@ -1045,278 +1071,304 @@ export default function AppAdminHome() {
 
             {activeTab === 'analytics' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <FontAwesomeIcon icon={faChartLine} className="h-6 w-6 text-[#1e3a5f]" />
-                    <h3 className="text-xl font-semibold text-gray-900">System Analytics</h3>
-                  </div>
-                  <p className="text-sm text-gray-600">View detailed analytics and system performance metrics</p>
-                </div>
-
-                {/* User Growth and System Health Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  
-                  {/* User Growth Card */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <FontAwesomeIcon icon={faChartLine} className="h-5 w-5 text-[#1e3a5f]" />
-                      <h4 className="text-lg font-semibold text-gray-900">User Growth</h4>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">This Month:</span>
-                        <span className="text-sm font-semibold text-green-600">+342 users</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Last Month:</span>
-                        <span className="text-sm font-semibold text-green-600">+298 users</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Growth Rate:</span>
-                        <span className="text-sm font-semibold text-green-600">+14.8%</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-4 border-t border-gray-200">
-                      <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm text-gray-700 transition-colors">
-                        <FontAwesomeIcon icon={faEye} className="h-4 w-4" />
-                        <span>View Detailed Report</span>
-                      </button>
-                    </div>
-                  </div>
-                   <div className="grid grid-cols-1 gap-6">
-                  
-                  
-                
-                  {/* User Activity */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">User Activity</h4>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Daily Active Users</span>
-                        <span className="text-sm font-semibold text-gray-900">2,340</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">New Registrations</span>
-                        <span className="text-sm font-semibold text-gray-900">156</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Session Duration</span>
-                        <span className="text-sm font-semibold text-gray-900">24.5 min</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Bounce Rate</span>
-                        <span className="text-sm font-semibold text-gray-900">15.2%</span>
-                      </div>
-                    </div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    System Analytics & Performance
+                  </h3>
+                  <div className="flex space-x-2">
+                    <select className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent">
+                      <option>Last 30 days</option>
+                      <option>Last 3 months</option>
+                      <option>Last 6 months</option>
+                      <option>Last year</option>
+                    </select>
+                    <button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors">
+                      <FontAwesomeIcon icon={faSync} className="mr-2" />
+                      Refresh
+                    </button>
                   </div>
                 </div>
-                 </div>
 
-                {/* Additional Analytics Content */}
+                {/* Key Metrics Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Users</p>
+                        <p className="text-3xl font-bold text-gray-900">{analyticsData.overview.totalUsers.value.toLocaleString()}</p>
+                        <div className="flex items-center mt-2">
+                          <FontAwesomeIcon 
+                            icon={analyticsData.overview.totalUsers.trend === 'up' ? faArrowUp : faArrowDown} 
+                            className={`mr-1 text-sm ${analyticsData.overview.totalUsers.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}
+                          />
+                          <span className={`text-sm ${analyticsData.overview.totalUsers.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                            {analyticsData.overview.totalUsers.change}% from last month
+                          </span>
+                        </div>
+                      </div>
+                      <FontAwesomeIcon icon={faUsers} className="h-12 w-12 text-blue-500" />
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Auctions</p>
+                        <p className="text-3xl font-bold text-gray-900">{analyticsData.overview.totalAuctions.value}</p>
+                        <div className="flex items-center mt-2">
+                          <FontAwesomeIcon 
+                            icon={analyticsData.overview.totalAuctions.trend === 'up' ? faArrowUp : faArrowDown} 
+                            className={`mr-1 text-sm ${analyticsData.overview.totalAuctions.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}
+                          />
+                          <span className={`text-sm ${analyticsData.overview.totalAuctions.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                            {analyticsData.overview.totalAuctions.change}% from last month
+                          </span>
+                        </div>
+                      </div>
+                      <FontAwesomeIcon icon={faGavel} className="h-12 w-12 text-green-500" />
+                    </div>
+                  </div>
+
+
+                  <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                        <p className="text-2xl font-bold text-green-600">LKR 125.5M</p>
-                        <p className="text-xs text-green-500 mt-1">+18.2% from last month</p>
+                        <p className="text-3xl font-bold text-gray-900">{analyticsData.overview.totalRevenue.value}</p>
+                        <div className="flex items-center mt-2">
+                          <FontAwesomeIcon 
+                            icon={analyticsData.overview.totalRevenue.trend === 'up' ? faArrowUp : faArrowDown} 
+                            className={`mr-1 text-sm ${analyticsData.overview.totalRevenue.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}
+                          />
+                          <span className={`text-sm ${analyticsData.overview.totalRevenue.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                            {analyticsData.overview.totalRevenue.change}% from last month
+                          </span>
+                        </div>
                       </div>
-                      <div className="bg-green-100 rounded-full p-3">
-                        <FontAwesomeIcon icon={faChartLine} className="h-5 w-5 text-green-600" />
-                      </div>
+                      <FontAwesomeIcon icon={faMoneyBillWave} className="h-12 w-12 text-purple-500" />
                     </div>
                   </div>
-                  
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+
+                  <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Active Auctions</p>
-                        <p className="text-2xl font-bold text-blue-600">142</p>
-                        <p className="text-xs text-blue-500 mt-1">+12 from yesterday</p>
+                        <p className="text-sm font-medium text-gray-600">Active Users</p>
+                        <p className="text-3xl font-bold text-gray-900">{analyticsData.overview.activeUsers.value.toLocaleString()}</p>
+                        <div className="flex items-center mt-2">
+                          <FontAwesomeIcon 
+                            icon={analyticsData.overview.activeUsers.trend === 'up' ? faArrowUp : faArrowDown} 
+                            className={`mr-1 text-sm ${analyticsData.overview.activeUsers.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}
+                          />
+                          <span className={`text-sm ${analyticsData.overview.activeUsers.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                            {Math.abs(analyticsData.overview.activeUsers.change)}% from last month
+                          </span>
+                        </div>
                       </div>
-                      <div className="bg-blue-100 rounded-full p-3">
-                        <FontAwesomeIcon icon={faGavel} className="h-5 w-5 text-blue-600" />
-                      </div>
+                      <FontAwesomeIcon icon={faUserTie} className="h-12 w-12 text-orange-500" />
                     </div>
                   </div>
-                  
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+
+                  <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Total Bids</p>
-                        <p className="text-2xl font-bold text-purple-600">8,947</p>
-                        <p className="text-xs text-purple-500 mt-1">+234 today</p>
+                        <p className="text-sm font-medium text-gray-600">Avg Auction Value</p>
+                        <p className="text-3xl font-bold text-gray-900">{analyticsData.overview.avgAuctionValue.value}</p>
+                        <div className="flex items-center mt-2">
+                          <FontAwesomeIcon 
+                            icon={analyticsData.overview.avgAuctionValue.trend === 'up' ? faArrowUp : faArrowDown} 
+                            className={`mr-1 text-sm ${analyticsData.overview.avgAuctionValue.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}
+                          />
+                          <span className={`text-sm ${analyticsData.overview.avgAuctionValue.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                            {analyticsData.overview.avgAuctionValue.change}% from last month
+                          </span>
+                        </div>
                       </div>
-                      <div className="bg-purple-100 rounded-full p-3">
-                        <FontAwesomeIcon icon={faUsers} className="h-5 w-5 text-purple-600" />
-                      </div>
+                      <FontAwesomeIcon icon={faChartBar} className="h-12 w-12 text-red-500" />
                     </div>
                   </div>
-                  
+
+                  <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-indigo-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Completion Rate</p>
+                        <p className="text-3xl font-bold text-gray-900">{analyticsData.overview.completionRate.value}</p>
+                        <div className="flex items-center mt-2">
+                          <FontAwesomeIcon 
+                            icon={analyticsData.overview.completionRate.trend === 'up' ? faArrowUp : faArrowDown} 
+                            className={`mr-1 text-sm ${analyticsData.overview.completionRate.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}
+                          />
+                          <span className={`text-sm ${analyticsData.overview.completionRate.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                            {analyticsData.overview.completionRate.change}% from last month
+                          </span>
+                        </div>
+                      </div>
+                      <FontAwesomeIcon icon={faPercent} className="h-12 w-12 text-indigo-500" />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Performance Metrics */}
-                <div className="grid grid-cols-1 gap-6">
-                  
-                  
+                {/* Charts Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* User Growth Chart */}
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900">User Growth</h4>
+                      <FontAwesomeIcon icon={faChartLine} className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <div className="space-y-4">
+                      {analyticsData.userGrowth.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-12 text-sm font-medium text-gray-600">{item.month}</div>
+                            <div className="ml-4">
+                              <div className="w-64 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-500 h-2 rounded-full" 
+                                  style={{ width: `${(item.users / 3000) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-semibold text-gray-900">{item.users.toLocaleString()}</div>
+                            <div className="text-xs text-gray-500">+{item.registrations} new</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Auction Performance Chart */}
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900">Auction Performance</h4>
+                      <FontAwesomeIcon icon={faChartBar} className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <div className="space-y-4">
+                      {analyticsData.auctionPerformance.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-12 text-sm font-medium text-gray-600">{item.month}</div>
+                            <div className="ml-4">
+                              <div className="w-64 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-green-500 h-2 rounded-full" 
+                                  style={{ width: `${(item.revenue / 16000000) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-semibold text-gray-900">LKR {(item.revenue / 1000000).toFixed(1)}M</div>
+                            <div className="text-xs text-gray-500">{item.auctions} auctions</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Categories and Locations */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  {/* Top Categories */}
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900">Top Categories</h4>
+                      <FontAwesomeIcon icon={faChartPie} className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <div className="space-y-3">
+                      {analyticsData.topCategories.map((category, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-4 h-4 rounded-full bg-blue-500 mr-3" style={{ backgroundColor: `hsl(${index * 60}, 70%, 50%)` }}></div>
+                            <span className="text-sm font-medium text-gray-900">{category.category}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-semibold text-gray-900">{category.count}</div>
+                            <div className="text-xs text-gray-500">{category.percentage}%</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Location Statistics */}
+                  <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-900">User Distribution</h4>
+                      <FontAwesomeIcon icon={faMapMarkerAlt} className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <div className="space-y-3">
+                      {analyticsData.locationStats.map((location, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <FontAwesomeIcon icon={faMapMarkerAlt} className="h-4 w-4 text-gray-400 mr-3" />
+                            <span className="text-sm font-medium text-gray-900">{location.location}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-semibold text-gray-900">{location.users.toLocaleString()}</div>
+                            <div className="text-xs text-gray-500">{location.percentage}%</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900">Recent Activity</h4>
+                    <FontAwesomeIcon icon={faClock} className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <div className="space-y-4">
+                    {analyticsData.recentActivity.map((activity, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 ${
+                            activity.type === 'auction_completed' ? 'bg-green-100' :
+                            activity.type === 'user_registered' ? 'bg-blue-100' :
+                            activity.type === 'auction_started' ? 'bg-purple-100' :
+                            activity.type === 'payment_received' ? 'bg-yellow-100' :
+                            'bg-gray-100'
+                          }`}>
+                            <FontAwesomeIcon 
+                              icon={
+                                activity.type === 'auction_completed' ? faCheck :
+                                activity.type === 'user_registered' ? faUsers :
+                                activity.type === 'auction_started' ? faGavel :
+                                activity.type === 'payment_received' ? faMoneyBillWave :
+                                faFileAlt
+                              } 
+                              className={`h-5 w-5 ${
+                                activity.type === 'auction_completed' ? 'text-green-600' :
+                                activity.type === 'user_registered' ? 'text-blue-600' :
+                                activity.type === 'auction_started' ? 'text-purple-600' :
+                                activity.type === 'payment_received' ? 'text-yellow-600' :
+                                'text-gray-600'
+                              }`} 
+                            />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                            <p className="text-xs text-gray-500">{activity.time}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-gray-900">{activity.value}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
             {activeTab === 'settings' && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <FontAwesomeIcon icon={faCog} className="h-6 w-6 text-[#1e3a5f]" />
-                    <h3 className="text-xl font-semibold text-gray-900">System Configuration</h3>
-                  </div>
-                  <p className="text-sm text-gray-600">Configure system-wide settings and parameters</p>
-                </div>
-
-                {/* Settings Container */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                  
-                  {/* User Registration Settings Section */}
-                  <div className="p-6 border-b border-gray-200">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">User Registration Settings</h4>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <span className="text-sm font-medium text-gray-700">Auto-approve verified users</span>
-                        </div>
-                        <button
-                          onClick={() => handleSettingChange('registration', 'autoApproveVerified', !settings.registration?.autoApproveVerified)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settings.registration?.autoApproveVerified ? 'bg-blue-600' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.registration?.autoApproveVerified ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                      
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <span className="text-sm font-medium text-gray-700">Require document verification</span>
-                        </div>
-                        <button
-                          onClick={() => handleSettingChange('registration', 'requireDocuments', !settings.registration?.requireDocuments)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settings.registration?.requireDocuments ? 'bg-blue-600' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.registration?.requireDocuments ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                      
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <span className="text-sm font-medium text-gray-700">Email verification required</span>
-                        </div>
-                        <button
-                          onClick={() => handleSettingChange('registration', 'emailVerificationRequired', !settings.registration?.emailVerificationRequired)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            settings.registration?.emailVerificationRequired ? 'bg-blue-600' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              settings.registration?.emailVerificationRequired ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Security Settings Section */}
-                  <div className="p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h4>
-                    <div className="space-y-6">
-                      
-                      {/* Session timeout and Max login attempts in grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Session timeout (minutes)</label>
-                          <input
-                            type="number"
-                            value={settings.security?.sessionTimeout || '30'}
-                            onChange={(e) => handleSettingChange('security', 'sessionTimeout', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                            placeholder="30"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Max login attempts</label>
-                          <input
-                            type="number"
-                            value={settings.security?.maxLoginAttempts || '5'}
-                            onChange={(e) => handleSettingChange('security', 'maxLoginAttempts', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                            placeholder="5"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Password minimum length and Account lockout duration in grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Password minimum length</label>
-                          <input
-                            type="number"
-                            value={settings.security?.passwordMinLength || '8'}
-                            onChange={(e) => handleSettingChange('security', 'passwordMinLength', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                            placeholder="8"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Account lockout duration (hours)</label>
-                          <input
-                            type="number"
-                            value={settings.security?.lockoutDuration || '24'}
-                            onChange={(e) => handleSettingChange('security', 'lockoutDuration', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                            placeholder="24"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Warning Message */}
-                  <div className="p-4 bg-orange-50 border-t border-orange-200 rounded-b-lg">
-                    <div className="flex items-center space-x-2">
-                      <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4 text-orange-600" />
-                      <span className="text-sm text-orange-800">
-                        Changes to system settings will affect all users. Please review carefully before applying.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Save Configuration Button */}
-                <div className="mt-6 flex justify-start">
-                  <button 
-                    onClick={handleSaveSettings}
-                    className="bg-[#1e3a5f] text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors"
-                  >
-                    Save Configuration
-                  </button>
-                </div>
+              <div className="text-center py-12">
+                <FontAwesomeIcon icon={faCog} className="h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">System Settings</h3>
+                <p className="text-gray-600">Configure system-wide settings and preferences.</p>
               </div>
             )}
           </div>

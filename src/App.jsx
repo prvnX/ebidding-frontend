@@ -18,6 +18,9 @@ import AuctionManItemDetails from './pages/AuctionMan/item_details'
 import Dashboard from './pages/RegisteredUser/dashboard';
 import AuctionHistory from './pages/RegisteredUser/auctionHistory';
 import AuctionSummary from './pages/RegisteredUser/auctionSummary';
+import Wallet from './pages/RegisteredUser/wallet';
+import Payment from './pages/RegisteredUser/payment';
+import BankTransfer from './pages/RegisteredUser/bankTransfer';
 import MyBiddingHistory from './pages/RegisteredUser/myBiddingHistory';
 
 import Appadmin from './pages/AppAdmin/home'
@@ -62,6 +65,9 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path='/auctionHistory' element={<AuctionHistory />} />
         <Route path="/auctionSummary" element={<AuctionSummary />}/>
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/bankTransfer" element={<BankTransfer />} />
         <Route path="/myBiddingHistory" element={<MyBiddingHistory />} />
 
         <Route path="/AuctionMan">
