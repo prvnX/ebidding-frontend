@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import Countdown from "react-countdown";
 
-export default function CountDownDate({ dateTime, starting, date, time }) {
+export default function CountDownDate({ dateTime, starting, date, time , style={}}) {
     let calTime;
     if(!dateTime)
       calTime= date + 'T' + time;
@@ -15,7 +15,7 @@ export default function CountDownDate({ dateTime, starting, date, time }) {
             else return <span className="text-md font-bold text-red-500">Auction Ended</span>;
         } else {
             return (
-                <div className={`${starting ? "text-green-600" : "text-red-500"} font-semibold`} >
+                <div className={`${starting ? "text-green-600" : "text-red-500"} font-semibold`} style={style}>
                     {days}d {hours}h {minutes}m {seconds}s
                 </div>
             );

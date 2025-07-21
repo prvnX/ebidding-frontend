@@ -69,7 +69,7 @@ export const fetchProtectedResource = async (url, data = {}, method) => {
       data,
       headers: jwtToken ? { 'Authorization': `Bearer ${jwtToken}` } : {},
     });
-    return response.data;
+    return response;
   } catch (err) {
     console.error('Fetch error:', err.response ? err.response.data : err.message, 'Status:', err.response?.status);
     throw err; // Let the calling component handle the error

@@ -11,6 +11,7 @@ import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import { formatCurrency } from '../../function';
 import axios from 'axios';
 import { addFlashMessage } from "../../flashMessageCenter";
+import { toast } from 'react-toastify';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -82,10 +83,10 @@ export default ({ item, fetchItem }) => {
         .then(res => {
             const {status, data} = res;
             if (status === 200 && data.success) {
-                addFlashMessage('success', 'Auctions scheduled successfully');
+                toast.success("Auction scheduled successfully");
                 fetchItem(); // Refresh the item details after scheduling
             } else {
-                addFlashMessage('error', 'Failed to schedule auctions. Please try again.');
+                toast.error("Failed to schedule auctions. Please try again.");
             }
         })
         .catch(error => {
