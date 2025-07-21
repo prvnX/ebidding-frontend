@@ -20,39 +20,6 @@ import Loading from "../../components/loading";
 
 
 export default () => {
-  const cards = [
-    {
-      title: 'Total Items',
-      amount: <CountUp start={0} end={234} duration={1} />,
-      color: "text-blue-1000"
-    },
-    {
-      title: 'Not Sheduled Items',
-      amount: <CountUp start={0} end={234} duration={1} />,
-      color: "text-yellow-600"
-    },
-    {
-      title: 'Pending Items',
-      amount: <CountUp start={0} end={234} duration={1} />,
-      color: "text-blue-700"
-    },
-    {
-      title: 'Active Items',
-      amount: <CountUp start={0} end={234} duration={1} />,
-      color: "text-green-600"
-    },
-    {
-      title: 'Ending Soon',
-      amount: <CountUp start={0} end={12} duration={1} />,
-      color: "text-orange-500"
-    },
-    {
-      title: 'Completed Items',
-      amount: <CountUp start={0} end={36} duration={1} />,
-      color: "text-red-800"
-    }
-  ];
-
   const [selectedItems, setSelectedItems] = useState([]);
 
   const select = (id, flag) => {
@@ -112,20 +79,43 @@ export default () => {
         </Link>
       </AuctionManHeader>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 max-w-7xl my-5 mx-auto px-4 gap-2 sm:px-6 lg:px-8">
-        {cards.map((card, index) => {
-          const Icon = card.icon;
-          return (
-            <div
-              key={index}
-              className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg border border-[#e5e7eb] backdrop-blur-md p-4"
-            >
-              <div className="flex flex-col items-start justify-start">
-                <p>{card.title}</p>
-                <strong><h1 className={`${card.color} text-2xl`}>{card.amount}</h1></strong>
-              </div>
-            </div>
-      )})}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 max-w-7xl my-5 mx-auto px-4 gap-2 sm:px-6 lg:px-8">
+        <div className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg shadow p-4 border-l-4 border-blue-900">
+          <div className="flex flex-col items-start justify-start">
+            <p>Total Items</p>
+            <strong><h1 className="text-blue-900 text-2xl"><CountUp start={0} end={234} duration={1} /></h1></strong>
+          </div>
+        </div>
+        <div className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg shadow p-4 border-l-4 border-yellow-600">
+          <div className="flex flex-col items-start justify-start">
+            <p>Not Sheduled Items</p>
+            <strong><h1 className="text-yellow-600 text-2xl"><CountUp start={0} end={234} duration={1} /></h1></strong>
+          </div>
+        </div>
+        <div className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg shadow p-4 border-l-4 border-blue-700">
+          <div className="flex flex-col items-start justify-start">
+            <p>Pending Items</p>
+            <strong><h1 className="text-blue-700 text-2xl"><CountUp start={0} end={234} duration={1} /></h1></strong>
+          </div>
+        </div>
+        <div className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg shadow p-4 border-l-4 border-green-600">
+          <div className="flex flex-col items-start justify-start">
+            <p>Active Items</p>
+            <strong><h1 className="text-green-600 text-2xl"><CountUp start={0} end={234} duration={1} /></h1></strong>
+          </div>
+        </div>
+        <div className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg shadow p-4 border-l-4 border-orange-500">
+          <div className="flex flex-col items-start justify-start">
+            <p>Ending Soon</p>
+            <strong><h1 className="text-orange-500 text-2xl"><CountUp start={0} end={12} duration={1} /></h1></strong>
+          </div>
+        </div>
+        <div className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg shadow p-4 border-l-4 border-red-800">
+          <div className="flex flex-col items-start justify-start">
+            <p>Completed Items</p>
+            <strong><h1 className="text-red-800 text-2xl"><CountUp start={0} end={36} duration={1} /></h1></strong>
+          </div>
+        </div>
       </div>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className=" w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">

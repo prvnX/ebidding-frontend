@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import NotificationDropdown from "../../notificationDropDown";
+import { Link } from "react-router-dom";
 
 export default function AppAdminHeader() {
   const [notificationClick,setNotificationClick] = React.useState(false);
@@ -40,10 +41,14 @@ export default function AppAdminHeader() {
             >
               <FontAwesomeIcon icon={faBell} className="h-5 w-5 text-white text-xl" />
             </button>
-              <button size="sm" className="bg-white text-[#1e3a5f] hover:bg-white/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer">
+              <Link
+                size="sm" 
+                className="bg-white text-[#1e3a5f] hover:bg-white/90 rounded-lg py-2 px-4 flex items-center border-1 border-white cursor-pointer"
+                to={"/appadmin/addUser"}
+                >
                 <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
                  Add User
-              </button>
+              </Link>
             </div>
           </div>
           </div>
