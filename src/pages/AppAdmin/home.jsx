@@ -6,15 +6,12 @@ import {
   faUsers, 
   faClipboardCheck, 
   faUserTie, 
-  faServer, 
   faEye, 
   faCheck, 
   faTimes,
   faChartLine,
-  faShieldAlt,
   faCog,
   faSearch,
-  faFilter,
   faUserPlus,
   faEdit,
   faTrash,
@@ -23,9 +20,7 @@ import {
   faEnvelope,
   faPhone,
   faCalendar,
-  faUserShield,
-  faSort,
-  faDownload,
+  faShield,
   faGavel,
   faChartBar,
   faChartPie,
@@ -33,7 +28,7 @@ import {
   faArrowDown,
   faMoneyBillWave,
   faClock,
-  faLocationDot,
+  faMapMarkerAlt,
   faFileAlt,
   faPercent,
   faSync
@@ -58,7 +53,7 @@ export default function AppAdminHome() {
       type: "Bidder",
       registeredDate: "2024-02-10",
       verificationScore: 85,
-      documents: ["NIC Copy", "Bank Statement", "Address Proof"]
+      documents: ["NIC Copy", "User Image"]
     },
     {
       id: 2,
@@ -69,19 +64,31 @@ export default function AppAdminHome() {
       type: "Bidder",
       registeredDate: "2024-02-09",
       verificationScore: 92,
-      documents: ["NIC Copy", "Company Registration"]
+      documents: ["NIC Copy", "User Image"]
     },
-    {
+      {
       id: 3,
-      name: "Nimal Fernando",
-      email: "nimal.fernando@customs.gov.lk",
-      phone: "+94723456789",
-      nic: "198012345680",
-      type: "Auction Manager",
-      registeredDate: "2024-02-08",
-      verificationScore: 98,
-      documents: ["Employee ID", "Authorization Letter"]
-    }
+      name: "Akila De Silva",
+      email: "Akila.silva@gmail.com",
+      phone: "+94712342378",
+      nic: "198312345679",
+      type: "Bidder",
+      registeredDate: "2024-01-19",
+      verificationScore: 92,
+      documents: ["NIC Copy", "User Image"]
+    },
+        {
+      id: 4,
+      name: "Samani S Dharmawardena",
+      email: "saman.dharma@slt.lk",
+      phone: "+94712345678",
+      nic: "198512345679",
+      type: "Bidder",
+      registeredDate: "2024-12-19",
+      verificationScore: 92,
+      documents: ["NIC Copy", "User Image"]
+    },
+
   ];
 
   // Sample data for system users
@@ -235,27 +242,6 @@ export default function AppAdminHome() {
       averageParticipants: 15,
       successRate: "78%",
       permissions: ["Create Auctions", "Manage Items"],
-      avatar: "/api/placeholder/40/40"
-    },
-    {
-      id: 4,
-      name: "Ranjan Wickramasinghe",
-      email: "ranjan.wickramasinghe@customs.gov.lk",
-      phone: "+94761234567",
-      nic: "197812345683",
-      empId: "EMP004",
-      department: "Customs Administration",
-      position: "Auction Manager",
-      status: "On Leave",
-      joinDate: "2023-11-20",
-      lastLogin: "2024-02-05 02:15 PM",
-      totalAuctions: 32,
-      activeAuctions: 2,
-      completedAuctions: 30,
-      totalRevenue: "LKR 11,200,000",
-      averageParticipants: 20,
-      successRate: "85%",
-      permissions: ["Create Auctions", "Manage Items", "View Reports"],
       avatar: "/api/placeholder/40/40"
     },
     {
@@ -425,28 +411,19 @@ export default function AppAdminHome() {
       icon: faUserTie,
       color: "bg-green-500"
     },
-    {
-      title: "System Uptime",
-      value: "99.8%",
-      change: "Excellent",
-      icon: faServer,
-      color: "bg-purple-500"
-    }
   ];
 
   const quickStats = [
     { label: "Active Bidders", value: "2,340" },
     { label: "Today's Logins", value: "456" },
-    { label: "Blocked Users", value: "15" },
-    { label: "Total Revenue", value: "LKR 125,000,M" }
+    { label: "Blocked Users", value: "15" }
   ];
 
   const tabItems = [
-    { id: 'approvals', label: 'User Approvals', count: '23' },
+    { id: 'approvals', label: 'User Approvals', count: systemUsers.length },
     { id: 'users', label: 'System Users' },
     { id: 'managers', label: 'Auction Managers' },
     { id: 'analytics', label: 'Analytics' },
-    { id: 'settings', label: 'System Settings' }
   ];
 
   return (
@@ -458,7 +435,7 @@ export default function AppAdminHome() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {stats.map((stat, index) => (
             <div key={index} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e3a5f]">
               <div className="flex items-center justify-between">
@@ -477,7 +454,7 @@ export default function AppAdminHome() {
 
         {/* Quick Stats Bar */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {quickStats.map((item, index) => (
               <div key={index} className="text-center p-4 border-r border-gray-200 last:border-r-0">
                 <div className="text-2xl font-bold text-[#1e3a5f]">{item.value}</div>
@@ -586,10 +563,6 @@ export default function AppAdminHome() {
                   <h3 className="text-lg font-semibold text-gray-900">
                     System Users Management
                   </h3>
-                  <button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors">
-                    <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
-                    Add New User
-                  </button>
                 </div>
 
                 {/* Search and Filter Section */}
@@ -613,7 +586,7 @@ export default function AppAdminHome() {
                       <option value="all">All Roles</option>
                       <option value="Bidder">Bidder</option>
                       <option value="Auction Manager">Auction Manager</option>
-                      <option value="Super Admin">Super Admin</option>
+                      <option value="Super Admin"> Admin</option>
                     </select>
                     <select
                       value={filterStatus}
@@ -625,10 +598,7 @@ export default function AppAdminHome() {
                       <option value="Inactive">Inactive</option>
                       <option value="Suspended">Suspended</option>
                     </select>
-                    <button className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors">
-                      <FontAwesomeIcon icon={faDownload} className="mr-2" />
-                      Export
-                    </button>
+
                   </div>
                 </div>
 
@@ -652,9 +622,6 @@ export default function AppAdminHome() {
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Activity
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Performance
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
@@ -709,20 +676,9 @@ export default function AppAdminHome() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               <div className="flex items-center mb-1">
-                                <FontAwesomeIcon icon={faCalendar} className="mr-2 text-gray-400" />
                                 Joined: {user.joinDate}
                               </div>
                               <div>Last Login: {user.lastLogin}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {user.role === 'Bidder' ? (
-                                <div>
-                                  <div>Total Bids: {user.totalBids}</div>
-                                  <div>Win Rate: {user.winRate}</div>
-                                </div>
-                              ) : (
-                                <div className="text-gray-400">N/A</div>
-                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex items-center space-x-2">
@@ -915,13 +871,9 @@ export default function AppAdminHome() {
                     >
                       <option value="all">All Status</option>
                       <option value="Active">Active</option>
-                      <option value="On Leave">On Leave</option>
                       <option value="Suspended">Suspended</option>
                     </select>
-                    <button className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors">
-                      <FontAwesomeIcon icon={faDownload} className="mr-2" />
-                      Export
-                    </button>
+
                   </div>
                 </div>
 
@@ -947,7 +899,6 @@ export default function AppAdminHome() {
                           <div className="flex flex-col items-end">
                             <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                               manager.status === 'Active' ? 'bg-green-100 text-green-800' :
-                              manager.status === 'On Leave' ? 'bg-yellow-100 text-yellow-800' :
                               'bg-red-100 text-red-800'
                             }`}>
                               {manager.status}
@@ -977,17 +928,10 @@ export default function AppAdminHome() {
                             <div className="text-sm text-blue-600 font-medium">Total Auctions</div>
                             <div className="text-2xl font-bold text-blue-900">{manager.totalAuctions}</div>
                           </div>
-                          <div className="bg-green-50 rounded-lg p-3">
-                            <div className="text-sm text-green-600 font-medium">Success Rate</div>
-                            <div className="text-2xl font-bold text-green-900">{manager.successRate}</div>
-                          </div>
+     
                           <div className="bg-purple-50 rounded-lg p-3">
                             <div className="text-sm text-purple-600 font-medium">Active Auctions</div>
                             <div className="text-2xl font-bold text-purple-900">{manager.activeAuctions}</div>
-                          </div>
-                          <div className="bg-orange-50 rounded-lg p-3">
-                            <div className="text-sm text-orange-600 font-medium">Avg Participants</div>
-                            <div className="text-2xl font-bold text-orange-900">{manager.averageParticipants}</div>
                           </div>
                         </div>
 
@@ -997,7 +941,7 @@ export default function AppAdminHome() {
                           <div className="text-xl font-bold text-gray-900">{manager.totalRevenue}</div>
                         </div>
 
-                        {/* Permissions */}
+                        {/* Permissions
                         <div className="mb-4">
                           <div className="text-sm text-gray-600 font-medium mb-2">Permissions</div>
                           <div className="flex flex-wrap gap-2">
@@ -1007,7 +951,7 @@ export default function AppAdminHome() {
                               </span>
                             ))}
                           </div>
-                        </div>
+                        </div> */}
 
                         {/* Action Buttons */}
                         <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
@@ -1042,13 +986,13 @@ export default function AppAdminHome() {
                               Activate
                             </button>
                           ) : null}
-                          <button
+                          {/* <button
                             onClick={() => handlePermissionChange(manager.id, manager.permissions)}
                             className="flex items-center px-3 py-1 bg-purple-50 text-purple-600 rounded-md text-sm font-medium hover:bg-purple-100 transition-colors"
                           >
                             <FontAwesomeIcon icon={faShield} className="mr-1" />
                             Permissions
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     </div>
@@ -1184,6 +1128,7 @@ export default function AppAdminHome() {
                       <FontAwesomeIcon icon={faGavel} className="h-12 w-12 text-green-500" />
                     </div>
                   </div>
+
 
                   <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between">

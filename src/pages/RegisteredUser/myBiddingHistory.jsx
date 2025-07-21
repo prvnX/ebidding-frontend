@@ -1,16 +1,14 @@
 import CustomHeader from "../../components/custom-header";
 import Footer from "../../components/footer";
 import NavBar from "../../components/navbar";
-import breadCrumb from "../../components/ui/breadCrumb";
 
-import React, { use, useState,useEffect } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSearch,
   faClock,
   faCheckCircle,
-  faWarning,
 } from "@fortawesome/free-solid-svg-icons";
 import { Filter } from "lucide-react";
 
@@ -22,116 +20,99 @@ import royal from "../../assets/royal.jpg";
 import sword from "../../assets/sword.png";
 import bicycle from "../../assets/bicycle.JPG";
 import bronze from "../../assets/bronze.jpg";
-import EndedItemCard from "../../components/ui/userCards/endedItemCard";
-const Dashboard = () => {
+const MyBiddingHistory = () => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [activeTab, setActiveTab] = useState("all-items");
+  const [activeTab, setActiveTab] = useState("all-bids");
 
   const items = [
-  {
-    id: 1,
-    title: "Classic Car",
-    description: "A well-maintained 1967 Ford Mustang in original condition.",
-    images: [mustang, "mustang.png"],
-    location: "Colombo, Sri Lanka",
-    startDate: new Date("2025-07-01T09:00:00Z"),
-    endDate: new Date("2025-07-05T18:00:00Z"),
-    startBid: 2000000,
-    finalPrice: 25000000,
-    totalBids: 15,
-    status: "not-bid",
-  },
-  {
-    id: 2,
-    title: "Vintage Motorcycle",
-    description: "A rare 1950s Royal Enfield Bullet, fully restored.",
-    images: [royal, "enfield.png"],
-    location: "Kandy, Sri Lanka",
-    startDate: new Date("2025-07-03T09:00:00Z"),
-    endDate: new Date("2025-07-06T18:00:00Z"),
-    startBid: 600000,
-    finalPrice: 800000,
-    totalBids: 10,
-    status: "not-bid",
-  },
-  {
-    id: 3,
-    title: "Antique Bicycle",
-    description: "Classic Raleigh bicycle from the 1940s, in working order.",
-    images: [bicycle, "bicycle.png"],
-    location: "Galle, Sri Lanka",
-    startDate: new Date("2025-06-29T09:00:00Z"),
-    endDate: new Date("2025-07-03T18:00:00Z"),
-    startBid: 90000,
-    finalPrice: 120000,
-    totalBids: 7,
-    status: "won",
-  },
-  {
-    id: 4,
-    title: "Bronze Sculpture",
-    description: "Handcrafted bronze sculpture from the 19th century.",
-    images: [bronze, "sculpture.png"],
-    location: "Negombo, Sri Lanka",
-    startDate: new Date("2025-07-02T09:00:00Z"),
-    endDate: new Date("2025-07-06T15:00:00Z"),
-    startBid: 120000,
-    finalPrice: 1800000,
-    totalBids: 18,
-    status: "not-bid",
-  },
-  {
-    id: 5,
-    title: "Ancient Sword",
-    description: "An ancient ceremonial sword with intricate designs.",
-    images: [sword, "sword.png"],
-    location: "Anuradhapura, Sri Lanka",
-    startDate: new Date("2025-06-30T09:00:00Z"),
-    endDate: new Date("2025-07-04T18:00:00Z"),
-    startBid: 2000,
-    finalPrice: 2700,
-    totalBids: 19,
-    status: "won",
-  },
-  {
-    id: 6,
-    title: "Ancient Vass",
-    description: "An ancient vass from Italy.",
-    images: [avimg, "figurine.png"],
-    location: "Batticaloa, Sri Lanka",
-    startDate: new Date("2025-06-25T09:00:00Z"),
-    endDate: new Date("2025-07-01T18:00:00Z"),
-    startBid: 400,
-    finalPrice: 600,
-    totalBids: 10,
-    status: "lost",
-  },
-];
-useEffect(() => {
-  // Fetch items from API or perform any necessary setup
-  setActiveTab("all-time");
-}, []);
-  
+    {
+      id: 1,
+      title: "Classic Car",
+      description: "A well-maintained 1967 Ford Mustang in original condition.",
+      images: [mustang, "mustang.png"],
+      status: "ending-soon",
+      currentBid: 25000000,
+      startingBid: 2000000,
+      timeLeft: "3 days 4 hours",
+      totalBids: 15,
+      location: "Colombo, Sri Lanka",
+    },
+    {
+      id: 2,
+      title: "Vintage Motorcycle",
+      description: "A rare 1950s Royal Enfield Bullet, fully restored.",
+      images: [royal, "enfield.png"],
+      status: "active",
+      currentBid: 800000,
+      startingBid: 600000,
+      timeLeft: "1 day 8 hours",
+      totalBids: 10,
+      location: "Kandy, Sri Lanka",
+    },
+    {
+      id: 3,
+      title: "Antique Bicycle",
+      description: "Classic Raleigh bicycle from the 1940s, in working order.",
+      images: [bicycle, "bicycle.png"],
+      status: "ending-soon",
+      currentBid: 120000,
+      startingBid: 90000,
+      timeLeft: "2 days 2 hours",
+      totalBids: 7,
+      location: "Galle, Sri Lanka",
+    },
+    {
+      id: 4,
+      title: "Bronze Sculpture",
+      description: "Handcrafted bronze sculpture from the 19th century.",
+      images: [bronze, "sculpture.png"],
+      status: "active",
+      currentBid: 1800000,
+      startingBid: 120000,
+      timeLeft: "2 days 10 hours",
+      totalBids: 18,
+      location: "Negombo, Sri Lanka",
+    },
+    {
+      id: 5,
+      title: "Ancient Sword",
+      description: "An ancient ceremonial sword with intricate designs.",
+      images: [sword, "sword.png"],
+      status: "active",
+      currentBid: 2700,
+      startingBid: 2000,
+      timeLeft: "3 days 8 hours",
+      totalBids: 19,
+      location: "Anuradhapura, Sri Lanka",
+    },
+    {
+      id: 6,
+      title: "Ancient Vass",
+      description: "An ancient vass from Itali.",
+      images: [avimg, "figurine.png"],
+      status: "ended",
+      currentBid: 600,
+      startingBid: 400,
+      timeLeft: "0 hours",
+      totalBids: 10,
+      location: "Batticaloa, Sri Lanka",
+    },
+  ];
+
+  const favoriteItems = items.filter((item) => item.id === 1 || item.id === 2); // Example
+  const bidHistoryItems = items.filter(
+    (item) => item.id === 3 || item.id === 4
+  ); // Example
+  const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
 
   return (
     <>
       <CustomHeader />
       <NavBar />
-
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* <div className="flex items-center justify-between mb-6 border-1">
-        <breadCrumb
-          breadCrumbs={[
-            { title: t("home"), link: "/" },
-            { title: t("auctionHistory"), link: "/auctionHistory" },
-          ]}
-          page={t("auctionHistory")}
-        />
-        </div> */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-
           {/* Search Input */}
           <div className="flex-1 relative">
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -176,52 +157,51 @@ useEffect(() => {
         <div className="w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "all-time"
+              activeTab === "all-bids"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("all-time")}
+            onClick={() => setActiveTab("all-bids")}
           >
-            All Time
+            All Bids
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "week"
+              activeTab === "active"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("week")}
+            onClick={() => setActiveTab("active")}
           >
-            Last Week
+            Active
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "month"
+              activeTab === "won"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("month")}
+            onClick={() => setActiveTab("won")}
           >
-            Last Month
+            Won
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "year"
+              activeTab === "lost"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("year")}
+            onClick={() => setActiveTab("lost")}
           >
-            Last Year
+            Lost
           </button>
         </div>
-        
       </section>
       {/* Tab Content */}
-      {activeTab === "all-time" && (
-        <div className="grid grid-cols-1  gap-6 px-5 md:px-20 lg:px-60">
+      {activeTab === "all-bids" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {items.map((item) => (
-            <EndedItemCard key={item.id} item={item} />
+            <Card key={item.id} item={item} />
           ))}
           {items.length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
@@ -229,65 +209,65 @@ useEffect(() => {
                 icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">No Items Found</h2>
+              <h2 className="text-xl mb-3 font-semibold">No Bids Found</h2>
               <p>Try adjusting your search or filter criteria.</p>
             </div>
           )}
         </div>
       )}
-      {activeTab === "week" && (
-                <div className="grid grid-cols-1  gap-6 px-5 md:px-20 lg:px-60">
-          {items.map((item) => (
-            <EndedItemCard key={item.id} item={item} />
-          ))}
-          {items.length === 0 && (
+      {activeTab === "active" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+          {items
+            .filter((item) => item.status === "active")
+            .map((item) => (
+              <Card key={item.id} item={item} />
+            ))}
+          {items.filter((item) => item.status === "active").length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">No Items Found</h2>
-              <p>Try adjusting your search or filter criteria.</p>
+              <h2 className="text-xl mb-3 font-semibold">No Active Bids</h2>
+              <p>There are no active bids at the moment.</p>
             </div>
           )}
         </div>
       )}
-      {activeTab === "month" && (
+      {activeTab === "won" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {items
-            .filter((item) => item.status === "ending-soon")
+            .filter((item) => item.status === "won")
             .map((item) => (
               <Card key={item.id} item={item} />
             ))}
-          {items.filter((item) => item.status === "ending-soon").length === 0 && (
+          {items.filter((item) => item.status === "won").length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
-                icon={faWarning}
+                icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">
-                Last Month Auctions
-              </h2>
-              <p>Last Month Auctions will be appeared here.</p>
+              <h2 className="text-xl mb-3 font-semibold">No Won Bids</h2>
+              <p>You haven't won any auctions yet.</p>
             </div>
           )}
         </div>
       )}
-      {activeTab === "year" && (
+      {activeTab === "lost" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {items
-            .filter((item) => item.status === "ended")
+            .filter((item) => item.status === "lost")
             .map((item) => (
               <Card key={item.id} item={item} />
             ))}
-          {items.filter((item) => item.status === "ended").length === 0 && (
+          {items.filter((item) => item.status === "lost").length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
-                icon={faWarning}
+                icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">Last Year Auctions</h2>
-              <p>Last year auctions will be appeared here.</p>
+              <h2 className="text-xl mb-3 font-semibold">No Lost Bids</h2>
+              <p>You haven't lost any auctions yet.</p>
             </div>
           )}
         </div>
@@ -296,4 +276,4 @@ useEffect(() => {
     </>
   );
 };
-export default Dashboard;
+export default MyBiddingHistory;

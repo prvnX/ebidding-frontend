@@ -27,7 +27,7 @@ const ImageUploader = () => {
         ) : (
             <div className="flex flex-col items-center text-gray-500">
             <UploadCloud size={32} />
-            <p className="text-sm">Click to upload</p>
+            <p className="text-sm">Drag & drop image here, or click to select</p>
             </div>
         )}
         </div>

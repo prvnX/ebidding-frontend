@@ -21,12 +21,18 @@ import AuctionSummary from './pages/RegisteredUser/auctionSummary';
 import Wallet from './pages/RegisteredUser/wallet';
 import Payment from './pages/RegisteredUser/payment';
 import BankTransfer from './pages/RegisteredUser/bankTransfer';
+import MyBiddingHistory from './pages/RegisteredUser/myBiddingHistory';
 
 import Appadmin from './pages/AppAdmin/home'
+import AddUser from './pages/AppAdmin/addUser'
+
+import InventoryManagerHome from './pages/InventoryManager/home'
 
 import ProfilePage from './pages/profile'
 import 'leaflet/dist/leaflet.css';
 import FlashMessageCenter from './flashMessageCenter'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // import MessageToast from './components/ui/messageToast.jsx';
 
@@ -38,6 +44,7 @@ function App() {
     <>
       {/* <MessageToast locationState={location.state} /> */}
       <FlashMessageCenter />
+      <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -45,12 +52,13 @@ function App() {
         <Route path="/register" element={<RegisterPage />}/>
         <Route path="/hello" element={<Hello />}/>
 
-        <Route path="/AppAdmin" element={<Appadmin />} />
+        <Route path="/AppAdmin">
+          <Route index element={<Appadmin />} />
+          <Route path="addUser" element={<AddUser />} />
+        </Route>
 
         <Route path="/item/:itemId" element={<ItemDetails />}/>
         <Route path="/RegisteredUser/dashboard" element={<BidderHome />}/>
-        <Route path="/AuctionMan/Home" element={<AuctionHome/> }/>
-        <Route path="/AuctionMan/addItem" element={<AddItem/> }/>
 
         <Route path="/profile" element={<ProfilePage />} />
         
@@ -60,6 +68,7 @@ function App() {
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/bankTransfer" element={<BankTransfer />} />
+        <Route path="/myBiddingHistory" element={<MyBiddingHistory />} />
 
         <Route path="/AuctionMan">
           <Route index element={<AuctionHome />} />
@@ -67,6 +76,8 @@ function App() {
           <Route path="scheduleAuctions" element={<ScheduleAuctions />} />
           <Route path="item/:itemId" element={<AuctionManItemDetails />} />
         </Route>
+
+        <Route path="/InventoryManager" element={<InventoryManagerHome />} />
 
       </Routes>
     </>
