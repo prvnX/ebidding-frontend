@@ -33,13 +33,16 @@ import {
 
 // Import your header and footer components
 import CustomHeader from "../components/custom-header";
-import BidderHeader from "../components/bidder-header";
+import NavBar from "../components/navbar";
+ 
 import Footer from "../components/footer";
+ 
 
 // Sample profile picture - replace with actual path
 import profilePic from "../assets/profile.jpg";
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch";
 import BredCrumb from "../components/ui/breadCrumb";
+
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("bids"); // Start with bids tab active for testing
@@ -228,7 +231,8 @@ export default function ProfilePage() {
   return (
     <>
       <CustomHeader />
-      <BidderHeader />
+       
+      <NavBar />
       
       <div className="bg-gray-50 min-h-screen pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
