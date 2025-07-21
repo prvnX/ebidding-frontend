@@ -56,7 +56,7 @@ export default function SetLocation({selectedLocation, setSelectedLocation}) {
         setSelectedLocation([position.coords.latitude, position.coords.longitude]);
         if (position.coords.accuracy > 1000)
           // addFlashMessage("info", "Location may be inaccurate on devices without GPS. Please make sure it's correct.");
-          toast.info("Location may be inaccurate on devices without GPS. Please make sure it's correct.");
+          toast.warn("Location may be inaccurate on devices without GPS. Please make sure it's correct.");
       },
       () => {
         // addFlashMessage("error", "Unable to retrieve your location. Please allow location access in your browser settings.");
