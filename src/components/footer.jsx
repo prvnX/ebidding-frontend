@@ -41,7 +41,7 @@ export default function Footer(){
               </ul>
             </div>
             <div>
-              <h4 className="font-medium mb-4 text-white">{("support")}</h4>
+              <h4 className="font-medium mb-4 text-white">{t("support")}</h4>
               <ul className="space-y-2 text-sm text-white/80">
                 <li>
                   <a href="#" className="hover:text-white">
@@ -66,19 +66,19 @@ export default function Footer(){
               </ul>
             </div>
             <div>
-              <h4 className="font-medium mb-4 text-white">{("contactInfo")}</h4>
+              <h4 className="font-medium mb-4 text-white">{t("contactInfo")}</h4>
               <div className="text-sm text-white/80 space-y-2">
                 <p>
-                  <FontAwesomeIcon icon={faPhone} className='mr-2'/> {t("phone")} ({("hotlineLabel")})
+                  <FontAwesomeIcon icon={faPhone} className='mr-2'/> 1915
                 </p>
-                <p><FontAwesomeIcon icon={faEnvelope} className='mr-2'/> {t("email")}</p>
-                <p><FontAwesomeIcon icon={faLocationDot} className='mr-2'/> {t("customsHouse")}</p>
-                <p> <FontAwesomeIcon icon={faGlobe} className='mr-2'/> {t("website")}</p>
+                <p><FontAwesomeIcon icon={faEnvelope} className='mr-2'/> info@customs.gov.lk</p>
+                <p><FontAwesomeIcon icon={faLocationDot} className='mr-2'/>Custom House,Colombo 7, Sri Lanka</p>
+                <p> <FontAwesomeIcon icon={faGlobe} className='mr-2'/> <a href='https://www.customs.gov.lk/'>www.customs.gov.lk</a> </p>
               </div>
             </div>
           </div>
           <div className="border-t border-[#2d4a6b] mt-8 pt-8 text-center text-sm text-white/60">
-            <p>&copy; 2024 {("copyright")}</p>
+            <p>&copy; 2024 {t("copyright")}</p>
           </div>
         </div>
       </footer>
