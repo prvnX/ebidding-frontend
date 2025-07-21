@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { User, History, Wallet, LogOut } from "lucide-react";
+import { User, History, Wallet, LogOut, Gavel } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -37,7 +37,12 @@ export function UserDropdown() {
       {open && (
         <div className="absolute right-0 mt-7 w-56 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
           <div className="px-4 py-3 border-b border-gray-100">
-            <span className="block text-gray-700 font-semibold text-base" style={{ color: '#7e8ba3' }}>{userName}</span>
+            <span
+              className="block text-gray-700 font-semibold text-base"
+              style={{ color: "#7e8ba3" }}
+            >
+              {userName}
+            </span>
           </div>
           <div className="py-1">
             <div
@@ -48,20 +53,32 @@ export function UserDropdown() {
             </div>
             <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-              onClick={() => {/* Navigate to bid history */}}
+              onClick={() => {
+                /* Navigate to wallet */
+              }}
             >
-              <History className="h-4 w-4 mr-2 text-green-500" /> Bid History
+              <Wallet className="h-4 w-4 mr-2 text-yellow-500" /> Wallet
             </div>
             <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-              onClick={() => {/* Navigate to wallet */}}
+              onClick={() => navigate("/myBiddingHistory")}
             >
-              <Wallet className="h-4 w-4 mr-2 text-yellow-500" /> Wallet
+              <Gavel className="h-4 w-4 mr-2 text-purple-500" /> My Bidding
+              History
+            </div>
+            <div
+              className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
+              onClick={() => navigate("/auctionHistory")}
+            >
+              <History className="h-4 w-4 mr-2 text-green-500" /> Auction
+              History
             </div>
             <hr className="my-2 border-gray-200" />
             <div
               className="flex items-center px-4 py-2 text-sm text-red-600 cursor-pointer hover:bg-red-50"
-              onClick={() => {/* Handle logout */}}
+              onClick={() => {
+                /* Handle logout */
+              }}
             >
               <LogOut className="h-4 w-4 mr-2 text-red-500" /> Logout
             </div>

@@ -1,10 +1,11 @@
-import { useRef, useState, useEffect, use } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleInfo, faClipboardList, faImages, faDollarSign, faCalendarDays, faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import CustomHeader from "../../components/custom-header";
 import ImagesUploader from "../../components/ui/imagesUpload";
 import { addFlashMessage } from "../../flashMessageCenter";
+import { toast } from "react-toastify";
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -14,7 +15,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 
 import custombanner from "../../assets/custom-banner.png";
-import SetLocation from "../../components/setlocation";
+import LocationMap from "../../components/locationmap";
 import Footer from "../../components/footer";
 import BredCrumb from "../../components/ui/breadCrumb";
 import axios from "axios";
@@ -42,7 +43,39 @@ const AddItem = () => {
 
     //Location
 
-    const [locationId, setLocationId] = useState('');
+    const [locationDetails, setLocationDetails] = useState([]);
+    const [selectedLocation, setSelectedLocation] = useState({});
+
+    const handleLocationChange = useCallback((e) => {
+        if(!e.target.value) {
+            setSelectedLocation({});
+            return;
+        }
+        let loc = locationDetails.find(location => location.id == e.target.value);
+        if (!loc) {
+            setSelectedLocation({});
+            return;
+        }
+        setSelectedLocation(
+            {
+                id: loc.id,
+                position: [loc.latitude, loc.longitude],
+                name: loc.name,
+                address: loc.address
+            }
+        )
+    })
+    
+
+    useEffect(() => {
+        axios.get('http://localhost:8082/is/v1/allLocations')
+            .then(response => {
+                setLocationDetails(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching location details:", error);
+            });
+    }, []);
 
     //Specifications
 
@@ -126,13 +159,15 @@ const AddItem = () => {
         const form = e.target;
 
         if (form.checkValidity() === false) {
-            addFlashMessage('error', 'Please fill all the required fields.');
+            // addFlashMessage('error', 'Please fill all the required fields.');
+            toast.error("Please fill all the required fields.")
             form.reportValidity();
             return;
         }
 
         if (endTimeError || startTimeError || gapError) {
-            addFlashMessage('error', 'Please provide valid auction dates');
+            // addFlashMessage('error', 'Please provide valid auction dates');
+            toast.error("Please provide valid auction dates");
             return;
         }
 
@@ -152,7 +187,7 @@ const AddItem = () => {
                 endingTime
             },
             location : {
-                id: locationId,
+                id: selectedLocation.id,
             }
         }
 
@@ -171,13 +206,15 @@ const AddItem = () => {
              .then(res => {
                 const {status, data} = res;
                 if (status === 200 && data.success) {
-                    addFlashMessage('success', 'Item added successfully');
+                    // addFlashMessage('success', 'Item added successfully');
+                    toast.success("Item added successfully");
                     navigate('/auctionMan');
                 }
             })
             .catch(error => {
                 console.error('Error scheduling auctions:', error);
-                addFlashMessage('error', 'Failed to add item. Please try again.');
+                // addFlashMessage('error', 'Failed to add item. Please try again.');
+                toast.error("Failed to add item. Please try again.");
             });
     }
 
@@ -292,29 +329,27 @@ const AddItem = () => {
                             <label>Location *</label>
                             <select
                                 name="locationId"
-                                value={basicInfo.locationId}
-                                onChange={(e) => setLocationId(e.target.value)}
+                                value={selectedLocation.id || ''}
+                                onChange={handleLocationChange}
                             >
                                 <option value="">Select Location</option>
-                                <option value="HQ">Head Quarters</option>
-                                {/* <option value="Y-1">Yard 1</option>
-                                <option value="Y-2">Yard 2</option>
-                                <option value="Y-3">Yard 3</option> */}
-                                <option value="Pic">Pic on Map</option>
+                                {locationDetails && locationDetails.map((location, index) => (
+                                    <option key={index} value={location.id}>{location.name}</option>
+                                ))}
                             </select>
                         </div>
                         <div className="flex-1">
-                            <label>Address *</label>
+                            <label>Address</label>
                             <input
-                                name="address"
-                                placeholder="Enter the Addres"
+                                placeholder="Select the location first, address will be auto-filled"
                                 min="0"
-                                // required
+                                value={selectedLocation.address}
+                                readOnly
                             />
                         </div>
                     </div>
                     <div className="mx-auto aspect-square max-w-100">
-                        <SetLocation />
+                        <LocationMap itemDetail={selectedLocation} />
                     </div>
                 </div>
 

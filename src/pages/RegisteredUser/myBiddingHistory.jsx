@@ -1,14 +1,8 @@
 import CustomHeader from "../../components/custom-header";
 import Footer from "../../components/footer";
 import NavBar from "../../components/navbar";
-import ViewCard from "../../components/ui/userCards/viewCard";
-import BidCard from "../../components/ui/userCards/myBidCard";
-import loading from "../../components/loading";
-import PendingCard from "../../components/ui/userCards/pendingCard";
-import axios from "axios";
 
-import React, { useState , useEffect, use} from "react";
-// import { Link } from "react-router-dom";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -16,7 +10,7 @@ import {
   faClock,
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
-import { Filter, View } from "lucide-react";
+import { Filter } from "lucide-react";
 
 import Card from "../../components/ui/card";
 
@@ -26,40 +20,11 @@ import royal from "../../assets/royal.jpg";
 import sword from "../../assets/sword.png";
 import bicycle from "../../assets/bicycle.JPG";
 import bronze from "../../assets/bronze.jpg";
-import active from "../../components/ui/cards/active";
-const Dashboard = () => {
+const MyBiddingHistory = () => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [activeTab, setActiveTab] = useState("active");
-  const [loading, setLoading] = useState(false);
-  const [notSheduledItems, setNotSheduledItems] = useState([]);
-  const [pendingItems, setPendingItems] = useState([]);
-  const [activeItems, setActiveItems] = useState([]);
-  const [completedItems, setCompletedItems] = useState([]);
-
-   const fetchItems = () => {
-    setLoading(true);
-
-    const endPoint = activeTab === 'pending' ? 'getItemsPending' : activeTab === 'active' ? 'getItemsActive' : 'getItemsComplete';
-    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : activeTab === 'active' ? setActiveItems : setCompletedItems;
-
-    axios.get(`http://localhost:8082/is/v1/${endPoint}`)
-      .then((response) => {
-        setter(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }
-  useEffect(() => {
-    setLoading(true);
-    fetchItems();
-  }, [activeTab]);
-  
+  const [activeTab, setActiveTab] = useState("all-bids");
 
   const items = [
     {
@@ -115,7 +80,7 @@ const Dashboard = () => {
       title: "Ancient Sword",
       description: "An ancient ceremonial sword with intricate designs.",
       images: [sword, "sword.png"],
-      status: "pending",
+      status: "active",
       currentBid: 2700,
       startingBid: 2000,
       timeLeft: "3 days 8 hours",
@@ -127,78 +92,25 @@ const Dashboard = () => {
       title: "Ancient Vass",
       description: "An ancient vass from Itali.",
       images: [avimg, "figurine.png"],
-      status: "active",
+      status: "ended",
       currentBid: 600,
       startingBid: 400,
-      timeLeft: "8 hours",
+      timeLeft: "0 hours",
       totalBids: 10,
       location: "Batticaloa, Sri Lanka",
     },
-  ];
-
-  const MyBids = [
-    {
-      id: 1,
-      title: "Classic Car",
-      description: "A well-maintained 1967 Ford Mustang in original condition.",
-      images: [mustang, "mustang.png"],
-      status: "ending-soon",
-      currentBid: 25000000,
-      startingBid: 2000000,
-      myBid: 25000000,
-      timeLeft: "3 days 4 hours",
-      totalBids: 15,
-      location: "Colombo, Sri Lanka",
-      isWinning: true,
-      increment: 100000,
-    },
-    {
-      id: 2,
-      title: "Vintage Motorcycle",
-      description: "A rare 1950s Royal Enfield Bullet, fully restored.",
-      images: [royal, "enfield.png"],
-      status: "active",
-      currentBid: 800000,
-      startingBid: 600000,
-      myBid: 700000,
-      timeLeft: "1 day 8 hours",
-      totalBids: 10,
-      location: "Kandy, Sri Lanka",
-      isWinning: false,
-      increment: 5000,
-    },
-    {
-      id: 3,
-      title: "Antique Bicycle",
-      description: "Classic Raleigh bicycle from the 1940s, in working order.",
-      images: [bicycle, "bicycle.png"],
-      status: "ending-soon",
-      currentBid: 120000,
-      startingBid: 90000,
-      myBid: 100000,
-      timeLeft: "2 days 2 hours",
-      totalBids: 7,
-      location: "Galle, Sri Lanka",
-      isWinning: false,
-      increment: 10000,
-    }
   ];
 
   const favoriteItems = items.filter((item) => item.id === 1 || item.id === 2); // Example
   const bidHistoryItems = items.filter(
     (item) => item.id === 3 || item.id === 4
   ); // Example
-  // const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
+  const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
 
   return (
     <>
       <CustomHeader />
       <NavBar />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-2">
-        <h2 className="text-2xl font-semibold text-gray-800">
-          Hello, John! Welcome
-        </h2>
-      </div>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           {/* Search Input */}
@@ -245,116 +157,117 @@ const Dashboard = () => {
         <div className="w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "all-bids"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("all-bids")}
+          >
+            All Bids
+          </button>
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
               activeTab === "active"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
             onClick={() => setActiveTab("active")}
           >
-            Active Auctions
+            Active
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "favorite"
+              activeTab === "won"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("favorite")}
+            onClick={() => setActiveTab("won")}
           >
-            Favorite
+            Won
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "myBids"
+              activeTab === "lost"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("myBids")}
+            onClick={() => setActiveTab("lost")}
           >
-            My Bids
-          </button>
-          <button
-            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "pending"
-                ? "bg-white text-black"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("pending")}
-          >
-            Pending Auctions
+            Lost
           </button>
         </div>
       </section>
       {/* Tab Content */}
+      {activeTab === "all-bids" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+          {items.map((item) => (
+            <Card key={item.id} item={item} />
+          ))}
+          {items.length === 0 && (
+            <div className="col-span-3 text-center text-gray-500">
+              <FontAwesomeIcon
+                icon={faSearch}
+                className="text-4xl mb-4 text-gray-400"
+              />
+              <h2 className="text-xl mb-3 font-semibold">No Bids Found</h2>
+              <p>Try adjusting your search or filter criteria.</p>
+            </div>
+          )}
+        </div>
+      )}
       {activeTab === "active" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {activeItems.map((item) => (
-              <ViewCard key={item.id} item={item} />
+          {items
+            .filter((item) => item.status === "active")
+            .map((item) => (
+              <Card key={item.id} item={item} />
             ))}
-          {activeItems.length === 0 && (
+          {items.filter((item) => item.status === "active").length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">
-                {" "}
-                {t("noActiveAuctions")}
-              </h2>
-              <p>{t("noActiveAuctionsPara")}</p>
+              <h2 className="text-xl mb-3 font-semibold">No Active Bids</h2>
+              <p>There are no active bids at the moment.</p>
             </div>
           )}
         </div>
       )}
-      {activeTab === "favorite" && (
+      {activeTab === "won" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {favoriteItems.map((item) => (
-            <ViewCard key={item.id} item={item} />
-          ))}
-          {favoriteItems.length === 0 && (
+          {items
+            .filter((item) => item.status === "won")
+            .map((item) => (
+              <Card key={item.id} item={item} />
+            ))}
+          {items.filter((item) => item.status === "won").length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">No Favorites</h2>
-              <p>You have not added any favorites yet.</p>
+              <h2 className="text-xl mb-3 font-semibold">No Won Bids</h2>
+              <p>You haven't won any auctions yet.</p>
             </div>
           )}
         </div>
       )}
-      {activeTab === "myBids" && (
+      {activeTab === "lost" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {MyBids.map((item) => (
-            <BidCard key={item.id} item={item} />
-          ))}
-          {MyBids.length === 0 && (
+          {items
+            .filter((item) => item.status === "lost")
+            .map((item) => (
+              <Card key={item.id} item={item} />
+            ))}
+          {items.filter((item) => item.status === "lost").length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
                 className="text-4xl mb-4 text-gray-400"
               />
-              <h2 className="text-xl mb-3 font-semibold">No Bids</h2>
-              <p>You have not placed any bids yet.</p>
-            </div>
-          )}
-        </div>
-      )}
-      {activeTab === "pending" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {pendingItems.map((item) => (
-            <PendingCard key={item.id} item={item} />
-          ))}
-          {pendingItems.length === 0 && (
-            <div className="col-span-3 text-center text-gray-500">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="text-4xl mb-4 text-gray-400"
-              />
-              <h2 className="text-xl mb-3 font-semibold">
-                No Pending Auctions
-              </h2>
-              <p>No pending auctions at the moment.</p>
+              <h2 className="text-xl mb-3 font-semibold">No Lost Bids</h2>
+              <p>You haven't lost any auctions yet.</p>
             </div>
           )}
         </div>
@@ -363,4 +276,4 @@ const Dashboard = () => {
     </>
   );
 };
-export default Dashboard;
+export default MyBiddingHistory;
