@@ -42,7 +42,7 @@ export default function ViewCard({ item }) {
 
   const diffInHours = (endingTime - currentTime) / (1000 * 60 * 60);
 
-  if (diffInHours <= 24 && diffInHours > 0) {
+  if (diffInHours <= 24) {
     setIsEndingSoon(true);
   } else {
     setIsEndingSoon(false);
@@ -134,7 +134,7 @@ export default function ViewCard({ item }) {
             <div className="flex items-center text-gray-500">
               <FontAwesomeIcon icon={faUsers} className="mr-1" />
               {/* {item.totalBids} {t("bids")} */}
-             N/A Bids
+             N/A {t("bids")}
             </div>
           </div>
 

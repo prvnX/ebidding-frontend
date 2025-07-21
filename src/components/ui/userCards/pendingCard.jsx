@@ -41,7 +41,7 @@ export default function PendingCard({ item }) {
   const startingTime = new Date(item.auction?.startingTime);
 
   const diffInHours = (startingTime - currentTime) / (1000 * 60 * 60);
-  if (diffInHours <= 24 && diffInHours > 0) {
+  if (diffInHours <= 24) {
     setIsStartingSoon(true);
   } else {
     setIsStartingSoon(false);
