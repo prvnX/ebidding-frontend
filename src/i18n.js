@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import pending from './components/ui/cards/pending';
 
 // Translation files (you can load them from separate JSON files too)
 const resources = {
@@ -32,6 +33,10 @@ const resources = {
       noStartingSoon: "No starting soon auctions",
       noStartingSoonPara: "There are currently no auctions starting soon. Please check back later.",
       myBid: "My Bid",
+      startingSoon: "Starting Soon",
+      increment: "Increment",
+      pending: "Pending",
+
 
       //AuctionMan
       notSheduled: "Not Scheduled",
@@ -80,6 +85,9 @@ const resources = {
       noStartingSoonPara: "දැනට ආරම්භ වීමට අසන්න ලංසු නොමැත. කරුණාකර පසුව නැවත පරික්ෂා කරන්න.",
       viewItemDetails: "විස්තර බලන්න",
       myBid: "මගේ ලංසු",
+      startingSoon: "ආරම්භ වීමට ආසන්න",
+      increment: "ඉහළ දැමීම",
+      pending: "පැවැත්වීමට ඉතිරි",
       
 
         //AuctionMan
