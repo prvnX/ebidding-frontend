@@ -17,6 +17,13 @@ const Loginpage = () => {
       setError('Both username and password are required.');
       return false;
     }
+    
+    const scriptPattern = /<[^>]*script|<\/[^>]*script|<[^>]+>/i;
+    if (scriptPattern.test(username) || scriptPattern.test(password)) {
+      setError('HTML or script tags are not allowed.');
+      return false;
+    }
+
     return true;
   };
 
@@ -30,6 +37,7 @@ const Loginpage = () => {
     setIsLoading(true);
     setSuccess('');
     setError('');
+    console.log("before validation");
 
     if (!validateForm()) {
       setIsLoading(false);
