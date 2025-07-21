@@ -25,7 +25,8 @@ function LocationSelector({ onLocationChange, initialPosition }) {
   useEffect(() => {
     if (initialPosition) {
       setMarkerPosition(initialPosition);
-      map.setView(initialPosition, 10);
+      const zoomLevel = map.getZoom() > 9 ? map.getZoom() : 9;
+      map.setView(initialPosition, zoomLevel);
     }
   }, [initialPosition]);
 
@@ -69,7 +70,7 @@ export default function SetLocation({selectedLocation, setSelectedLocation}) {
   return (
     <div className="flex flex-col items-center justify-center border p-2 rounded-lg bg-white border-gray-200 h-full">
       <label>Select a location on map</label>
-      <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={false} className="h-[300px] w-full z-10">
+      <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={false} className="h-[300px] w-full z-0">
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
