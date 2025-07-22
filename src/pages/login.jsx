@@ -50,8 +50,8 @@ const Loginpage = () => {
       
       if (data.role === 'Bidder') {
         navigate('/RegisteredUser/dashboard');
-      } else if (data.role === 'AuctionManager') {
-        navigate('/auction/dashboard');
+      } else if (data.role === 'Auction_manager') {
+        navigate('/auctionMan');
       } else if (data.role === 'UserManager') {
         navigate('/user-manager/overview');
       } else {
