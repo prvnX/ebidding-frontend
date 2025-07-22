@@ -109,10 +109,10 @@ const Loginpage = () => {
               </p>
             )}
             {success && <p className="text-green-600 text-sm text-center">{success}</p>}
-            <form onSubmit={handleSubmit} className="space-y-4" autoComplete='off'>
+            <form onSubmit={handleSubmit} className="space-y-6" autoComplete='off'>
               <div className="space-y-3">
                 <label htmlFor="username" className="text-[#152a4a] font-medium text-lg">
-                  National Identity Card (NIC)
+                NIC Number / Employee ID
                 </label>
                 <input
                   id="username"
