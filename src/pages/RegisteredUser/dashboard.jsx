@@ -195,9 +195,9 @@ const Dashboard = () => {
       <CustomHeader />
       <NavBar />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-2">
-        <h2 className="text-2xl font-semibold text-gray-800">
+        {/* <h2 className="text-2xl font-semibold text-gray-800">
           Hello, John! Welcome
-        </h2>
+        </h2> */}
       </div>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-4 mb-8">
@@ -251,7 +251,7 @@ const Dashboard = () => {
             }`}
             onClick={() => setActiveTab("active")}
           >
-            Active Auctions
+            { t("activeAuctions") }
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
@@ -261,7 +261,7 @@ const Dashboard = () => {
             }`}
             onClick={() => setActiveTab("favorite")}
           >
-            Favorite
+            { t("favoriteAuctions") }
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
@@ -271,7 +271,7 @@ const Dashboard = () => {
             }`}
             onClick={() => setActiveTab("myBids")}
           >
-            My Bids
+            { t("myBids") }
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
@@ -281,13 +281,18 @@ const Dashboard = () => {
             }`}
             onClick={() => setActiveTab("pending")}
           >
-            Pending Auctions
+            { t("pendingAuctions") }
           </button>
         </div>
       </section>
       {/* Tab Content */}
       {activeTab === "active" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+          {
+            loading && (
+              <loading />
+            )
+          }
           {activeItems.map((item) => (
               <ViewCard key={item.id} item={item} />
             ))}
@@ -308,6 +313,7 @@ const Dashboard = () => {
       )}
       {activeTab === "favorite" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+
           {favoriteItems.map((item) => (
             <ViewCard key={item.id} item={item} />
           ))}
@@ -342,6 +348,11 @@ const Dashboard = () => {
       )}
       {activeTab === "pending" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+          {
+            loading && (
+              <loading />
+            )
+          }
           {pendingItems.map((item) => (
             <PendingCard key={item.id} item={item} />
           ))}

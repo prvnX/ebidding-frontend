@@ -3,13 +3,18 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faClock, faCheckCircle } from "@fortawesome/free-solid-svg-icons";
-import { Filter } from "lucide-react";
+import { Filter, View } from "lucide-react";
+import axios from "axios";
+import { useEffect } from "react";
+import PendingCard from "../components/ui/userCards/pendingCard";
+
 
 import CustomHeader from "../components/custom-header";
 import BidderHeader from "../components/bidder-header";
 import HeroSection from "../components/hero-header";
 import Footer from "../components/footer";
 import Card from "../components/ui/nonUserCard"; 
+import ViewCard from "../components/ui/userCards/viewCard";
 
 import avimg from "../assets/av1.png";
 import mustang from "../assets/mustang.jpg";
@@ -17,12 +22,38 @@ import royal from "../assets/royal.jpg";
 import sword from "../assets/sword.png";
 import bicycle from "../assets/bicycle.JPG";
 import bronze from "../assets/bronze.jpg";
+import loading from "../components/loading";
+import pending from "../components/ui/cards/pending";
 
 export default function Home() {
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("all");
     const [activeTab, setActiveTab] = useState("active");
+    const [isFinished, setIsFinished] = useState(false);
+    const [bidAmount, setBidAmount] = useState("");
+    const [Loading, setLoading] = useState(false);
+    const [activeItems, setActiveItems] = useState([]);
+    const [pendingItems, setPendingItems] = useState([]);
+    const [completedItems, setCompletedItems] = useState([]);
+    const [notSheduledItems, setNotSheduledItems] = useState([]);
+
+  
+  function isEnding(date){
+        const currentTime = new Date();
+        const startingTime = new Date(date);
+
+        const diffInHours = (startingTime - currentTime) / (1000 * 60 * 60);
+        if (diffInHours <= 24) {
+          console.log("hi")
+
+          return true;
+        
+        } else {
+          return false;
+        }
+        }
+
 
 
         const items = [
@@ -99,21 +130,44 @@ export default function Home() {
                 location: "Batticaloa, Sri Lanka"
             }
         ];
+
+    const fetchItems = () => {
+    setLoading(true);
+
+    const endPoint = activeTab === 'starting-soon' ? 'getItemsPending' : activeTab === 'active' ? 'getItemsActive' : 'getItemsComplete';
+    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'starting-soon' ? setPendingItems : activeTab === 'active' ? setActiveItems : setCompletedItems;
+
+    axios.get(`http://localhost:8082/is/v1/${endPoint}`)
+      .then((response) => {
+        setter(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+            });
+        }
+        
+        useEffect(() => {
+          setLoading(true);
+          fetchItems();
+        }, [activeTab]);
     return (
     <>
         <CustomHeader />
         <BidderHeader />
         <HeroSection />
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
 
-    {/* Search Input */}
-    <div className="flex-1 relative">
-      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-    <div className="relative">
-        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-    <FontAwesomeIcon icon={faSearch} />
-  </span>
+          {/* Search Input */}
+          <div className="flex-1 relative">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <div className="relative">
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <FontAwesomeIcon icon={faSearch} />
+          </span>
       
       <input
         type="text"
@@ -185,10 +239,13 @@ export default function Home() {
     </section>
         {activeTab === "active" && 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-        {items.map((item) => (
-            <Card key={item.id} item={item} />
+          {Loading && (
+            <loading />
+          )}
+        {activeItems.map((item) => (
+            <ViewCard key={item.id} item={item} />
         ))}
-        {items.length === 0 && (
+        {activeItems.length === 0 && (
             <div className="col-span-3 text-center text-gray-500">
                 <FontAwesomeIcon icon={faSearch} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noActiveAuctions")}</h2>
@@ -203,11 +260,10 @@ export default function Home() {
         {activeTab === "ending-soon" && 
                 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-            {items.map((item) => (
-                item.status === "ending-soon" &&
-                    <Card key={item.id} item={item} />
+            {activeItems.map((item) => (
+                    <ViewCard key={item.id} item={item} />
             ))}
-            { items.filter(item => item.status === "ending-soon").length === 0 &&
+            { items.filter(item => item.endingTime === "ending-soon").length === 0 &&
             <div className="col-span-3 text-center text-gray-500">
                 <FontAwesomeIcon icon={faClock} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noEndingSoonAuctions")}</h2>
@@ -219,12 +275,14 @@ export default function Home() {
 
         {activeTab === "starting-soon" &&         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  px-5 md:px-20 lg:px-60">
-            {items.map((item) => (
-                item.status === "pending" &&
-                    <Card key={item.id} item={item} />
+          {Loading && (
+            <loading />
+          )}
+            {pendingItems.map((item) => (
+              <PendingCard key={item.id} item={item} />
             ))}
 
-            { items.filter(item => item.status === "pending").length === 0 &&
+            { pendingItems.length === 0 &&
             <div className="col-span-3 text-center text-gray-500">
                 <FontAwesomeIcon icon={faCheckCircle} className="text-4xl mb-4 text-gray-400" />
               <h2 className="text-xl mb-3 font-semibold">  {t("noStartingSoon")}</h2>

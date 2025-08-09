@@ -106,13 +106,13 @@ export default function ItemDetails() {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Item Not Found</h2>
             <p className="text-gray-600 mb-6">The requested auction item could not be found.</p>
-            <Link 
-              to="/" 
+            <Button 
               className="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              onClick={() => navigate(-1)}
             >
               <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
               Back to Auctions
-            </Link>
+            </Button>
           </div>
         </div>
         <Footer />
@@ -154,10 +154,10 @@ export default function ItemDetails() {
       <div className="bg-gray-100 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Back to Auctions */}
-          <Link to="/" className="inline-flex items-center text-white bg-gray-600 px-3 py-2 rounded text-sm hover:bg-gray-700 mb-4">
+          <button to="/" className="inline-flex items-center text-white bg-gray-600 px-3 py-2 rounded text-sm hover:bg-gray-700 mb-4 cursor-pointer" onClick={() => window.history.back()}>
             <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
             Back to Auctions
-          </Link>
+          </button>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left column - Main image and thumbnails */}

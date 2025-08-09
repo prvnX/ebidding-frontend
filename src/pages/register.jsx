@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { fetchProtectedResource } from './authApi';
-//import { register } from './authApi'; // Assuming a register function exists
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Webcam from 'react-webcam';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -12,30 +11,88 @@ const RegisterPage = () => {
     last_name: '',
     primary_phone: '',
     secondary_phone: '',
-    date_of_birth: ''
+    date_of_birth: '',
+    user_image_url: '',
+    nic_image_url: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const webcamRef = useRef(null);
+  const nicFileInputRef = useRef(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [nicImage, setNicImage] = useState(null);
+
+  const captureImage = () => {
+    const screenshot = webcamRef.current.getScreenshot();
+    if (screenshot) {
+      setCapturedImage(screenshot);
+      const filename = `${formData.username}_userImage.jpg`;
+      setFormData((prevData) => ({ ...prevData, user_image_url: filename }));
+    }
+  };
+
+  const handleNicUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNicImage(reader.result);
+        const filename = `${formData.username}_nicImage.jpg`;
+        setFormData((prevData) => ({ ...prevData, nic_image_url: filename }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const validateForm = () => {
-    const requiredFields = ['username', 'password', 'email', 'first_name', 'last_name', 'date_of_birth', 'primary_phone', 'secondary_phone'];
+    const requiredFields = [
+      'username',
+      'password',
+      'email',
+      'first_name',
+      'last_name',
+      'date_of_birth',
+      'primary_phone',
+      'secondary_phone',
+      'user_image_url',
+      'nic_image_url',
+    ];
     for (const field of requiredFields) {
       if (!formData[field]) {
         setError(`${field.replace('_', ' ').toUpperCase()} is required.`);
         return false;
       }
     }
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError('Please enter a valid email address.');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long.');
-      return false;
-    }
+
+  if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    setError('Please enter a valid email address.');
+    return false;
+  }
+
+  if (formData.password.length < 6) {
+    setError('Password must be at least 6 characters long.');
+    return false;
+  }
+
+  const nicRegex = /^(?:\d{9}[vVxX]|\d{12})$/;
+  if (!nicRegex.test(formData.username)) {
+    setError('Username must be a valid Sri Lankan NIC (e.g., 123456789V or 200012345678).');
+    return false;
+  }
+
+  const phoneRegex = /^\d{10}$/;
+  if (!phoneRegex.test(formData.primary_phone)) {
+    setError('Primary phone number must be 10 digits.');
+    return false;
+  }
+  if (!phoneRegex.test(formData.secondary_phone)) {
+    setError('Secondary phone number must be 10 digits.');
+    return false;
+  }
+
     return true;
   };
 
@@ -55,9 +112,51 @@ const RegisterPage = () => {
       return;
     }
 
+    const formDataToSend = new FormData();
+
+    // Handle captured user image (webcam)
+    if (capturedImage) {
+      const byteString = atob(capturedImage.split(',')[1]);
+      const mimeString = capturedImage.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      const blob = new Blob([ab], { type: mimeString });
+      formDataToSend.append('user_image', blob, formData.user_image_url);
+    }
+
+    // Handle NIC image
+    if (nicImage) {
+      const byteString = atob(nicImage.split(',')[1]);
+      const mimeString = nicImage.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      const blob = new Blob([ab], { type: mimeString });
+      formDataToSend.append('nic_image', blob, formData.nic_image_url);
+    }
+
+    // Append other form data
+    for (const key in formData) {
+      if (key !== 'user_image_url' && key !== 'nic_image_url') {
+        formDataToSend.append(key, formData[key]);
+      }
+    }
+
     try {
-      const data = await fetchProtectedResource('http://localhost:8080/register', formData , 'POST');
-      console.log('Successful hello response:', data);
+      console.log(formDataToSend);
+      const response = await fetch('http://localhost:8080/register', {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+      console.log('Successful registration response:', data);
       setSuccess('Registration successful! Redirecting to login...');
       setTimeout(() => navigate('/login'), 1000);
     } catch (err) {
@@ -69,7 +168,6 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
-      
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
@@ -111,7 +209,7 @@ const RegisterPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="username" className="text-[#152a4a] font-medium">
-                  Username
+                National Identity Card (NIC)
                 </label>
                 <input
                   id="username"
@@ -123,8 +221,7 @@ const RegisterPage = () => {
                   required
                   disabled={isLoading}
                   aria-describedby={error ? 'error-message' : undefined}
-                  className="w-full border border-[#2e4a7f] focus:borderincidence response team
-                  focus:border-[#1e3a5f] focus:ring focus:ring-[#1e3a5f] focus:ring-opacity-50 rounded-md p-2"
+                  className="w-full border border-[#2e4a7f] focus:border-[#1e3a5f] focus:ring focus:ring-[#1e3a5f] focus:ring-opacity-50 rounded-md p-2"
                 />
               </div>
               <div className="space-y-2">
@@ -137,7 +234,7 @@ const RegisterPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="bob@gmail.com"
+                  placeholder="kasun@gmail.com"
                   required
                   disabled={isLoading}
                   aria-describedby={error ? 'error-message' : undefined}
@@ -215,7 +312,7 @@ const RegisterPage = () => {
                   name="primary_phone"
                   value={formData.primary_phone}
                   onChange={handleChange}
-                  placeholder="+94 123 456 789"
+                  placeholder="0725546358"
                   required
                   disabled={isLoading}
                   aria-describedby={error ? 'error-message' : undefined}
@@ -232,7 +329,7 @@ const RegisterPage = () => {
                   name="secondary_phone"
                   value={formData.secondary_phone}
                   onChange={handleChange}
-                  placeholder="+94 123 456 789"
+                  placeholder="0704502687"
                   required
                   disabled={isLoading}
                   aria-describedby={error ? 'error-message' : undefined}
@@ -254,6 +351,75 @@ const RegisterPage = () => {
                   aria-describedby={error ? 'error-message' : undefined}
                   className="w-full border border-[#2e4a7f] focus:border-[#1e3a5f] focus:ring focus:ring-[#1e3a5f] focus:ring-opacity-50 rounded-md p-2"
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[#152a4a] font-medium">Capture Photo</label>
+                {!capturedImage ? (
+                  <div>
+                    <Webcam
+                      audio={false}
+                      ref={webcamRef}
+                      screenshotFormat="image/jpeg"
+                      videoConstraints={{ facingMode: "user" }}
+                      className="rounded-md"
+                    />
+                    <button
+                      type="button"
+                      onClick={captureImage}
+                      className="mt-2 bg-[#1e3a5f] hover:bg-[#152a4a] text-white font-medium py-2 px-4 rounded-md disabled:opacity-50"
+                      disabled={isLoading}
+                    >
+                      Capture Image
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <img src={capturedImage} alt="Captured" className="rounded-md" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCapturedImage(null);
+                        setFormData((prev) => ({ ...prev, user_image_url: '' }));
+                      }}
+                      className="mt-2 bg-[#152a4a] hover:bg-[#1e3a5f] text-white font-medium py-2 px-4 rounded-md"
+                    >
+                      Retake
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="nic_image" className="text-[#152a4a] font-medium">
+                  Upload NIC Front Side
+                </label>
+                {!nicImage ? (
+                  <input
+                    id="nic_image"
+                    type="file"
+                    accept="image/*"
+                    ref={nicFileInputRef}
+                    onChange={handleNicUpload}
+                    disabled={isLoading}
+                    className="w-full border border-[#2e4a7f] focus:border-[#1e3a5f] focus:ring focus:ring-[#1e3a5f] focus:ring-opacity-50 rounded-md p-2"
+                  />
+                ) : (
+                  <div>
+                    <img src={nicImage} alt="NIC Preview" className="rounded-md w-[300px]" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNicImage(null);
+                        setFormData((prev) => ({ ...prev, nic_image_url: '' }));
+                        if (nicFileInputRef.current) {
+                          nicFileInputRef.current.value = null;
+                        }
+                      }}
+                      className="mt-2 bg-[#152a4a] hover:bg-[#1e3a5f] text-white font-medium py-2 px-4 rounded-md"
+                    >
+                      Re-upload NIC
+                    </button>
+                  </div>
+                )}
               </div>
               <button
                 type="submit"

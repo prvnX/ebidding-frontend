@@ -35,7 +35,7 @@ function LocationSelector({ onLocationChange, initialPosition }) {
       const { lat, lng } = e.latlng;
       // const newPos = [lat, lng];
       // setMarkerPosition(newPos);
-      onLocationChange?.({ lat, lng });
+      onLocationChange?.([ lat, lng ]);
     },
   });
 
@@ -65,6 +65,10 @@ export default function SetLocation({selectedLocation, setSelectedLocation}) {
       }
     );
   }
+
+  useEffect(() => {
+    console.log(selectedLocation);
+  }, [selectedLocation]);
 
 
   return (
