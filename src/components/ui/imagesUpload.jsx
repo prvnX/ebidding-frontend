@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Upload } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faStar, faXmark } from '@fortawesome/free-solid-svg-icons'; // Import the X icon for removal
-import { addFlashMessage } from '../../flashMessageCenter';
+import { faStar, faXmark } from '@fortawesome/free-solid-svg-icons'; // Import the X icon for removal
+import { toast } from 'react-toastify';
 
 const ImageUploadComponent = ({images, setImages, coverImage, setCoverImage}) => {
 
+  const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
   const [coverImageBlob, setCoverImageBlob] = useState(null);
-  const [imagesBlob, setImagesBlob] = useState([]);
+  const [totalFileSize, setTotalFileSize] = useState(0);
+  const [previewImage, setPreviewImage] = useState(false);
 
   useEffect(() => {
-    console.log("Cover image", coverImage);
-
     if (!coverImage) {
       setCoverImageBlob(null);
       return;
@@ -22,36 +22,29 @@ const ImageUploadComponent = ({images, setImages, coverImage, setCoverImage}) =>
 
     return () => URL.revokeObjectURL(blob); // cleanup
   }, [coverImage]);
-
-  useEffect(() => {
-    console.log("Images", images);
-    const blobs = images.map(file => URL.createObjectURL(file));
-    setImagesBlob(blobs);
-
-    return () => {
-      blobs.forEach(url => URL.revokeObjectURL(url)); // cleanup
-    };
-  }, [images]);
-
   
-  useEffect(() => {
-    console.log("ImagesBlob", imagesBlob);
-  }, [imagesBlob]);
-
-  
-  useEffect(() => {
-    console.log("CoverImageBlob", coverImageBlob);
-  }, [coverImageBlob]);
-
-
   const handleSetImages = useCallback((newFiles) => {
-    if (!coverImage) {
-      console.log("CoverImage flase")
-      setCoverImage(newFiles.shift());
+
+    const totalImages = [...images];
+    let currentTotalSize = totalImages.reduce((sum, img) => sum + img.size, 0);
+    if(coverImage) currentTotalSize += coverImage.size;
+
+    for (let i = 0; i < newFiles.length; i++) {
+      const fileSize = newFiles[i].size;
+
+      if (currentTotalSize + fileSize <= MAX_TOTAL_SIZE) {
+        totalImages.push(newFiles[i]);
+        currentTotalSize += fileSize;
+      } else {
+        toast.warn(`Skipped "${newFiles[i].name}" — total size would exceed ${MAX_TOTAL_SIZE / (1024 * 1024)} MB.`);
+      }
     }
-    const totalImages = [...images, ...newFiles];
+
+    if (!coverImage) {
+      setCoverImage(totalImages.shift());
+    }
     if (totalImages.length > 9) {
-      addFlashMessage('error', 'You can only upload up to 10 images.');
+      toast.error("You can only upload up to 10 images.");
     }
     setImages(totalImages.slice(0, 9));
   }, [images, coverImage]);
@@ -71,7 +64,12 @@ const ImageUploadComponent = ({images, setImages, coverImage, setCoverImage}) =>
     const i = [...images];
     setCoverImage(i.shift());
     setImages(i);
-  }, [images])
+  }, [images]);
+
+  const handleClear = useCallback(() => {
+    setImages([]);
+    setCoverImage(null);
+  })
 
   // Handles drag and drop functionality
   const handleDragOver = useCallback((event) => {
@@ -95,7 +93,11 @@ const ImageUploadComponent = ({images, setImages, coverImage, setCoverImage}) =>
       setCoverImage(newCover);
   }, [images, coverImage]);
 
-  const [previewImage, setPreviewImage] = useState(false);
+  useEffect(() => {
+    let imagesSize = images.reduce((sum, img) => sum + img.size, 0);
+    if(coverImage) imagesSize += coverImage.size
+    setTotalFileSize((imagesSize / (1024 * 1024)).toFixed(2));
+  }, [images, coverImage])
 
   return (
     <div className="space-y-4">
@@ -144,14 +146,17 @@ const ImageUploadComponent = ({images, setImages, coverImage, setCoverImage}) =>
                   </button>
                 </div>
               </div>
+              <span className='absolute bottom-2 right-2 bg-white/90 rounded text-xs'>{(coverImage?.size / (1024 * 1024)).toFixed(2)} MB</span>
             </div>
-          {imagesBlob.map((image, index) => (
+          {images.map((image, index) => {
+            const url = URL.createObjectURL(image);
+            return (
             <div key={index} className="relative">
               <img
-                src={image || "/placeholder.svg"}
+                src={url || "/placeholder.svg"}
                 alt={`Upload ${index + 1}`}
                 className="w-full h-full object-cover rounded-lg border"
-                onClick={() => setPreviewImage(image || "/placeholder.svg")}
+                onClick={() => setPreviewImage(url || "/placeholder.svg")}
               />
               <div className="absolute -top-2 right-1 flex flex-row gap-1">
                 <div className='bg-gray-100 hover:bg-white w-5 h-5 border border-gray-500 rounded-md flex items-center justify-center shadow-md text-yellow-500'>
@@ -173,10 +178,24 @@ const ImageUploadComponent = ({images, setImages, coverImage, setCoverImage}) =>
                   </button>
                 </div>
               </div>
+              <span className='absolute bottom-1 right-1 bg-white/90 rounded text-xs'>{(image.size / (1024 * 1024)).toFixed(2)} MB</span>
             </div>
-          ))}
+          )})}
         </div>
       )}
+      {(coverImage || images.length > 0) && (
+            <div className="w-full flex flex-col">
+                <div>
+                    {totalFileSize} MB / {MAX_TOTAL_SIZE / (1024 * 1024)} MB
+                </div>
+                <button
+                    type="button"
+                    onClick={handleClear}
+                    className="bg-white text-red-700 hover:bg-[#ffeeee] rounded-lg py-2 px-4 border border-gray-200 shadow-sm cursor-pointer w-50 mx-auto">
+                    Remove All
+                </button>
+            </div>
+        )}
       {
         previewImage ? (
           <div 

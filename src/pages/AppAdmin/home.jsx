@@ -189,7 +189,7 @@ export default function AppAdminHome() {
       nic: "198012345680",
       empId: "EMP001",
       department: "Customs Administration",
-      position: "Senior Auction Manager",
+      position: "Auction Manager",
       status: "Active",
       joinDate: "2023-12-20",
       lastLogin: "2024-02-10 09:45 AM",
@@ -210,7 +210,7 @@ export default function AppAdminHome() {
       nic: "197512345681",
       empId: "EMP002",
       department: "Customs Administration",
-      position: "Auction Manager",
+      position: "Inventory Manager",
       status: "Active",
       joinDate: "2024-01-05",
       lastLogin: "2024-02-10 11:20 AM",
@@ -231,7 +231,7 @@ export default function AppAdminHome() {
       nic: "198212345682",
       empId: "EMP003",
       department: "Customs Administration",
-      position: "Junior Auction Manager",
+      position: "Auction Manager",
       status: "Active",
       joinDate: "2024-01-15",
       lastLogin: "2024-02-09 04:30 PM",
@@ -252,7 +252,7 @@ export default function AppAdminHome() {
       nic: "199012345684",
       empId: "EMP005",
       department: "Customs Administration",
-      position: "Senior Auction Manager",
+      position: "Inventory Manager",
       status: "Suspended",
       joinDate: "2023-10-10",
       lastLogin: "2024-01-28 03:45 PM",
@@ -421,9 +421,8 @@ export default function AppAdminHome() {
 
   const tabItems = [
     { id: 'approvals', label: 'User Approvals', count: systemUsers.length },
-    { id: 'users', label: 'System Users' },
-    { id: 'managers', label: 'Auction Managers' },
-    { id: 'analytics', label: 'Analytics' },
+    { id: 'users', label: 'Biddders' },
+    { id: 'managers', label: 'System Users' },
   ];
 
   return (
@@ -615,9 +614,6 @@ export default function AppAdminHome() {
                             Contact
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Role
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -656,15 +652,7 @@ export default function AppAdminHome() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                user.role === 'Super Admin' ? 'bg-purple-100 text-purple-800' :
-                                user.role === 'Auction Manager' ? 'bg-green-100 text-green-800' :
-                                'bg-blue-100 text-blue-800'
-                              }`}>
-                                {user.role}
-                              </span>
-                            </td>
+
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 user.status === 'Active' ? 'bg-green-100 text-green-800' :
@@ -810,7 +798,7 @@ export default function AppAdminHome() {
                 </div>
 
                 {/* Manager Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
                     <div className="flex items-center justify-between">
                       <div>
@@ -838,17 +826,7 @@ export default function AppAdminHome() {
                       <FontAwesomeIcon icon={faChartLine} className="h-8 w-8 text-purple-500" />
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Avg Success Rate</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {Math.round(auctionManagers.reduce((sum, m) => sum + parseFloat(m.successRate), 0) / auctionManagers.length)}%
-                        </p>
-                      </div>
-                      <FontAwesomeIcon icon={faShield} className="h-8 w-8 text-orange-500" />
-                    </div>
-                  </div>
+
                 </div>
 
                 {/* Search and Filter Section */}
@@ -892,7 +870,7 @@ export default function AppAdminHome() {
                             </div>
                             <div className="ml-4">
                               <h4 className="text-lg font-semibold text-gray-900">{manager.name}</h4>
-                              <p className="text-sm text-gray-600">{manager.position}</p>
+                              <p className="text-sm text-blue-700 bg-blue-100 rounded-lg py-1/2 px-1 center my-1">{manager.position}</p>
                               <p className="text-sm text-gray-500">Employee ID: {manager.empId}</p>
                             </div>
                           </div>
@@ -936,10 +914,6 @@ export default function AppAdminHome() {
                         </div>
 
                         {/* Revenue Information */}
-                        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                          <div className="text-sm text-gray-600 font-medium">Total Revenue Generated</div>
-                          <div className="text-xl font-bold text-gray-900">{manager.totalRevenue}</div>
-                        </div>
 
                         {/* Permissions
                         <div className="mb-4">

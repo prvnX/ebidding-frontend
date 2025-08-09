@@ -124,7 +124,7 @@ export default () => {
                       <img 
                         src={
                               item.images && item.images.length > 0
-                                ? `http://localhost:8082/${item.caseNumber}-${item.id}/${item.images[selectedImage].url}`
+                                ? `http://localhost:8082/items/${item.caseNumber}-${item.id}/images/${item.images[selectedImage].url}`
                                 : noImage
                             }
                         alt={item.title} 
@@ -152,7 +152,7 @@ export default () => {
                       >
                         {img ? (
                           <img 
-                            src={`http://localhost:8082/${item.caseNumber}-${item.id}/${item.images[index].url}`}
+                            src={`http://localhost:8082/items/${item.caseNumber}-${item.id}/images/${item.images[index].url}`}
                             alt={`${item.title} - view ${index + 1}`} 
                             className="w-full h-full object-cover rounded"
                           />

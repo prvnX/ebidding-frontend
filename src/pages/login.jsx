@@ -4,7 +4,7 @@ import useAuthStore from '../components/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 
 const Loginpage = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', password: '', rememberMe: false });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -19,7 +19,7 @@ const Loginpage = () => {
     }
     
     const scriptPattern = /<[^>]*script|<\/[^>]*script|<[^>]+>/i;
-    if (scriptPattern.test(username) || scriptPattern.test(password)) {
+    if (scriptPattern.test(formData.username) || scriptPattern.test(formData.password)) {
       setError('HTML or script tags are not allowed.');
       return false;
     }
@@ -28,8 +28,11 @@ const Loginpage = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prevData) => ({ 
+      ...prevData, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -37,7 +40,6 @@ const Loginpage = () => {
     setIsLoading(true);
     setSuccess('');
     setError('');
-    console.log("before validation");
 
     if (!validateForm()) {
       setIsLoading(false);
@@ -47,15 +49,23 @@ const Loginpage = () => {
     try {
       const data = await login({ username: formData.username, password: formData.password });
       setSuccess('Login successful!');
-      
-      if (data.role === 'Bidder') {
-        navigate('/RegisteredUser/dashboard');
-      } else if (data.role === 'Auction_manager') {
-        navigate('/auctionMan');
-      } else if (data.role === 'UserManager') {
-        navigate('/user-manager/overview');
-      } else {
-        navigate('/unauthorized');
+
+      switch (data.role) {
+        case 'Bidder':
+          navigate('/RegisteredUser/dashboard');
+          break;
+        case 'Auction_manager':
+          navigate('/auctionMan');
+          break;
+        case 'UserManager':
+          navigate('/user-manager/overview');
+          break;
+        case 'yard_manager':
+          navigate('/InventoryManager');
+          break;
+        default:
+          navigate('/unauthorized');
+          break;
       }
     } catch (err) {
       setError(err.message);
@@ -64,24 +74,17 @@ const Loginpage = () => {
     }
   };
 
-  useEffect(() => {
-    console.log('Current jwtToken in useEffect:', jwtToken);
-    if (jwtToken) {
-      navigate('/hello');
-    }
-  }, [jwtToken, navigate]);
-
   return (
     <div className="min-h-screen flex items-center justify-center relative">
-      {/* Background Image */}
+      {/* Background Image with Gradient Overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('https://www.maga.lk/wp-content/uploads/2015/04/103-customs-headquarters-10.jpg')`,
         }}
       >
-        {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-[#1e3a5f]/40"></div>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1e3a5f]/40 to-[#2d4a6b]/40"></div>
       </div>
 
       {/* Login Form */}
@@ -114,10 +117,10 @@ const Loginpage = () => {
               </p>
             )}
             {success && <p className="text-green-600 text-sm text-center">{success}</p>}
-            <form onSubmit={handleSubmit} className="space-y-4" autoComplete='off'>
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-[#152a4a] font-medium">
-                  Username
+            <form onSubmit={handleSubmit} className="space-y-6" autoComplete='off'>
+              <div className="space-y-3">
+                <label htmlFor="username" className="text-[#152a4a] font-medium text-lg">
+                NIC Number / Employee ID
                 </label>
                 <input
                   id="username"
@@ -133,8 +136,8 @@ const Loginpage = () => {
                   className="w-full border border-[#2e4a7f] focus:border-[#1e3a5f] focus:ring focus:ring-[#1e3a5f] focus:ring-opacity-50 rounded-md p-2"
                 />
               </div>
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-[#152a4a] font-medium">
+              <div className="space-y-3">
+                <label htmlFor="password" className="text-[#152a4a] font-medium text-lg">
                   Password
                 </label>
                 <div className="relative">
@@ -190,19 +193,6 @@ const Loginpage = () => {
                 Register
               </a>
             </p>
-            {import.meta.env.VITE_NODE_ENV !== 'production' && (
-              <div className="mt-6 bg-[#f3f4f6] p-3 rounded text-xs text-[#1e3a5f]">
-                <p className="font-medium mb-1">Demo Credentials:</p>
-                <p>Email: admin@customs.gov.lk</p>
-                <p>Password: admin123</p>
-              </div>
-            )}
-            <div className="text-center text-sm text-[#1e3a5f]">
-              Need help?{' '}
-              <a href="#" className="text-[#1e3a5f] hover:text-[#152a4a] hover:underline font-medium">
-                Contact Support
-              </a>
-            </div>
           </div>
         </div>
       </div>
