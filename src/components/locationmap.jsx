@@ -9,7 +9,8 @@ function ChangeMapView({ position }) {
   const map = useMap();
   useEffect(() => {
     if (position) {
-      map.setView(position, 9);
+      const zoomLevel = map.getZoom() > 9 ? map.getZoom() : 9;
+      map.setView(position, zoomLevel);
     }
   }, [position]);
   return null;
@@ -44,7 +45,7 @@ export default function LocationMap({itemDetail}) {
     <div className="flex flex-col items-center justify-center border p-2 rounded-lg bg-white border-gray-200">
     {position ? (
       <>
-        <MapContainer center={position} zoom={14} scrollWheelZoom={false} className="h-[300px] w-full z-10">
+        <MapContainer center={position} zoom={14} scrollWheelZoom={false} className="h-[300px] w-full z-0">
           <ChangeMapView position={position} />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -71,7 +72,7 @@ export default function LocationMap({itemDetail}) {
         </div>
       </>
     ) : (
-      <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={false} className="h-[300px] w-full">
+      <MapContainer center={[7.8731, 80.7718]} zoom={7} scrollWheelZoom={false} className="h-[300px] w-full z-0">
         <ChangeDefaultMapView />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

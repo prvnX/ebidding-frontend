@@ -49,15 +49,23 @@ const Loginpage = () => {
     try {
       const data = await login({ username: formData.username, password: formData.password });
       setSuccess('Login successful!');
-      
-      if (data.role === 'Bidder') {
-        navigate('/RegisteredUser/dashboard');
-      } else if (data.role === 'AuctionManager') {
-        navigate('/auction/dashboard');
-      } else if (data.role === 'UserManager') {
-        navigate('/user-manager/overview');
-      } else {
-        navigate('/unauthorized');
+
+      switch (data.role) {
+        case 'Bidder':
+          navigate('/RegisteredUser/dashboard');
+          break;
+        case 'Auction_manager':
+          navigate('/auctionMan');
+          break;
+        case 'UserManager':
+          navigate('/user-manager/overview');
+          break;
+        case 'yard_manager':
+          navigate('/InventoryManager');
+          break;
+        default:
+          navigate('/unauthorized');
+          break;
       }
     } catch (err) {
       setError(err.message);
