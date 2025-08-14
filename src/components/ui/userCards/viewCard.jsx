@@ -59,7 +59,7 @@ export default function ViewCard({ item }) {
         <div className="relative h-48 overflow-hidden">
           {item.images && item.images.length > 0 ? (
               <img
-                src={`http://localhost:8082/${item.caseNumber}-${item.id}/${item.images.find(img => img.cover)?.url || item.images[0].url}`}
+                src={`http://localhost:8082/items/${item.caseNumber}-${item.id}/images/${item.images.find(img => img.cover)?.url || item.images[0].url}`}
                 alt={item.title}
                 className="w-full h-full object-cover transition-transform hover:scale-105"
               />

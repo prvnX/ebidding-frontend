@@ -4,11 +4,14 @@ import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import './i18n'
+import { WebSocketProvider } from './contexts/WebSocketContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <WebSocketProvider>
+        <App />
+      </WebSocketProvider>
     </BrowserRouter>
   </StrictMode>,
 )
