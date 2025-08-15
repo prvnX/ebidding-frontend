@@ -3,7 +3,7 @@ import Footer from "../../components/footer";
 import NavBar from "../../components/navbar";
 import ViewCard from "../../components/ui/userCards/viewCard";
 import BidCard from "../../components/ui/userCards/myBidCard";
-import loading from "../../components/loading";
+import Loading from "../../components/loading";
 import PendingCard from "../../components/ui/userCards/pendingCard";
 import axios from "axios";
 
@@ -290,7 +290,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {
             loading && (
-              <loading />
+              <Loading />
             )
           }
           {activeItems.map((item) => (

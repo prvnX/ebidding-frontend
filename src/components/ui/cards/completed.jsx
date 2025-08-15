@@ -15,8 +15,8 @@ export default ({item}) => {
         navigate(`/AuctionMan/item/${id}`);
     };
     return(
-      <div key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer rounded-md bg-white shadow-sm gap-0 pb-1 grid grid-rows-[subgrid] row-span-6">
-        <div className="relative" onClick={() => handleItemClick(item.id)}>
+      <div key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer rounded-md bg-white shadow-sm gap-0 pb-1 grid grid-rows-[subgrid] row-span-6" onClick={() => handleItemClick(item.id)}>
+        <div className="relative">
           <div className="relative h-48 overflow-hidden">
             {item.images && item.images.length > 0 ? (
               <img
