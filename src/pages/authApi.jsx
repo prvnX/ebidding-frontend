@@ -60,8 +60,6 @@ api.interceptors.response.use(
 
 export const fetchProtectedResource = async (url, data = {}, method) => {
   const { jwtToken } = useAuthStore.getState();
-  //console.log("aaaaaaaa");
-  //console.log(jwtToken);
   try {
     const response = await api({
       method,

@@ -6,9 +6,7 @@ import CustomHeader from "../../components/custom-header";
 import ImagesUploader from "../../components/ui/imagesUpload";
 import FilesUpload from "../../components/ui/filesUpload";
 import { toast } from "react-toastify";
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import { dayjs } from '../../function';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -160,11 +158,6 @@ const AddItem = () => {
 
     const [files, setFiles] = useState([]);
 
-    //auction details
-
-    dayjs.extend(utc);
-    dayjs.extend(timezone);
-    
     // ✅ Set default timezone to Sri Lanka
     dayjs.tz.setDefault('Asia/Colombo');
     
@@ -410,7 +403,7 @@ const AddItem = () => {
                                     readOnly
                                     className="flex-1 border border-gray-300 rounded px-3 py-1 text-sm"
                                     required
-                                    tabindex="-1"
+                                    tabIndex="-1"
                                 />
                                 <input
                                     type="text"
