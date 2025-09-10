@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGavel } from "@fortawesome/free-solid-svg-icons";
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import { dayjs } from '../../function';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -12,9 +10,6 @@ import { formatCurrency } from '../../function';
 import axios from 'axios';
 import { addFlashMessage } from "../../flashMessageCenter";
 import { toast } from 'react-toastify';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 // ✅ Set default timezone to Sri Lanka
 dayjs.tz.setDefault('Asia/Colombo');

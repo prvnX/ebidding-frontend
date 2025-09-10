@@ -4,9 +4,7 @@ import { arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { useNavigate } from "react-router-dom";
 
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import { dayjs } from '../../function';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -24,9 +22,6 @@ import { addFlashMessage } from "../../flashMessageCenter";
 import Footer from "../../components/footer";
 import Loading from "../../components/loading";
 import axios from "axios";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 // ✅ Set default timezone to Sri Lanka
 dayjs.tz.setDefault('Asia/Colombo');
