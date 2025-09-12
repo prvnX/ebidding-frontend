@@ -29,21 +29,20 @@ import bicycle from "../../assets/bicycle.JPG";
 import bronze from "../../assets/bronze.jpg";
 import active from "../../components/ui/cards/active";
 import api from "../authApi";
+import Pagination from "../../components/ui/pagination";
 const Dashboard = () => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeTab, setActiveTab] = useState("Active");
   const [loading, setLoading] = useState(false);
-  const [pendingItems, setPendingItems] = useState([]);
-  const [activeItems, setActiveItems] = useState([]);
-  const [favourites, setFavourites] = useState([]);
-  const [myBids, setMyBids] = useState([]);
+  const [items, setItems] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
-  const fetchItems = useCallback(() => {
+  const fetchItems = useCallback((page) => {
     setLoading(true);
 
-    const setter = activeTab === 'favourites' ? setFavourites : activeTab === 'Pending' ? setPendingItems : activeTab === 'Active' ? setActiveItems : setMyBids;
     let apiEndPoint = activeTab === 'favourites' ? `/is/v1/getFavourites/NOT IMPLEMENTED YET` : activeTab === 'MyBids' ? `/is/v1/getMyBids/NOT IMPLEMENTED YET` : `http://localhost:8082/is/v1/getItems?status=${activeTab}`;
     
     if(selectedCategory !== 'all') {
@@ -51,6 +50,9 @@ const Dashboard = () => {
     }
     if(searchTerm) {
       apiEndPoint += `&searchTerm=${searchTerm}`
+    }
+    if(page > 0){
+      apiEndPoint += `&page=${page - 1}`
     }
     console.log(apiEndPoint);
     // try {
@@ -63,7 +65,10 @@ const Dashboard = () => {
 
     axios.get(apiEndPoint)
       .then((response) => {
-        setter(response.data);
+        const {content, currentPage, hasNext} = response.data;
+        setItems(content);
+        setCurrentPage(currentPage);
+        setHasNext(hasNext);
       })
       .catch(error => {
         console.error('Error fetching data:', error);
@@ -74,90 +79,90 @@ const Dashboard = () => {
   }, [activeTab, searchTerm, selectedCategory]);
   
   useEffect(() => {
-    setLoading(true);
-    fetchItems();
+    fetchItems(1);
   }, [activeTab, selectedCategory]);
 
   useEffect(() => {
-    const handler = setTimeout(() => fetchItems(), 2000);
+    setLoading(true);
+    const handler = setTimeout(() => fetchItems(1), 2000);
     return () => clearTimeout(handler);
   }, [searchTerm]);
   
 
-  const items = [
-    {
-      id: 1,
-      title: "Classic Car",
-      description: "A well-maintained 1967 Ford Mustang in original condition.",
-      images: [mustang, "mustang.png"],
-      status: "ending-soon",
-      currentBid: 25000000,
-      startingBid: 2000000,
-      timeLeft: "3 days 4 hours",
-      totalBids: 15,
-      location: "Colombo, Sri Lanka",
-    },
-    {
-      id: 2,
-      title: "Vintage Motorcycle",
-      description: "A rare 1950s Royal Enfield Bullet, fully restored.",
-      images: [royal, "enfield.png"],
-      status: "Active",
-      currentBid: 800000,
-      startingBid: 600000,
-      timeLeft: "1 day 8 hours",
-      totalBids: 10,
-      location: "Kandy, Sri Lanka",
-    },
-    {
-      id: 3,
-      title: "Antique Bicycle",
-      description: "Classic Raleigh bicycle from the 1940s, in working order.",
-      images: [bicycle, "bicycle.png"],
-      status: "ending-soon",
-      currentBid: 120000,
-      startingBid: 90000,
-      timeLeft: "2 days 2 hours",
-      totalBids: 7,
-      location: "Galle, Sri Lanka",
-    },
-    {
-      id: 4,
-      title: "Bronze Sculpture",
-      description: "Handcrafted bronze sculpture from the 19th century.",
-      images: [bronze, "sculpture.png"],
-      status: "Active",
-      currentBid: 1800000,
-      startingBid: 120000,
-      timeLeft: "2 days 10 hours",
-      totalBids: 18,
-      location: "Negombo, Sri Lanka",
-    },
-    {
-      id: 5,
-      title: "Ancient Sword",
-      description: "An ancient ceremonial sword with intricate designs.",
-      images: [sword, "sword.png"],
-      status: "Pending",
-      currentBid: 2700,
-      startingBid: 2000,
-      timeLeft: "3 days 8 hours",
-      totalBids: 19,
-      location: "Anuradhapura, Sri Lanka",
-    },
-    {
-      id: 6,
-      title: "Ancient Vass",
-      description: "An ancient vass from Itali.",
-      images: [avimg, "figurine.png"],
-      status: "Active",
-      currentBid: 600,
-      startingBid: 400,
-      timeLeft: "8 hours",
-      totalBids: 10,
-      location: "Batticaloa, Sri Lanka",
-    },
-  ];
+  // const items = [
+  //   {
+  //     id: 1,
+  //     title: "Classic Car",
+  //     description: "A well-maintained 1967 Ford Mustang in original condition.",
+  //     images: [mustang, "mustang.png"],
+  //     status: "ending-soon",
+  //     currentBid: 25000000,
+  //     startingBid: 2000000,
+  //     timeLeft: "3 days 4 hours",
+  //     totalBids: 15,
+  //     location: "Colombo, Sri Lanka",
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Vintage Motorcycle",
+  //     description: "A rare 1950s Royal Enfield Bullet, fully restored.",
+  //     images: [royal, "enfield.png"],
+  //     status: "Active",
+  //     currentBid: 800000,
+  //     startingBid: 600000,
+  //     timeLeft: "1 day 8 hours",
+  //     totalBids: 10,
+  //     location: "Kandy, Sri Lanka",
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Antique Bicycle",
+  //     description: "Classic Raleigh bicycle from the 1940s, in working order.",
+  //     images: [bicycle, "bicycle.png"],
+  //     status: "ending-soon",
+  //     currentBid: 120000,
+  //     startingBid: 90000,
+  //     timeLeft: "2 days 2 hours",
+  //     totalBids: 7,
+  //     location: "Galle, Sri Lanka",
+  //   },
+  //   {
+  //     id: 4,
+  //     title: "Bronze Sculpture",
+  //     description: "Handcrafted bronze sculpture from the 19th century.",
+  //     images: [bronze, "sculpture.png"],
+  //     status: "Active",
+  //     currentBid: 1800000,
+  //     startingBid: 120000,
+  //     timeLeft: "2 days 10 hours",
+  //     totalBids: 18,
+  //     location: "Negombo, Sri Lanka",
+  //   },
+  //   {
+  //     id: 5,
+  //     title: "Ancient Sword",
+  //     description: "An ancient ceremonial sword with intricate designs.",
+  //     images: [sword, "sword.png"],
+  //     status: "Pending",
+  //     currentBid: 2700,
+  //     startingBid: 2000,
+  //     timeLeft: "3 days 8 hours",
+  //     totalBids: 19,
+  //     location: "Anuradhapura, Sri Lanka",
+  //   },
+  //   {
+  //     id: 6,
+  //     title: "Ancient Vass",
+  //     description: "An ancient vass from Itali.",
+  //     images: [avimg, "figurine.png"],
+  //     status: "Active",
+  //     currentBid: 600,
+  //     startingBid: 400,
+  //     timeLeft: "8 hours",
+  //     totalBids: 10,
+  //     location: "Batticaloa, Sri Lanka",
+  //   },
+  // ];
 
   const MyBids = [
     {
@@ -211,7 +216,7 @@ const Dashboard = () => {
   const bidHistoryItems = items.filter(
     (item) => item.id === 3 || item.id === 4
   ); // Example
-  // const pendingItems = items.filter((item) => item.status === "Pending"); // Example: add status to items if needed
+  // const items = items.filter((item) => item.status === "Pending"); // Example: add status to items if needed
 
   return (
     <>
@@ -306,12 +311,13 @@ const Dashboard = () => {
         </div>
       </section>
       {/* Tab Content */}
-      {activeTab === "Active" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {
             loading ? (
               <Loading />
-            ) : activeItems.length === 0 ? (
+            ) 
+
+            : activeTab === "Active" ? items.length === 0 ? (
               <div className="col-span-3 text-center text-gray-500">
                 <FontAwesomeIcon
                   icon={faSearch}
@@ -323,18 +329,11 @@ const Dashboard = () => {
                 </h2>
                 <p>{t("noActiveAuctionsPara")}</p>
               </div>
-            ) : activeItems.map((item) => (
+            ) : items.map((item) => (
               <ViewCard key={item.id} item={item} />
-            ))}
-        </div>
-      )}
-      {activeTab === "favorite" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
+            )) 
 
-          {favoriteItems.map((item) => (
-            <ViewCard key={item.id} item={item} />
-          ))}
-          {favoriteItems.length === 0 && (
+            : activeTab === "favorite" ? favoriteItems.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
@@ -343,15 +342,11 @@ const Dashboard = () => {
               <h2 className="text-xl mb-3 font-semibold">No Favorites</h2>
               <p>You have not added any favorites yet.</p>
             </div>
-          )}
-        </div>
-      )}
-      {activeTab === "myBids" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {MyBids.map((item) => (
-            <BidCard key={item.id} item={item} />
-          ))}
-          {MyBids.length === 0 && (
+          ) 
+
+          : favoriteItems.map((item) => (
+            <ViewCard key={item.id} item={item} />
+          )) : activeTab === "myBids" ? MyBids.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
@@ -360,15 +355,11 @@ const Dashboard = () => {
               <h2 className="text-xl mb-3 font-semibold">No Bids</h2>
               <p>You have not placed any bids yet.</p>
             </div>
-          )}
-        </div>
-      )}
-      {activeTab === "Pending" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {
-            loading ? (
-              <Loading />
-            ) : pendingItems.length === 0 ? (
+          ) : MyBids.map((item) => (
+            <BidCard key={item.id} item={item} />
+          )) 
+
+          : activeTab === "Pending" ? items.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
@@ -379,11 +370,12 @@ const Dashboard = () => {
               </h2>
               <p>No pending auctions at the moment.</p>
             </div>
-          ) : pendingItems.map((item) => (
+          ) : items.map((item) => (
             <PendingCard key={item.id} item={item} />
-          ))}
+          )) : null
+        }
         </div>
-      )}
+      {!loading && items.length > 0 && <Pagination currentPage={currentPage} hasNext={hasNext} goToPage={fetchItems} />}
       <Footer />
     </>
   );
