@@ -89,6 +89,11 @@ const fetchItems = useCallback((page) => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
+  const handleTabChange = useCallback((tab) => {
+    setItems([]);
+    setActiveTab(tab);
+  });
+
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -191,7 +196,7 @@ const fetchItems = useCallback((page) => {
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("NotScheduled")}
+            onClick={() => handleTabChange("NotScheduled")}
           >
             {t("notSheduled")}
           </button>
@@ -202,7 +207,7 @@ const fetchItems = useCallback((page) => {
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200 "
             }`}
-            onClick={() => setActiveTab("Pending")}
+            onClick={() => handleTabChange("Pending")}
           >
             {t("pending")}
           </button>
@@ -213,7 +218,7 @@ const fetchItems = useCallback((page) => {
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("Active")}
+            onClick={() => handleTabChange("Active")}
           >
             {t("active")}
           </button>
@@ -224,7 +229,7 @@ const fetchItems = useCallback((page) => {
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("Completed")}
+            onClick={() => handleTabChange("Completed")}
           >
             {t("completed")}
           </button>
