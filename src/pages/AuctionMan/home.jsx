@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import CountUp from "react-countup";
@@ -39,6 +39,8 @@ export default () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
+
+  const isFirstRender = useRef(true);
 
 const fetchItems = useCallback((page) => {
     setLoading(true);
@@ -84,6 +86,10 @@ const fetchItems = useCallback((page) => {
   }, [activeTab, selectedCategory]);
 
   useEffect(() => {
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return;
+      }
     setLoading(true)
     const handler = setTimeout(() => {fetchItems(1)}, 2000);
     return () => clearTimeout(handler);

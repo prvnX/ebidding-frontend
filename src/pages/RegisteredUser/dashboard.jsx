@@ -8,7 +8,7 @@ import PendingCard from "../../components/ui/userCards/pendingCard";
 import fetchProtectedResource from "../authApi";
 import axios from "axios";
 
-import React, { useState , useEffect, use, useCallback} from "react";
+import { useState , useEffect, useRef, useCallback} from "react";
 // import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -39,6 +39,8 @@ const Dashboard = () => {
   const [items, setItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
+
+  const isFirstRender = useRef(true);
 
   const fetchItems = useCallback((page) => {
     setLoading(true);
@@ -83,6 +85,10 @@ const Dashboard = () => {
   }, [activeTab, selectedCategory]);
 
   useEffect(() => {
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return;
+      }
     setLoading(true);
     const handler = setTimeout(() => fetchItems(1), 2000);
     return () => clearTimeout(handler);

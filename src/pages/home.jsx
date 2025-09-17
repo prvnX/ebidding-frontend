@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faClock } from "@fortawesome/free-solid-svg-icons";
@@ -22,6 +22,8 @@ export default function Home() {
     const [items, setItems] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [hasNext, setHasNext] = useState(false);
+
+    const isFirstRender = useRef(true);
   
     const fetchItems = useCallback((page) => {
       setLoading(true);
@@ -67,6 +69,10 @@ export default function Home() {
     }, [activeTab, selectedCategory]);
 
     useEffect(() => {
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        return;
+      }
       setLoading(true)
       const handler = setTimeout(() => {fetchItems(1)}, 2000);
       return () => clearTimeout(handler);

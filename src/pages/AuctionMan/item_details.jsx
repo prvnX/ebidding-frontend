@@ -39,13 +39,12 @@ export default () => {
           console.log('Fetched item details:', itemData);
 
           // Step 2: Fetch the bidding history
-          const biddingHistoryResponse = await fetchProtectedResource(
-              `http://localhost:8081/bs/v1/getBiddingHistory/${itemId}`,
+          const {data : {bidHistoryItems}} = await fetchProtectedResource(
+              `http://localhost:8081/bs/v1/getBiddingDetails/${itemId}`,
               null,
               'GET'
           );
-          const biddingHistoryData = biddingHistoryResponse.data;
-          setBidHistory(biddingHistoryData);
+          setBidHistory(bidHistoryItems);
           console.log(biddingHistoryData);
 
       } catch (error) {
