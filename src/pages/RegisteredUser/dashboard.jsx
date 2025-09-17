@@ -3,12 +3,13 @@ import Footer from "../../components/footer";
 import NavBar from "../../components/navbar";
 import ViewCard from "../../components/ui/userCards/viewCard";
 import BidCard from "../../components/ui/userCards/myBidCard";
-import loading from "../../components/loading";
+import Loading from "../../components/loading";
 import PendingCard from "../../components/ui/userCards/pendingCard";
+import fetchProtectedResource from "../authApi";
 import axios from "axios";
 import useAuthStore from '../../components/useAuthStore';
 
-import React, { useState , useEffect, use} from "react";
+import React, { useState , useEffect, use, useCallback} from "react";
 // import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -17,7 +18,7 @@ import {
   faClock,
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
-import { Filter, View } from "lucide-react";
+import { Filter } from "lucide-react";
 
 import Card from "../../components/ui/card";
 
@@ -28,28 +29,44 @@ import sword from "../../assets/sword.png";
 import bicycle from "../../assets/bicycle.JPG";
 import bronze from "../../assets/bronze.jpg";
 import active from "../../components/ui/cards/active";
+import api from "../authApi";
 const Dashboard = () => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [activeTab, setActiveTab] = useState("active");
+  const [activeTab, setActiveTab] = useState("Active");
   const [loading, setLoading] = useState(false);
-  const [notSheduledItems, setNotSheduledItems] = useState([]);
   const [pendingItems, setPendingItems] = useState([]);
   const [activeItems, setActiveItems] = useState([]);
-  const [completedItems, setCompletedItems] = useState([]);
+  const [favourites, setFavourites] = useState([]);
+  const [myBids, setMyBids] = useState([]);
 
   console.log("JWT Token:", useAuthStore.getState().jwtToken);
 
-   const fetchItems = () => {
+  const fetchItems = useCallback(() => {
     setLoading(true);
 
-    const endPoint = activeTab === 'pending' ? 'getItemsPending' : activeTab === 'active' ? 'getItemsActive' : 'getItemsComplete';
-    const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : activeTab === 'active' ? setActiveItems : setCompletedItems;
+    const setter = activeTab === 'favourites' ? setFavourites : activeTab === 'Pending' ? setPendingItems : activeTab === 'Active' ? setActiveItems : setMyBids;
+    let apiEndPoint = activeTab === 'favourites' ? `/is/v1/getFavourites/NOT IMPLEMENTED YET` : activeTab === 'MyBids' ? `/is/v1/getMyBids/NOT IMPLEMENTED YET` : `http://localhost:8082/is/v1/getItems?status=${activeTab}`;
+    
+    if(selectedCategory !== 'all') {
+      apiEndPoint += `&category=${selectedCategory}`;
+    }
+    if(searchTerm) {
+      apiEndPoint += `&searchTerm=${searchTerm}`
+    }
+    console.log(apiEndPoint);
+    // try {
+    //   setter(await fetchProtectedResource(apiEndPoint, {}, 'GET'));
+    // } catch (error) {
+    //   console.error('Error fetching data:', error);
+    // } finally {
+    //   setLoading(false);
+    // }
 
     console.log("JWT Token:", useAuthStore.getState().jwtToken);
 
-    axios.get(`http://localhost:8082/is/v1/${endPoint}`)
+    axios.get(apiEndPoint)
       .then((response) => {
         setter(response.data);
       })
@@ -59,11 +76,17 @@ const Dashboard = () => {
       .finally(() => {
         setLoading(false);
       });
-  }
+  }, [activeTab, searchTerm, selectedCategory]);
+  
   useEffect(() => {
     setLoading(true);
     fetchItems();
-  }, [activeTab]);
+  }, [activeTab, selectedCategory]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => fetchItems(), 2000);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
   
 
   const items = [
@@ -84,7 +107,7 @@ const Dashboard = () => {
       title: "Vintage Motorcycle",
       description: "A rare 1950s Royal Enfield Bullet, fully restored.",
       images: [royal, "enfield.png"],
-      status: "active",
+      status: "Active",
       currentBid: 800000,
       startingBid: 600000,
       timeLeft: "1 day 8 hours",
@@ -108,7 +131,7 @@ const Dashboard = () => {
       title: "Bronze Sculpture",
       description: "Handcrafted bronze sculpture from the 19th century.",
       images: [bronze, "sculpture.png"],
-      status: "active",
+      status: "Active",
       currentBid: 1800000,
       startingBid: 120000,
       timeLeft: "2 days 10 hours",
@@ -120,7 +143,7 @@ const Dashboard = () => {
       title: "Ancient Sword",
       description: "An ancient ceremonial sword with intricate designs.",
       images: [sword, "sword.png"],
-      status: "pending",
+      status: "Pending",
       currentBid: 2700,
       startingBid: 2000,
       timeLeft: "3 days 8 hours",
@@ -132,7 +155,7 @@ const Dashboard = () => {
       title: "Ancient Vass",
       description: "An ancient vass from Itali.",
       images: [avimg, "figurine.png"],
-      status: "active",
+      status: "Active",
       currentBid: 600,
       startingBid: 400,
       timeLeft: "8 hours",
@@ -162,7 +185,7 @@ const Dashboard = () => {
       title: "Vintage Motorcycle",
       description: "A rare 1950s Royal Enfield Bullet, fully restored.",
       images: [royal, "enfield.png"],
-      status: "active",
+      status: "Active",
       currentBid: 800000,
       startingBid: 600000,
       myBid: 700000,
@@ -193,7 +216,7 @@ const Dashboard = () => {
   const bidHistoryItems = items.filter(
     (item) => item.id === 3 || item.id === 4
   ); // Example
-  // const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
+  // const pendingItems = items.filter((item) => item.status === "Pending"); // Example: add status to items if needed
 
   return (
     <>
@@ -231,12 +254,9 @@ const Dashboard = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">{t("allCategories")}</option>
-              <option value="vehicles">{t("vehicles")}</option>
-              <option value="electronics">{t("electronics")}</option>
-              <option value="jewelry">{t("jewelryWatches")}</option>
-              <option value="clothing">{t("clothingAccessories")}</option>
-              <option value="machinery">{t("machinery")}</option>
-              <option value="other">{t("otherItems")}</option>
+              <option value="Vehicle">{t("vehicles")}</option>
+              <option value="Jewelry">{t("Jewelry")}</option>
+              <option value="General">{t("General")}</option>
             </select>
           </div>
           <button
@@ -250,11 +270,11 @@ const Dashboard = () => {
         <div className="w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "active"
+              activeTab === "Active"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("active")}
+            onClick={() => setActiveTab("Active")}
           >
             { t("activeAuctions") }
           </button>
@@ -280,40 +300,37 @@ const Dashboard = () => {
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "pending"
+              activeTab === "Pending"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("pending")}
+            onClick={() => setActiveTab("Pending")}
           >
             { t("pendingAuctions") }
           </button>
         </div>
       </section>
       {/* Tab Content */}
-      {activeTab === "active" && (
+      {activeTab === "Active" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {
-            loading && (
-              <loading />
-            )
-          }
-          {activeItems.map((item) => (
+            loading ? (
+              <Loading />
+            ) : activeItems.length === 0 ? (
+              <div className="col-span-3 text-center text-gray-500">
+                <FontAwesomeIcon
+                  icon={faSearch}
+                  className="text-4xl mb-4 text-gray-400"
+                />
+                <h2 className="text-xl mb-3 font-semibold">
+                  {" "}
+                  {t("noActiveAuctions")}
+                </h2>
+                <p>{t("noActiveAuctionsPara")}</p>
+              </div>
+            ) : activeItems.map((item) => (
               <ViewCard key={item.id} item={item} />
             ))}
-          {activeItems.length === 0 && (
-            <div className="col-span-3 text-center text-gray-500">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="text-4xl mb-4 text-gray-400"
-              />
-              <h2 className="text-xl mb-3 font-semibold">
-                {" "}
-                {t("noActiveAuctions")}
-              </h2>
-              <p>{t("noActiveAuctionsPara")}</p>
-            </div>
-          )}
         </div>
       )}
       {activeTab === "favorite" && (
@@ -351,17 +368,12 @@ const Dashboard = () => {
           )}
         </div>
       )}
-      {activeTab === "pending" && (
+      {activeTab === "Pending" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
           {
-            loading && (
-              <loading />
-            )
-          }
-          {pendingItems.map((item) => (
-            <PendingCard key={item.id} item={item} />
-          ))}
-          {pendingItems.length === 0 && (
+            loading ? (
+              <Loading />
+            ) : pendingItems.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
@@ -372,7 +384,9 @@ const Dashboard = () => {
               </h2>
               <p>No pending auctions at the moment.</p>
             </div>
-          )}
+          ) : pendingItems.map((item) => (
+            <PendingCard key={item.id} item={item} />
+          ))}
         </div>
       )}
       <Footer />

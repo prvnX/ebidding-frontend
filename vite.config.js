@@ -9,4 +9,7 @@ export default defineConfig({
   server: {
     port: 5173, // change this to your desired port
   },
+  define: {
+    global: 'window',  // add this line
+  },
 })

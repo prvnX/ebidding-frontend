@@ -7,7 +7,7 @@ import ImagesUploader from "../../components/ui/imageUpload";
 import LocationMap from "../../components/locationmap"
 import SetLocation from "../../components/setlocation";
 import { toast } from "react-toastify";
-import { addFlashMessage } from "../../flashMessageCenter";
+import CreatableSelect from 'react-select/creatable';
 
 import Footer from "../../components/footer";
 import BredCrumb from "../../components/ui/breadCrumb";
@@ -35,30 +35,36 @@ const AddItem = () => {
             });
     }, []);
 
-    const handleLocationChange = useCallback((e) => {
-        if(!e.target.value) {
+    const handleLocationChange = useCallback((option, actionMeta) => {
+        if (!option) {
             setSelectedLocation({});
             setNewLocation(false);
             return;
         }
-        if(e.target.value === "Pic") {
-            setSelectedLocation({});
-            setNewLocation(true);
-            return;
-        }
-        let loc = locationDetails.find(location => location.id == e.target.value);
-        console.log("Selected id" , e.target.value)
-        console.log("Selected Location:", loc);
-        setSelectedLocation(
-            {
+
+        const loc = locationDetails.find(location => location.id == option.value);
+
+        if (loc) {
+            console.log("Selected id", option.value);
+            console.log("Selected Location:", loc);
+
+            setSelectedLocation({
                 id: loc.id,
                 position: [loc.latitude, loc.longitude],
                 name: loc.name,
                 address: loc.address
-            }
-        )
-        setNewLocation(false);
-    })
+            });
+            setNewLocation(false);
+        } else {
+            // New location (created manually)
+            setSelectedLocation({
+                id: option.value,
+                name: option.label
+            });
+            setNewLocation(true);
+        }
+    }, [locationDetails]);
+
 
     // handle submit
     const handleSubmit = async (e) => {
@@ -81,12 +87,16 @@ const AddItem = () => {
             secondary_phone: form.secondaryPhone.value,
             date_of_birth: "1992-05-02",
         }
-        if (userType === "Inventory_manager") {
+        if (userType === "yard_manager") {
             if (newLocation) {
-                formData.address = selectedLocation.address;
-                formData.pickedLocation = pickedLocation;
+                formData.location = {
+                    name: selectedLocation.name,
+                    address: selectedLocation.address,
+                    latitude: pickedLocation[0],
+                    longitude: pickedLocation[1]
+                }
             } else {
-                formData.locationId = selectedLocation.id;
+                formData.location = {id: selectedLocation.id};
             }
         }
         console.log("Form Data:", formData);
@@ -122,7 +132,7 @@ const AddItem = () => {
                             <FontAwesomeIcon icon={faGavel} size="2xl" />
                             <p className="mt-2 text-center">Auction Manager</p>
                         </button>
-                        <button className={`border border-gray-300 rounded p-6 hover:shadow-sm transition-colors duration-300 ${userType === 'Inventory_manager' ? "bg-[#1e3a5f] text-white" : "hover:bg-gray-200"}`} onClick={() => setUserType('Inventory_manager')} type="button">
+                        <button className={`border border-gray-300 rounded p-6 hover:shadow-sm transition-colors duration-300 ${userType === 'yard_manager' ? "bg-[#1e3a5f] text-white" : "hover:bg-gray-200"}`} onClick={() => setUserType('yard_manager')} type="button">
                             <FontAwesomeIcon icon={faWarehouse} size="2xl" />
                             <p className="mt-2 text-center">Inventory Manager</p>
                         </button>
@@ -208,7 +218,7 @@ const AddItem = () => {
                         </div>
                     </div>
                 </div>
-                {userType === "Inventory_manager" && (
+                {userType === "yard_manager" && (
                 <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
                     <div className="flex items-center gap-4">
                         <FontAwesomeIcon icon={faWarehouse} size="xl" />
@@ -218,19 +228,14 @@ const AddItem = () => {
                         Enter details of the yard/inventory
                     </p>
                     <div className="flex flex-col md:flex-row gap-4 my-3">
-                        <div className="flex-1">
+                        <div className="flex-1 no-form">
                             <label>Name *</label>
-                            <select
+                            <CreatableSelect
                                 name="yard_name"
-                                // onChange={(e) => setSelectedLocation(e.target.value)}
+                                placeholder="Select from the list or type to create a new location"
+                                options={locationDetails.map(loc => ({ value: loc.id, label: loc.name }))}
                                 onChange={handleLocationChange}
-                            >
-                                <option value="">Select Location</option>
-                                {locationDetails && locationDetails.map((location, index) => (
-                                    <option key={index} value={location.id}>{location.name}</option>
-                                ))}
-                                <option value="Pic">Pic on Map</option>
-                            </select>
+                            />
                         </div>
                         <div className="flex-1">
                             <label>Address *</label>

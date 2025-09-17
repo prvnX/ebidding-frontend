@@ -1,14 +1,12 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, use } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleInfo, faClipboardList, faImages, faDollarSign, faCalendarDays, faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faCircleInfo, faClipboardList, faImages, faDollarSign, faCalendarDays, faPlus, faTimes, faPaperclip } from "@fortawesome/free-solid-svg-icons";
 import CustomHeader from "../../components/custom-header";
 import ImagesUploader from "../../components/ui/imagesUpload";
-import { addFlashMessage } from "../../flashMessageCenter";
+import FilesUpload from "../../components/ui/filesUpload";
 import { toast } from "react-toastify";
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import { dayjs } from '../../function';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -79,7 +77,45 @@ const AddItem = () => {
 
     //Specifications
 
+    const vehicleSpecs = [
+        { key: 'Make', value: '' },
+        { key: 'Model', value: '' },
+        { key: 'Year', value: '' },
+        { key: 'Color', value: '' },
+        { key: 'Mileage', value: '' },
+    ];
+
+    const jewelrySpecs = [
+        { key: 'Material', value: '' },
+        { key: 'Weight', value: '' },
+        { key: 'Size', value: '' },
+        { key: 'Gemstone', value: '' },
+        { key: 'Certification', value: '' },
+    ];
+
+    const [requiredSpecs, setRequiredSpecs] = useState([{ key: '', value: '' }]);
+
+    useEffect(() => {
+        switch (basicInfo.category) {
+            case 'Vehicle':
+            setRequiredSpecs(vehicleSpecs);
+            break;
+            case 'Jewelry':
+            setRequiredSpecs(jewelrySpecs);
+            break;
+            default:
+            setRequiredSpecs([]);
+            break;
+        }
+    }, [basicInfo.category]);
+
     const [specs, setSpecs] = useState([{ key: '', value: '' }]);
+
+    const handleRequiredSpecChange = (index, value) => {
+        const updated = [...requiredSpecs];
+        updated[index].value = value;
+        setRequiredSpecs(updated);
+    };
 
     const handleSpecChange = (index, field, value) => {
         const updated = [...specs];
@@ -118,11 +154,10 @@ const AddItem = () => {
         )
     }
 
-    //auction details
+    //files
 
-    dayjs.extend(utc);
-    dayjs.extend(timezone);
-    
+    const [files, setFiles] = useState([]);
+
     // ✅ Set default timezone to Sri Lanka
     dayjs.tz.setDefault('Asia/Colombo');
     
@@ -159,28 +194,19 @@ const AddItem = () => {
         const form = e.target;
 
         if (form.checkValidity() === false) {
-            // addFlashMessage('error', 'Please fill all the required fields.');
             toast.error("Please fill all the required fields.")
             form.reportValidity();
             return;
         }
 
         if (endTimeError || startTimeError || gapError) {
-            // addFlashMessage('error', 'Please provide valid auction dates');
             toast.error("Please provide valid auction dates");
             return;
         }
 
-        //convert specs array to object
-        // const specifications = {};
-        // specs.forEach(({key, value}) => {
-        //     if (key && value) specifications[key] = value;
-        // });
-
-
         const newItem = {
             ...basicInfo,
-            specs,
+            specs : [...specs, ...requiredSpecs],
             ...finacInfo,
             auction: {
                 startingTime,
@@ -197,6 +223,9 @@ const AddItem = () => {
         images.forEach((imageFile) => {
             formData.append("images", imageFile);  // append each image with same key
         });
+        files.forEach((file) => {
+            formData.append("files", file.file, file.name);
+        })
 
         for (let pair of formData.entries()) {
             console.log(pair[0], pair[1]);
@@ -206,7 +235,6 @@ const AddItem = () => {
              .then(res => {
                 const {status, data} = res;
                 if (status === 200 && data.success) {
-                    // addFlashMessage('success', 'Item added successfully');
                     toast.success("Item added successfully");
                     navigate('/auctionMan');
                 }
@@ -358,11 +386,39 @@ const AddItem = () => {
                         <FontAwesomeIcon icon={faClipboardList} size="xl" />
                         <h2 className="text-2xl font-semibold">Specification</h2>
                     </div>
+
+                    {basicInfo.category !== '' && basicInfo.category !== 'General' && (
+                        <p className="text-sm text-gray-600 mb-4">
+                            Required specifications for item type {basicInfo.category}.
+                        </p>
+                    )}
+
+
+                    <div className="space-y-2">
+                        {requiredSpecs.map((spec, index) => (
+                            <div key={index} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={spec.key}
+                                    readOnly
+                                    className="flex-1 border border-gray-300 rounded px-3 py-1 text-sm"
+                                    required
+                                    tabIndex="-1"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Value"
+                                    value={spec.value}
+                                    onChange={(e) => handleRequiredSpecChange(index, e.target.value)}
+                                    className="flex-2 border border-gray-300 rounded px-3 py-1 text-sm"
+                                    required
+                                />
+                                <div className="w-3" />
+                            </div>
+                        ))}
                     <p className="text-sm text-gray-600 mb-4">
                         Add any additional specifications or details about the item
                     </p>
-
-                    <div className="space-y-2">
                         {specs.map((spec, index) => (
                         <div key={index} className="flex gap-2">
                             <input
@@ -407,7 +463,7 @@ const AddItem = () => {
                         <h2 className="text-2xl font-semibold">Item Images</h2>
                     </div>
                     <p className="text-sm text-gray-600 mb-4">
-                        Upload up to 10 images of the item
+                        Upload up to 10 images (total size must be under 50 MB).
                     </p>
                     <ImagesUploader images={images} setImages={setImages} coverImage={coverImage} setCoverImage={setCoverImage} />
                 </div>
@@ -455,6 +511,17 @@ const AddItem = () => {
                         </div>
                         <div className="flex-1" />
                     </div>
+                </div>
+
+                <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">
+                    <div className="flex items-center gap-4">
+                        <FontAwesomeIcon icon={faPaperclip} size="xl" />
+                        <h2 className="text-2xl font-semibold">Attachments</h2>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                        Upload any additional documents or files related to the item (e.g., ownership documents, certificates).<br/>The total file size must be under 50 MB.
+                    </p>
+                    <FilesUpload documents={files} setDocuments={setFiles} />
                 </div>
                 
                 <div className="max-w-4xl w-full bg-white border border-gray-300 shadow-sm rounded p-6">

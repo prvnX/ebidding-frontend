@@ -23,12 +23,12 @@ export default ({item, select}) => {
     }
     const { t } = useTranslation();
     return(
-      <div key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer rounded-md bg-white shadow-sm gap-0 pb-1 grid grid-rows-[subgrid] row-span-6">
-        <div className="relative" onClick={() => handleItemClick(item.id)}>
+      <div key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer rounded-md bg-white shadow-sm gap-0 pb-1 grid grid-rows-[subgrid] row-span-6" onClick={() => handleItemClick(item.id)}>
+        <div className="relative">
           <div className="relative h-48 overflow-hidden">
             {item.images && item.images.length > 0 ? (
               <img
-                src={`http://localhost:8082/${item.caseNumber}-${item.id}/${item.images.find(img => img.cover)?.url || item.images[0].url}`}
+                src={`http://localhost:8082/items/${item.caseNumber}-${item.id}/images/${item.images.find(img => img.cover)?.url || item.images[0].url}`}
                 alt={item.title}
                 className="w-full h-full object-cover transition-transform hover:scale-105"
               />

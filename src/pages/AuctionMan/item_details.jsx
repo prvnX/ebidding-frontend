@@ -2,14 +2,16 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLocationDot, faClock, faUsers, faCheckCircle, faGavel, faEye, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faLocationDot, faClock, faUsers, faCheckCircle, faGavel, faEye, faEdit, faTrash, faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { LineChart, MarkElement } from '@mui/x-charts/LineChart';
 import LocationMap from "../../components/locationmap";
+import useStompSubscriptions from "../../hooks/useStompSubscriptions";
+import { fetchProtectedResource } from "../authApi";
 
 import CountDownDate from "../../components/countdown";
 import CustomHeader from "../../components/custom-header";
 import AuctionManHeader from "../../components/auctionMan-header";
-import BredCrumb from "../../components/ui/breadCrumb";
+import BreadCrumbs from "../../components/ui/breadCrumb";
 import Footer from "../../components/footer";
 
 import { formatCurrency, formatDate } from "../../function";
@@ -25,40 +27,50 @@ export default () => {
   const { t } = useTranslation();
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
+  const [bidHistory, setBidHistory] = useState([]);
+  const [item, setItem] = useState(null);
 
-  const [item, setItme] = useState(null);
+    const fetchItem = useCallback(async () => {
+      try {
+          // Step 1: Fetch the item details
+          const itemResponse = await axios.get(`http://localhost:8082/is/v1/getItem/${itemId}`);
+          const itemData = itemResponse.data;
+          setItem(itemData);
+          console.log('Fetched item details:', itemData);
 
-  const fetchItem = useCallback(() => {
-    axios.get(`http://localhost:8082/is/v1/getItem/${itemId}`)
-      .then((response) => {
-        setItme(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching item details:', error);
-      });
-  }, [itemId]);
+          // Step 2: Fetch the bidding history
+          const biddingHistoryResponse = await fetchProtectedResource(
+              `http://localhost:8081/bs/v1/getBiddingHistory/${itemId}`,
+              null,
+              'GET'
+          );
+          const biddingHistoryData = biddingHistoryResponse.data;
+          setBidHistory(biddingHistoryData);
+          console.log(biddingHistoryData);
+
+      } catch (error) {
+          console.error('An error occurred:', error);
+      }
+  }, [itemId, setItem, setBidHistory]);
 
   useEffect(() => {
     fetchItem();
   }, [itemId]);
 
-  const bidHistory = [
-        { amount: 25000000, time: "2 minutes ago"},
-        { amount: 24500000, time: "15 minutes ago"},
-        { amount: 24000000, time: "1 hour ago"},
-        { amount: 23500000, time: "2 hours ago"},
-        { amount: 23000000, time: "3 hours ago"},
-        { amount: 22500000, time: "5 hours ago"},
-        { amount: 22000000, time: "8 hours ago"},
-        { amount: 21500000, time: "12 hours ago"},
-        { amount: 21000000, time: "1 day ago"},
-        { amount: 20500000, time: "2 days ago"},
-        { amount: 20000000, time: "3 days ago"},
-        { amount: 19500000, time: "4 days ago"},
-        { amount: 19000000, time: "5 days ago"},
-        { amount: 18500000, time: "6 days ago"},
-        { amount: 18000000, time: "1 week ago"},
-      ];
+  const handleNewMessage = useCallback((bid) => {
+    console.log("New message:", bid);
+    if (bidHistory.some(historyBid => historyBid.bidId === bid.bidId) || bid.itemId != itemId) {
+      console.log("Bid is already in history. Probably it is a my bid");
+      return;
+    }
+    console.log("continued");
+    setBidHistory((prevHistory) => [
+      bid,
+      ...prevHistory
+    ]);
+  }, [setBidHistory, item]);
+
+  useStompSubscriptions(`/topic/bid:${itemId}`, handleNewMessage);
 
   // Handle case when item is not found
   if (!item) {
@@ -73,7 +85,7 @@ export default () => {
     <>
       <CustomHeader />
       <AuctionManHeader />
-      <BredCrumb page="Item Details" breadCrumbs={[
+      <BreadCrumbs page="Item Details" breadCrumbs={[
                       { title: "Home", link: "/AuctionMan" },
                   ]} />
       <div className="min-h-screen">
@@ -124,7 +136,7 @@ export default () => {
                       <img 
                         src={
                               item.images && item.images.length > 0
-                                ? `http://localhost:8082/${item.caseNumber}-${item.id}/${item.images[selectedImage].url}`
+                                ? `http://localhost:8082/items/${item.caseNumber}-${item.id}/images/${item.images[selectedImage].url}`
                                 : noImage
                             }
                         alt={item.title} 
@@ -152,7 +164,7 @@ export default () => {
                       >
                         {img ? (
                           <img 
-                            src={`http://localhost:8082/${item.caseNumber}-${item.id}/${item.images[index].url}`}
+                            src={`http://localhost:8082/items/${item.caseNumber}-${item.id}/images/${item.images[index].url}`}
                             alt={`${item.title} - view ${index + 1}`} 
                             className="w-full h-full object-cover rounded"
                           />
@@ -378,7 +390,9 @@ export default () => {
                   <div className="text-center mb-4">
                     <div className="text-sm text-gray-600 mb-1 font-semibold">Current Highest Bid</div>
                     {/* <div className="text-3xl font-bold text-green-600">{formatCurrency(item.currentBid)}</div> */}
-                    <div className="text-3xl font-bold text-green-600">{formatCurrency(340000)}</div>
+                    <div className="text-3xl font-bold text-green-600">{bidHistory.length === 0
+                                                                            ? "No Bids Yet"
+                                                                            : formatCurrency(bidHistory[0].amount)}</div>
                     <div className="text-sm text-gray-600"><span className=" font-semibold">Starting Bid:</span> {formatCurrency(item.startingBid)}</div>
                   <div className="text-center text-sm text-gray-600"><span className=" font-semibold">Increment:</span> {formatCurrency(item.increment)}</div>
                   </div>
@@ -405,8 +419,7 @@ export default () => {
                     </div>
                     <div className="flex items-center">
                       <FontAwesomeIcon icon={faUsers} className="mr-1" />
-                      {/* <span>{item.totalBids} bids</span> */}
-                      <span>9 bids</span>
+                      <span>{bidHistory.length} bids</span>
                     </div>
                   </div>
                 </div>
@@ -501,13 +514,13 @@ export default () => {
                   
                   <div className="space-y-2 max-h-80 overflow-y-auto" style={{ scrollbarWidth: 'thin'}}>
                     {bidHistory.map((bid, index) => (
-                      <div key={index} className={`flex justify-between items-center py-2 border-b border-gray-100 px-2 last:border-b-0 ${index === 0 && "bg-green-300 rounded-xl"}`}>
+                      <div key={bid.bidId} className={`flex items-center justify-between py-2 border-b border-gray-100 px-2 last:border-b-0 ${index === 0 && "bg-green-300 rounded-xl"}`}>
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">
-                            <FontAwesomeIcon icon={faGavel} className="text-gray-500 text-xs" />
+                            {index === 0 ? <FontAwesomeIcon icon={faTrophy} className="text-amber-500 text-xs" /> : <FontAwesomeIcon icon={faGavel} className="text-gray-500 text-xs" />}
                           </div>
                           <div className="font-medium text-sm flex items-center">
-                            {bid.time}
+                            {formatDate(bid.bidTime)}
                           </div>
                         </div>
                         <div className="font-medium text-right">

@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import { dayjs } from "../function";
 import Countdown from "react-countdown";
 
 export default function CountDownDate({ dateTime, starting, date, time , style={}}) {

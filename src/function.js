@@ -1,4 +1,9 @@
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-LK', {
@@ -53,4 +58,4 @@ const formatLocalDateForInput = (d) => {
 
 
 
-export { formatCurrency, formatDate, handleBlurValidate, formatLocalDateForInput };
+export { dayjs, formatCurrency, formatDate, handleBlurValidate, formatLocalDateForInput };

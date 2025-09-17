@@ -23,4 +23,9 @@
       @apply bg-gray-100 text-gray-500 cursor-not-allowed;
     }
   }
+
+  .no-form input {
+    outline: unset !important;
+    box-shadow: unset !important;
+  }
 }

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+
+import { useCallback, useEffect, useState } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import './App.css'
 import Home from './pages/home'
@@ -36,11 +37,20 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // import MessageToast from './components/ui/messageToast.jsx';
 import api from './pages/authApi';
-import useAuthStore from './components/useAuthStore';
+import useStompSubscriptions from "./hooks/useStompSubscriptions";
+import { wsCallBackManager } from './services/wsCallBackManager'
+import useAuthStore from './components/useAuthStore'
 
 function App() {
-
+  
   const location = useLocation();
+  const { role, username } = useAuthStore();
+
+  const myBid = useCallback((bid) => {
+    console.log("My Bid My bid", bid);
+    wsCallBackManager.executeCallBack(bid);
+  }, [wsCallBackManager]);
+  useStompSubscriptions(`/topic/bidder:${username}`, myBid, (!username || role !== 'Bidder'));
 
   useEffect(() => {
     const silentRefresh = async () => {
