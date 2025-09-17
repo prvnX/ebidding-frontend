@@ -11,7 +11,6 @@ const Loginpage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { jwtToken, role, username } = useAuthStore();
-  console.log(jwtToken);
 
   const validateForm = () => {
     if (!formData.username || !formData.password) {
@@ -54,7 +53,7 @@ const Loginpage = () => {
       if (data.role === 'Bidder') {
         navigate('/RegisteredUser/dashboard');
       } else if (data.role === 'AuctionManager') {
-        navigate('/RegisteredUser/dashboard');
+        navigate('/auction/dashboard');
       } else if (data.role === 'UserManager') {
         navigate('/user-manager/overview');
       } else {

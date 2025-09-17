@@ -3,7 +3,7 @@ import useAuthStore from '../components/useAuthStore';
 
 const api = axios.create({
   baseURL: 'http://localhost:8081',
-  withCredentials: true,
+  withCredentials: true, // ensures refreshToken cookie is sent
 });
 
 let isRefreshing = false;
@@ -15,8 +15,7 @@ const onRefreshed = (newJwtToken) => {
 };
 
 const refreshTokenRequest = async () => {
-  const refreshResponse = await api.post('/auth/v1/refresh-token');
-  console.log(refreshResponse.data);
+  const refreshResponse = await api.post('/auth/refresh-token');
   if (refreshResponse.data && refreshResponse.data.jwtToken) {
     const { jwtToken, role, username } = refreshResponse.data;
     useAuthStore.getState().setAuthData({ jwtToken, role, username });
@@ -65,10 +64,9 @@ api.interceptors.response.use(
 );
 
 // 🟡 Lazy refresh if JWT missing
-export const fetchProtectedResource = async (url, data = {}, method = 'get') => {
+export const fetchProtectedResource = async (url, data = {}, method) => {
   let { jwtToken } = useAuthStore.getState();
-  console.log("jwt token in fetch" + jwtToken);
-  
+
   if (!jwtToken) {
     try {
       jwtToken = await refreshTokenRequest();
@@ -79,56 +77,39 @@ export const fetchProtectedResource = async (url, data = {}, method = 'get') => 
     }
   }
 
-  try {
-    const response = await api({
-      method,
-      url,
-      data,
-      headers: jwtToken ? { Authorization: `Bearer ${jwtToken}` } : {},
-    });
+  const response = await api({
+    method,
+    url,
+    data,
+    headers: jwtToken ? { Authorization: `Bearer ${jwtToken}` } : {},
+  });
 
-    return response.data;
-  } catch (error) {
-    if (error.response && error.response.status === 401) {
-      useAuthStore.getState().clearAuthData();
-      window.location.href = '/login';
-    }
-    throw error;
-  }
+  return response;
 };
 
 export const login = async (credentials) => {
-  try {
-    const response = await api.post('/auth/v1/login', credentials, {
-      withCredentials: true, // ensures refresh token cookie is sent
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  console.log(credentials);
+  const response = await fetch('http://localhost:8081/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
 
-    const data = response.data;
-
-    if (data.message === 'Login successful' && data.jwtToken) {
-      useAuthStore.getState().setAuthData({
-        jwtToken: data.jwtToken,
-        role: data.role,
-        username: credentials.username,
-      });
-
-      return data;
-    } else {
-      throw new Error('Login failed: Invalid credentials');
-    }
-  } catch (error) {
-    if (error.response) {
-      throw new Error(
-        `Login failed: ${error.response.status} ${error.response.statusText}`
-      );
-    } else {
-      throw new Error(`Login failed: ${error.message}`);
-    }
+  if (!response.ok) {
+    throw new Error(`Login failed: ${response.status} ${response.statusText}`);
   }
-};
 
+  const data = await response.json();
+  if (data.message === 'Login successful' && data.jwtToken) {
+    useAuthStore.getState().setAuthData({
+      jwtToken: data.jwtToken,
+      role: data.role,
+      username: credentials.username,
+    });
+    return data;
+  }
+
+  throw new Error('Login failed: Invalid credentials');
+};
 
 export default api;

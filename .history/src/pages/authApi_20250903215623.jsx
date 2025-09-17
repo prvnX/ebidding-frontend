@@ -15,8 +15,7 @@ const onRefreshed = (newJwtToken) => {
 };
 
 const refreshTokenRequest = async () => {
-  const refreshResponse = await api.post('/auth/v1/refresh-token');
-  console.log(refreshResponse.data);
+  const refreshResponse = await api.post('/auth/refresh-token');
   if (refreshResponse.data && refreshResponse.data.jwtToken) {
     const { jwtToken, role, username } = refreshResponse.data;
     useAuthStore.getState().setAuthData({ jwtToken, role, username });
@@ -99,7 +98,7 @@ export const fetchProtectedResource = async (url, data = {}, method = 'get') => 
 
 export const login = async (credentials) => {
   try {
-    const response = await api.post('/auth/v1/login', credentials, {
+    const response = await api.post('/auth/login', credentials, {
       withCredentials: true, // ensures refresh token cookie is sent
       headers: {
         'Content-Type': 'application/json',

@@ -45,7 +45,7 @@ function App() {
   useEffect(() => {
     const silentRefresh = async () => {
       try {
-        const response = await api.post('/auth/v1/refresh-token', {}, {
+        const response = await api.post('/auth/refresh-token', {}, {
           withCredentials: true,
         });
   

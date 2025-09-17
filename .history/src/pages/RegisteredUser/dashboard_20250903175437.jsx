@@ -39,8 +39,6 @@ const Dashboard = () => {
   const [activeItems, setActiveItems] = useState([]);
   const [completedItems, setCompletedItems] = useState([]);
 
-  console.log("JWT Token:", useAuthStore.getState().jwtToken);
-
    const fetchItems = () => {
     setLoading(true);
 

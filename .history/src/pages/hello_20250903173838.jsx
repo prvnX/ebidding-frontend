@@ -1,3 +1,4 @@
+// Hello.jsx
 import React, { useEffect, useState } from 'react';
 import { fetchProtectedResource } from './authApi';
 import useAuthStore from '../components/useAuthStore';
@@ -6,15 +7,15 @@ import { useNavigate } from 'react-router-dom';
 const Hello = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const { jwtToken, username, clearAuthData } = useAuthStore();
+  const { jwtToken, clearJwtToken } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchHello = async () => {
-      console.log('🔑 Current JWT before request in hello:', jwtToken);
+      console.log('🔑 Current JWT before request:', jwtToken);
       try {
         const data = await fetchProtectedResource(
-          '/auth/v1/hello',
+          '/auth/hello',
           { message: 'Hello from frontend' },
           'post'
         );
@@ -29,19 +30,18 @@ const Hello = () => {
         );
         setError(err.message);
         if (err.response && err.response.status === 401) {
-          clearAuthData();
+          clearJwtToken();
           navigate('/login');
         }
       }
     };
 
     fetchHello();
-  }, [jwtToken, clearAuthData, navigate]);
+  }, [jwtToken, clearJwtToken, navigate]);
 
   return (
     <div>
       <h2>Test Authentication</h2>
-      <h2>{username}</h2>
       {message && <p>Response: {message}</p>}
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
     </div>

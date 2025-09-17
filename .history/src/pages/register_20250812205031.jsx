@@ -145,7 +145,7 @@ const RegisterPage = () => {
 
     try {
       console.log(formDataToSend);
-      const response = await fetch('http://localhost:8081/auth/register', {
+      const response = await fetch('http://localhost:8765/auth/register', {
         method: 'POST',
         body: formDataToSend,
       });

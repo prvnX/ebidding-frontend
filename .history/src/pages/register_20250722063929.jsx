@@ -145,7 +145,7 @@ const RegisterPage = () => {
 
     try {
       console.log(formDataToSend);
-      const response = await fetch('http://localhost:8081/auth/register', {
+      const response = await fetch('http://localhost:8080/register', {
         method: 'POST',
         body: formDataToSend,
       });
@@ -360,6 +360,7 @@ const RegisterPage = () => {
                       audio={false}
                       ref={webcamRef}
                       screenshotFormat="image/jpeg"
+                      width={300}
                       videoConstraints={{ facingMode: "user" }}
                       className="rounded-md"
                     />
@@ -374,7 +375,7 @@ const RegisterPage = () => {
                   </div>
                 ) : (
                   <div>
-                    <img src={capturedImage} alt="Captured" className="rounded-md" />
+                    <img src={capturedImage} alt="Captured" className="rounded-md w-[300px]" />
                     <button
                       type="button"
                       onClick={() => {

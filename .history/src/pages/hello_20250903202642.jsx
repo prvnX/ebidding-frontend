@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const Hello = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const { jwtToken, username, clearAuthData } = useAuthStore();
+  const { jwtToken, clearAuthData } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,7 +14,7 @@ const Hello = () => {
       console.log('🔑 Current JWT before request in hello:', jwtToken);
       try {
         const data = await fetchProtectedResource(
-          '/auth/v1/hello',
+          '/users/helloo',
           { message: 'Hello from frontend' },
           'post'
         );
@@ -29,7 +29,7 @@ const Hello = () => {
         );
         setError(err.message);
         if (err.response && err.response.status === 401) {
-          clearAuthData();
+          clearAuthData(); // ✅ Correct function
           navigate('/login');
         }
       }
@@ -41,7 +41,6 @@ const Hello = () => {
   return (
     <div>
       <h2>Test Authentication</h2>
-      <h2>{username}</h2>
       {message && <p>Response: {message}</p>}
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
     </div>

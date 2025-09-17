@@ -24,7 +24,6 @@ import bicycle from "../assets/bicycle.JPG";
 import bronze from "../assets/bronze.jpg";
 import loading from "../components/loading";
 import pending from "../components/ui/cards/pending";
-import useAuthStore from "../components/useAuthStore";
 
 export default function Home() {
     const { t } = useTranslation();
@@ -38,8 +37,6 @@ export default function Home() {
     const [pendingItems, setPendingItems] = useState([]);
     const [completedItems, setCompletedItems] = useState([]);
     const [notSheduledItems, setNotSheduledItems] = useState([]);
-
-    console.log("JWT Token:", useAuthStore.getState().jwtToken);
 
   
   function isEnding(date){

@@ -6,7 +6,6 @@ import BidCard from "../../components/ui/userCards/myBidCard";
 import loading from "../../components/loading";
 import PendingCard from "../../components/ui/userCards/pendingCard";
 import axios from "axios";
-import useAuthStore from '../../components/useAuthStore';
 
 import React, { useState , useEffect, use} from "react";
 // import { Link } from "react-router-dom";
@@ -39,15 +38,11 @@ const Dashboard = () => {
   const [activeItems, setActiveItems] = useState([]);
   const [completedItems, setCompletedItems] = useState([]);
 
-  console.log("JWT Token:", useAuthStore.getState().jwtToken);
-
    const fetchItems = () => {
     setLoading(true);
 
     const endPoint = activeTab === 'pending' ? 'getItemsPending' : activeTab === 'active' ? 'getItemsActive' : 'getItemsComplete';
     const setter = activeTab === 'notSheduled' ? setNotSheduledItems : activeTab === 'pending' ? setPendingItems : activeTab === 'active' ? setActiveItems : setCompletedItems;
-
-    console.log("JWT Token:", useAuthStore.getState().jwtToken);
 
     axios.get(`http://localhost:8082/is/v1/${endPoint}`)
       .then((response) => {

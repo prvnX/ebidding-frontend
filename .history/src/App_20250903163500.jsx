@@ -45,34 +45,22 @@ function App() {
   useEffect(() => {
     const silentRefresh = async () => {
       try {
-        const response = await api.post('/auth/v1/refresh-token', {}, {
-          withCredentials: true,
-        });
-  
-        const data = response.data;
-  
-        if (data && data.jwtToken) {
+        const response = await api.post('/refresh-token');
+        if (response.data && response.data.jwtToken) {
           useAuthStore.getState().setAuthData({
-            jwtToken: data.jwtToken,
-            role: data.role,
-            username: data.username,
+            jwtToken: response.data.jwtToken,
+            role: response.data.role,
+            username: response.data.username,
           });
-          console.log("🔄 Silent refresh successful on tab load");
-        } else {
-          console.log("⚠️ Silent refresh failed: No JWT returned");
+          console.log("Silent refresh successful on tab load");
         }
-      } catch (error) {
-        if (error.response) {
-          console.log(`⚠️ Silent refresh failed: ${error.response.status} ${error.response.statusText}`);
-        } else {
-          console.log("⚠️ No valid refresh token, user remains logged out");
-        }
+      } catch {
+        console.log("No valid refresh token, user remains logged out");
       }
     };
-  
+
     silentRefresh();
   }, []);
-  
 
   return (
     <>

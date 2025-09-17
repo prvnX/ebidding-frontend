@@ -16,7 +16,6 @@ const onRefreshed = (newJwtToken) => {
 
 const refreshTokenRequest = async () => {
   const refreshResponse = await api.post('/auth/v1/refresh-token');
-  console.log(refreshResponse.data);
   if (refreshResponse.data && refreshResponse.data.jwtToken) {
     const { jwtToken, role, username } = refreshResponse.data;
     useAuthStore.getState().setAuthData({ jwtToken, role, username });

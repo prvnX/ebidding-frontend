@@ -14,7 +14,7 @@ const Hello = () => {
       console.log('🔑 Current JWT before request in hello:', jwtToken);
       try {
         const data = await fetchProtectedResource(
-          '/auth/v1/hello',
+          '/auth/hello',
           { message: 'Hello from frontend' },
           'post'
         );

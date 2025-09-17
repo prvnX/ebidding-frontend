@@ -11,7 +11,6 @@ const Loginpage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { jwtToken, role, username } = useAuthStore();
-  console.log(jwtToken);
 
   const validateForm = () => {
     if (!formData.username || !formData.password) {

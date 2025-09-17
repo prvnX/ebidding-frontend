@@ -66,33 +66,14 @@ const RegisterPage = () => {
         return false;
       }
     }
-
-  if (!/\S+@\S+\.\S+/.test(formData.email)) {
-    setError('Please enter a valid email address.');
-    return false;
-  }
-
-  if (formData.password.length < 6) {
-    setError('Password must be at least 6 characters long.');
-    return false;
-  }
-
-  const nicRegex = /^(?:\d{9}[vVxX]|\d{12})$/;
-  if (!nicRegex.test(formData.username)) {
-    setError('Username must be a valid Sri Lankan NIC (e.g., 123456789V or 200012345678).');
-    return false;
-  }
-
-  const phoneRegex = /^\d{10}$/;
-  if (!phoneRegex.test(formData.primary_phone)) {
-    setError('Primary phone number must be 10 digits.');
-    return false;
-  }
-  if (!phoneRegex.test(formData.secondary_phone)) {
-    setError('Secondary phone number must be 10 digits.');
-    return false;
-  }
-
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      setError('Please enter a valid email address.');
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return false;
+    }
     return true;
   };
 
@@ -145,7 +126,7 @@ const RegisterPage = () => {
 
     try {
       console.log(formDataToSend);
-      const response = await fetch('http://localhost:8081/auth/register', {
+      const response = await fetch('http://localhost:8080/register', {
         method: 'POST',
         body: formDataToSend,
       });
@@ -312,7 +293,7 @@ const RegisterPage = () => {
                   name="primary_phone"
                   value={formData.primary_phone}
                   onChange={handleChange}
-                  placeholder="0725546358"
+                  placeholder="+94 123 456 789"
                   required
                   disabled={isLoading}
                   aria-describedby={error ? 'error-message' : undefined}
@@ -329,7 +310,7 @@ const RegisterPage = () => {
                   name="secondary_phone"
                   value={formData.secondary_phone}
                   onChange={handleChange}
-                  placeholder="0704502687"
+                  placeholder="+94 123 456 789"
                   required
                   disabled={isLoading}
                   aria-describedby={error ? 'error-message' : undefined}
@@ -360,6 +341,7 @@ const RegisterPage = () => {
                       audio={false}
                       ref={webcamRef}
                       screenshotFormat="image/jpeg"
+                      width={300}
                       videoConstraints={{ facingMode: "user" }}
                       className="rounded-md"
                     />
@@ -374,7 +356,7 @@ const RegisterPage = () => {
                   </div>
                 ) : (
                   <div>
-                    <img src={capturedImage} alt="Captured" className="rounded-md" />
+                    <img src={capturedImage} alt="Captured" className="rounded-md w-[300px]" />
                     <button
                       type="button"
                       onClick={() => {

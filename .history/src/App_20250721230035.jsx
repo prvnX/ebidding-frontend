@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import './App.css'
 import Home from './pages/home'
@@ -35,44 +35,10 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // import MessageToast from './components/ui/messageToast.jsx';
-import api from './pages/authApi';
-import useAuthStore from './components/useAuthStore';
 
 function App() {
 
   const location = useLocation();
-
-  useEffect(() => {
-    const silentRefresh = async () => {
-      try {
-        const response = await api.post('/auth/v1/refresh-token', {}, {
-          withCredentials: true,
-        });
-  
-        const data = response.data;
-  
-        if (data && data.jwtToken) {
-          useAuthStore.getState().setAuthData({
-            jwtToken: data.jwtToken,
-            role: data.role,
-            username: data.username,
-          });
-          console.log("🔄 Silent refresh successful on tab load");
-        } else {
-          console.log("⚠️ Silent refresh failed: No JWT returned");
-        }
-      } catch (error) {
-        if (error.response) {
-          console.log(`⚠️ Silent refresh failed: ${error.response.status} ${error.response.statusText}`);
-        } else {
-          console.log("⚠️ No valid refresh token, user remains logged out");
-        }
-      }
-    };
-  
-    silentRefresh();
-  }, []);
-  
 
   return (
     <>
