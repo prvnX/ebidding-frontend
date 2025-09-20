@@ -13,11 +13,12 @@ import {
   faInfoCircle,
   faGavel,
   faEye,
-  faCalendarAlt,
   faExclamationTriangle,
   faArrowUp,
   faTrophy,
-  faArrowDown
+  faArrowDown,
+  faUser,
+  faRobot
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import LocationMap from "../components/locationmap";
@@ -62,11 +63,17 @@ export default function ItemDetails() {
   }, [bidHistory])
 
   const minAutoBidAllowed = useMemo(() => {
-    if (item == null) return 0;
-    if (myPlacedAutoBid) return myPlacedAutoBid + 2*item.increment;
-    if(highestBid == null) return item.startingBid + 2*item.increment;
-    if(isWinning) return highestBid + 2*item.increment;
-    return highestBid + 3*item.increment;
+    let value = 0;
+
+    if (item == null) return value;
+
+    if(highestBid == null) value = item.startingBid + 2*item.increment;
+    else if(isWinning) value = highestBid + 2*item.increment;
+    else value = highestBid + 3*item.increment;
+
+    if(myPlacedAutoBid && myPlacedAutoBid >= value) value = myPlacedAutoBid + 2*item.increment;
+    
+    return value;
   }, [highestBid, isWinning, item, myPlacedAutoBid])
 
   const fetchItem = async () => {
@@ -134,7 +141,7 @@ export default function ItemDetails() {
     });
   }, [setBidHistory, itemId]);
 
-  useStompSubscriptions(`/topic/bid:${itemId}`, handleNewMessage, item?.status !== "Active");
+  useStompSubscriptions(`/topic/bid:${itemId}`, handleNewMessage, (item?.status !== "Active" && item?.status !== "Ending Soon"));
 
   //Auto Bid
   useEffect(() => {
@@ -578,6 +585,13 @@ export default function ItemDetails() {
                                                                             : formatCurrency(highestBid)}</div>
                   <div className="text-sm text-gray-600">Starting Bid: {formatCurrency(item.startingBid)}</div>
                 </div>
+
+                {isWinning && (
+                  <div className="flex flex-row p-3 mb-2 w-max mx-auto rounded-lg bg-yellow-300 text-[#1e3a5f] shadow-[0_0_20px_yellow] gap-3 items-center justify-center">
+                    <FontAwesomeIcon icon={faTrophy} className="text-2xl" />
+                    <h1 className="font-bold">You are Winning</h1>
+                  </div>
+                )}
                 
                 <div className="flex justify-between text-sm text-gray-600 mb-4">
                   <div className="flex items-center">
@@ -618,7 +632,7 @@ export default function ItemDetails() {
                   <div className="text-xs text-gray-500 mb-2 block bg-gray-100 px-2 py-1 rounded-md">
                     <h2 className="text-xl text-center text-black font-semibold mb-1">Auto Bid</h2>
                     <span className="block">Bidders can also add maximum bid amount to place auto bid. Our system will automatically bid for you until your maximum bid is reached.</span>
-                    {myPlacedAutoBid && <span className="block mt-2 text-lg text-green-600 text-center">Your current auto bid : <span className="font-semibold">{formatCurrency(myPlacedAutoBid)}</span></span>}
+                    {myPlacedAutoBid && <span className={`block mt-2 text-lg ${myPlacedAutoBid > highestBid ? "text-green-600" : "text-red-600"} text-center`}>Your current auto bid : <span className="font-semibold">{formatCurrency(myPlacedAutoBid)}</span></span>}
                     <div className="flex items-center mb-3 mt-2">
                       <span className="text-[#294b78] mr-2 text-sm">LKR</span>
                       <div className="flex-1 flex flex-col gap-1">
@@ -669,21 +683,52 @@ export default function ItemDetails() {
                   
                   <div className="space-y-2 max-h-80 overflow-y-auto" style={{ scrollbarWidth: 'thin'}}>
                     {bidHistory.map((bid, index) => (
-                      <div key={bid.bidId} className={`flex flex-col justify-center py-2 border-b border-gray-100 px-2 last:border-b-0 ${index === 0 && "bg-green-300 rounded-xl"}`}>
+                      <div key={bid.bidId} className={`flex flex-col justify-center py-2 border-b border-gray-100 px-2 last:border-b-0 ${index === 0 && "border-2 border-yellow-300 rounded-xl"}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">
-                              {index === 0 ? <FontAwesomeIcon icon={faTrophy} className="text-amber-500 text-xs" /> : <FontAwesomeIcon icon={faGavel} className="text-gray-500 text-xs" />}
+                            {/* <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">
+                              {index === 0 ? <FontAwesomeIcon icon={faTrophy} className="text-amber-500 text-xl" /> : <FontAwesomeIcon icon={faGavel} className="text-gray-500 text-xl" />}
+                            </div> */}
+                            <div className="flex -space-x-3 w-25">
+                              {index === 0 && (
+                                <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center border border-white z-20">
+                                  <FontAwesomeIcon icon={faTrophy} className="text-white text-xl" />
+                                </div>
+                              )}
+
+                              {bid.placedByMe ? (
+                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center border border-white z-10">
+                                  <FontAwesomeIcon icon={faUser} className="text-white text-xl" />
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 bg-red-400 rounded-full flex items-center justify-center border border-white z-10">
+                                  <FontAwesomeIcon icon={faGavel} className="text-white text-xl" />
+                                </div>
+                              )}
+
+                              {bid.autoBid && (
+                                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center border border-white">
+                                  <FontAwesomeIcon icon={faRobot} className="text-white text-xl" />
+                                </div>
+                              )}
                             </div>
-                            <div className="font-medium text-sm flex items-center">
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="text-lg font-medium text-right">
+                              {formatCurrency(bid.amount)}
+                            </div>
+                            <div className="text-sm flex items-center">
                               {formatDate(bid.bidTime)}
                             </div>
                           </div>
-                          <div className="font-medium text-right">
-                            {formatCurrency(bid.amount)}
-                          </div>
                         </div>
-                        {bid.placedByMe && <div className="text-xs text-gray-500">My Bid</div>}
+                        <div className="text-xs text-gray-500 w-max">
+                          {index === 0 && <span className="text-yellow-600">Winnig Bid</span>}
+                          {index === 0 && (bid.placedByMe || bid.autoBid) && " | "}
+                          {bid.placedByMe && <span className="text-green-500">My Bid</span>}
+                          {bid.placedByMe && bid.autoBid && " | "}
+                          {bid.autoBid && <span className="text-purple-500">Auto Bid</span>}
+                        </div>
                       </div>
                     ))}
                   </div>
