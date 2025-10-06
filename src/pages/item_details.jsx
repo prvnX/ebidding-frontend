@@ -1,4 +1,4 @@
-import React, { useState ,useEffect, useCallback} from "react";
+import { useState ,useEffect, useCallback, useMemo, useRef} from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,10 +13,12 @@ import {
   faInfoCircle,
   faGavel,
   faEye,
-  faCalendarAlt,
   faExclamationTriangle,
   faArrowUp,
-  faTrophy
+  faTrophy,
+  faArrowDown,
+  faUser,
+  faRobot
 } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import LocationMap from "../components/locationmap";
@@ -44,13 +46,38 @@ export default function ItemDetails() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
   const [isUserLogged, setIsUserLogged] = useState(false);
-  const [isFinished, setIsFinished] = useState(false);  
   const [bidHistory, setBidHistory] = useState([]);
-
-
+  const [autoBid, setAutoBid] = useState(0);
+  const [autoBidValid, setAutoBidValid] = useState(false);
+  const [myPlacedAutoBid, setMyPlacedAutoBid] = useState();
   const [item, setItem] = useState(null);
 
-  const fetchItem = useCallback(async () => {
+  const minAutoBidSetOnItemFetch = useRef(false);
+
+  const isWinning = useMemo(() => {
+    return bidHistory.length !== 0 && bidHistory[0].placedByMe
+  }, [bidHistory]);
+
+  const highestBid = useMemo(() => {
+    return bidHistory.length !== 0 ? bidHistory[0].amount : null;
+  }, [bidHistory])
+
+  const minAutoBidAllowed = useMemo(() => {
+    let value = 0;
+
+    if (item == null) return value;
+
+    if(highestBid == null) value = item.startingBid + 2*item.increment;
+    else if(isWinning) value = highestBid + 2*item.increment;
+    else value = highestBid + 3*item.increment;
+
+    if(myPlacedAutoBid && myPlacedAutoBid >= value) value = myPlacedAutoBid + 2*item.increment;
+    
+    return value;
+  }, [highestBid, isWinning, item, myPlacedAutoBid])
+
+  const fetchItem = async () => {
+      
       try {
           // Step 1: Fetch the item details
           const itemResponse = await axios.get(`http://localhost:8082/is/v1/getItem/${itemId}`);
@@ -59,19 +86,18 @@ export default function ItemDetails() {
           console.log('Fetched item details:', itemData);
 
           // Step 2: Fetch the bidding history
-          const biddingHistoryResponse = await fetchProtectedResource(
-              `http://localhost:8081/bs/v1/getBiddingHistory/${itemId}`,
+          const {data : {bidHistoryItems, myAutoBid}} = await fetchProtectedResource(
+              `http://localhost:8081/bs/v1/getBiddingDetails/${itemId}`,
               null,
               'GET'
           );
-          const biddingHistoryData = biddingHistoryResponse.data;
-          setBidHistory(biddingHistoryData);
-          console.log(biddingHistoryData);
+          setBidHistory(bidHistoryItems);
+          setMyPlacedAutoBid(myAutoBid?.amount || null);
 
       } catch (error) {
           console.error('An error occurred:', error);
       }
-  }, [itemId, setItem, setBidHistory]);
+  };
 
   useEffect(() => {
     fetchItem();
@@ -108,9 +134,6 @@ export default function ItemDetails() {
 
   const handleNewMessage = useCallback((bid) => {
     console.log("New message:", bid);
-    console.log("Item id :", itemId);
-    console.log("Item id :", parseInt(itemId));
-    console.log("bid.itemId !== parseInt(itemId)", bid.itemId !== parseInt(itemId))
     if (bid.itemId !== parseInt(itemId)) return;
     setBidHistory((prevHistory) => {
       if (prevHistory.some(historyBid => historyBid.bidId === bid.bidId)) return prevHistory;
@@ -118,7 +141,73 @@ export default function ItemDetails() {
     });
   }, [setBidHistory, itemId]);
 
-  useStompSubscriptions(`/topic/bid:${itemId}`, handleNewMessage);
+  useStompSubscriptions(`/topic/bid:${itemId}`, handleNewMessage, (item?.status !== "Active" && item?.status !== "Ending Soon"));
+
+  //Auto Bid
+  useEffect(() => {
+    if(!minAutoBidSetOnItemFetch.current && minAutoBidAllowed !== 0) {
+      setAutoBid(minAutoBidAllowed)
+      minAutoBidSetOnItemFetch.current = true;
+    }
+  }, [minAutoBidAllowed]);
+
+  useEffect(() => {
+    if(item == null) return;
+
+    if(autoBid <= item.startingBid || autoBid < minAutoBidAllowed) setAutoBidValid(false);
+    else if(highestBid == null) setAutoBidValid((autoBid - item.startingBid) % (2 * item.increment) == 0);
+    else if(autoBid < highestBid) setAutoBidValid(false);
+    else if(isWinning) setAutoBidValid((autoBid - highestBid) % (2 * item.increment) == 0);
+    else setAutoBidValid((autoBid - highestBid - item.increment) % (2 * item.increment) == 0);
+  }, [autoBid, item, highestBid, isWinning]);
+
+  const changeAutoBid = (increase) => {
+    if(item == null) return;
+    let allowedAmount = minAutoBidAllowed;
+
+    if(increase) {
+      if(autoBid < minAutoBidAllowed) {
+        setAutoBid(minAutoBidAllowed);
+        return;
+      }
+  
+      while(allowedAmount <= autoBid) {
+        allowedAmount += 2*Math.abs(item.increment);
+        console.log(allowedAmount);
+      }
+      setAutoBid(allowedAmount);
+    }
+    else {
+      if(autoBid < minAutoBidAllowed) return;
+
+      while(allowedAmount + 2*Math.abs(item.increment) < autoBid) {
+        allowedAmount += 2*Math.abs(item.increment);
+        console.log(allowedAmount);
+      }
+      setAutoBid(allowedAmount);
+    }
+  }
+
+  const placeAutoBid = async () => {
+    if(!autoBidValid || !item) return;
+
+    const {data : {data, success}} = await fetchProtectedResource(
+                              `http://localhost:8081/bs/v1/autoBid`, 
+                              {
+                                amount: parseInt(autoBid),
+                                itemId: itemId
+                              }, 
+                              'POST'
+                            );
+                          
+    if (success) {
+      setMyPlacedAutoBid(data.amount);
+      setAutoBid(data.amount + 2 * item.increment)
+      toast.success(`Autobid placed successfully. Auto Bid Amount : ${data.amount}`);
+    } else {
+      toast.error("AutoBid placing failed");
+    }
+  }
 
   const terms = [
         "All sales are final - no returns or exchanges",
@@ -173,7 +262,6 @@ export default function ItemDetails() {
     const response = await fetchProtectedResource(
       `http://localhost:8081/bs/v1/bid`,
       {
-        bidderId: 1, // Replace with actual bidder ID
         itemId: item.id,
         amount: parseInt(bidAmount)
       },
@@ -492,11 +580,18 @@ export default function ItemDetails() {
               <div className="bg-white rounded-lg shadow-sm p-4">
                 <div className="text-center mb-4">
                   <div className="text-sm text-gray-600 mb-1">Current Highest Bid</div>
-                  <div className="text-3xl font-bold text-green-600">{bidHistory.length === 0
+                  <div className="text-3xl font-bold text-green-600">{highestBid == null
                                                                             ? "No Bids Yet"
-                                                                            : formatCurrency(bidHistory[0].amount)}</div>
+                                                                            : formatCurrency(highestBid)}</div>
                   <div className="text-sm text-gray-600">Starting Bid: {formatCurrency(item.startingBid)}</div>
                 </div>
+
+                {isWinning && (
+                  <div className="flex flex-row p-3 mb-2 w-max mx-auto rounded-lg bg-yellow-300 text-[#1e3a5f] shadow-[0_0_20px_yellow] gap-3 items-center justify-center">
+                    <FontAwesomeIcon icon={faTrophy} className="text-2xl" />
+                    <h1 className="font-bold">You are Winning</h1>
+                  </div>
+                )}
                 
                 <div className="flex justify-between text-sm text-gray-600 mb-4">
                   <div className="flex items-center">
@@ -518,7 +613,7 @@ export default function ItemDetails() {
                     type="button"
                     className={`w-full py-3 bg-[#1e3a5f] text-white rounded-md font-medium hover:bg-[#294b78] transition flex items-center justify-center 
                               disabled:bg-gray-400 disabled:text-gray-200 disabled:cursor-not-allowed`}
-                    disabled={item.status==='Completed' || bidHistory[0]?.placedByMe}
+                    disabled={item.status==='Completed' || isWinning}
                     onClick={handleBid}
                   >
                     
@@ -531,27 +626,49 @@ export default function ItemDetails() {
                 <div className="text-center text-sm text-gray-600 mt-4">
                   Minimum increment: {formatCurrency(item.increment)}
                 </div>
-                  <div className="border-b border-gray-200 mx-auto my-4 w-full"></div>
+
+                {/* Auto Bid */}
+                <div className="border-b border-gray-200 mx-auto my-4 w-full"></div>
                   <div className="text-xs text-gray-500 mb-2 block bg-gray-100 px-2 py-1 rounded-md">
-                    <span className="block">You can also add maximum bid amount to place auto bid. Our system will automatically bid for you until your maximum bid is reached.</span>
-                  
-                  <div className="flex items-center mb-3 mt-2">
-                    <span className="text-[#294b78] mr-2 text-sm">LKR</span>
-                    <input
-                      type="number"
-                      // value={bidAmount}
-                      // onChange={(e) => setBidAmount(e.target.value)}
-                      placeholder="Enter your bid amount"
-                      className="flex-1 border border-[#294b78] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      // min={highestBid + item.increment}
-                    />
-                    
-                    {/* <button className={`ml-2 text-white px-2 py-3 rounded-md bg-[#294b78] transition text-xs ${(bidAmount === "" || item.status==="Completed ") && 'opacity-50 cursor-not-allowed'}`}type="submit" disabled={bidAmount === "" || item.status==="Completed"}>  */}
-                        <button className={`ml-2 text-white px-2 py-3 rounded-md bg-[#294b78] transition text-xs`}> 
-                      <FontAwesomeIcon icon={faArrowUp} className="mr-1" />
-                      <span className="text-xs font-semibold">Place Auto-Bid </span>
-                    </button>
-                  </div>
+                    <h2 className="text-xl text-center text-black font-semibold mb-1">Auto Bid</h2>
+                    <span className="block">Bidders can also add maximum bid amount to place auto bid. Our system will automatically bid for you until your maximum bid is reached.</span>
+                    {myPlacedAutoBid && <span className={`block mt-2 text-lg ${myPlacedAutoBid > highestBid ? "text-green-600" : "text-red-600"} text-center`}>Your current auto bid : <span className="font-semibold">{formatCurrency(myPlacedAutoBid)}</span></span>}
+                    <div className="flex items-center mb-3 mt-2">
+                      <span className="text-[#294b78] mr-2 text-sm">LKR</span>
+                      <div className="flex-1 flex flex-col gap-1">
+                        <button 
+                          className={`text-white px-4 py-2 mx-auto rounded-md bg-[#294b78] text-xs`}
+                          onClick={() => changeAutoBid(true)}
+                          type="button"
+                          > 
+                          <FontAwesomeIcon icon={faArrowUp} />
+                        </button>
+                        <input
+                          type="number"
+                          value={autoBid}
+                          onChange={(e) => setAutoBid(e.target.value)}
+                          placeholder="Enter your bid amount"
+                          className={`border border-[#294b78] rounded-md px-3 py-2 text-sm focus:outline-none ${autoBidValid ? "focus:ring-2 focus:ring-blue-500" : "ring-2 ring-red-500"}`}
+                        />
+                        <button 
+                          className={`text-white px-4 py-2 mx-auto rounded-md bg-[#294b78] text-xs`}
+                          onClick={() => changeAutoBid(false)}
+                          type="button"
+                          > 
+                          <FontAwesomeIcon icon={faArrowDown} />
+                        </button>
+                      </div>
+                      
+                      {/* <button className={`ml-2 text-white px-2 py-3 rounded-md bg-[#294b78] text-xs ${(bidAmount === "" || item.status==="Completed ") && 'opacity-50 cursor-not-allowed'}`}type="submit" disabled={bidAmount === "" || item.status==="Completed"}>  */}
+                      <button 
+                        className="ml-2 text-white px-2 py-3 rounded-md text-xs bg-[#294b78] disabled:bg-[#717171]"
+                        disabled={!autoBidValid}
+                        type="button"
+                        onClick={placeAutoBid}
+                        > 
+                        <span className="text-xs font-semibold">Place Auto-Bid </span>
+                      </button>
+                    </div>
                   </div>
                 </form>
 
@@ -566,21 +683,52 @@ export default function ItemDetails() {
                   
                   <div className="space-y-2 max-h-80 overflow-y-auto" style={{ scrollbarWidth: 'thin'}}>
                     {bidHistory.map((bid, index) => (
-                      <div key={bid.bidId} className={`flex flex-col justify-center py-2 border-b border-gray-100 px-2 last:border-b-0 ${index === 0 && "bg-green-300 rounded-xl"}`}>
+                      <div key={bid.bidId} className={`flex flex-col justify-center py-2 border-b border-gray-100 px-2 last:border-b-0 ${index === 0 && "border-2 border-yellow-300 rounded-xl"}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">
-                              {index === 0 ? <FontAwesomeIcon icon={faTrophy} className="text-amber-500 text-xs" /> : <FontAwesomeIcon icon={faGavel} className="text-gray-500 text-xs" />}
+                            {/* <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">
+                              {index === 0 ? <FontAwesomeIcon icon={faTrophy} className="text-amber-500 text-xl" /> : <FontAwesomeIcon icon={faGavel} className="text-gray-500 text-xl" />}
+                            </div> */}
+                            <div className="flex -space-x-3 w-25">
+                              {index === 0 && (
+                                <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center border border-white z-20">
+                                  <FontAwesomeIcon icon={faTrophy} className="text-white text-xl" />
+                                </div>
+                              )}
+
+                              {bid.placedByMe ? (
+                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center border border-white z-10">
+                                  <FontAwesomeIcon icon={faUser} className="text-white text-xl" />
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 bg-red-400 rounded-full flex items-center justify-center border border-white z-10">
+                                  <FontAwesomeIcon icon={faGavel} className="text-white text-xl" />
+                                </div>
+                              )}
+
+                              {bid.autoBid && (
+                                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center border border-white">
+                                  <FontAwesomeIcon icon={faRobot} className="text-white text-xl" />
+                                </div>
+                              )}
                             </div>
-                            <div className="font-medium text-sm flex items-center">
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="text-lg font-medium text-right">
+                              {formatCurrency(bid.amount)}
+                            </div>
+                            <div className="text-sm flex items-center">
                               {formatDate(bid.bidTime)}
                             </div>
                           </div>
-                          <div className="font-medium text-right">
-                            {formatCurrency(bid.amount)}
-                          </div>
                         </div>
-                        {bid.placedByMe && <div className="text-xs text-gray-500">My Bid</div>}
+                        <div className="text-xs text-gray-500 w-max">
+                          {index === 0 && <span className="text-yellow-600">Winnig Bid</span>}
+                          {index === 0 && (bid.placedByMe || bid.autoBid) && " | "}
+                          {bid.placedByMe && <span className="text-green-500">My Bid</span>}
+                          {bid.placedByMe && bid.autoBid && " | "}
+                          {bid.autoBid && <span className="text-purple-500">Auto Bid</span>}
+                        </div>
                       </div>
                     ))}
                   </div>
