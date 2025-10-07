@@ -47,6 +47,16 @@ import BredCrumb from "../components/ui/breadCrumb";
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("bids"); // Start with bids tab active for testing
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
+  const [userDetails, setUserDetails] = useState(null);
+
+  async function getUserData() {
+    const userData = await JSON.parse(localStorage.getItem("UserData"));
+    console.log("User Data from localStorage:", userData);
+    setUserDetails(userData);
+  }
+  useEffect(() => {
+    getUserData();
+  }, []);
   
   // Mock user data - replace with actual data from your API/backend
   const userData = {
@@ -66,6 +76,8 @@ export default function ProfilePage() {
     activeBids: 5
     }
   };
+
+
 
   // State to control modal visibility
   const [isEditing, setIsEditing] = useState(false);
@@ -238,7 +250,7 @@ export default function ProfilePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Breadcrumb */}
           <BredCrumb page="Profile" breadCrumbs={[
-            { title: "Home", link: "/" },
+            { title: "Home", link: "/dashboard" },
           ]} />
 
           {/* Profile Header - IMPROVED */}
@@ -272,12 +284,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between">
                   <div>
                     <div className="flex items-center">
-                      <h1 className="text-2xl font-bold text-gray-900">{userData.fullName}</h1>
+                      <h1 className="text-2xl font-bold text-gray-900">{userDetails?.firstName} {userDetails?.lastName}</h1>
                       {userData.verificationLevel === "Verified" && (
                         <FontAwesomeIcon icon={faCheckCircle} className="text-[#1e3a5f] ml-2" />
                       )}
                     </div>
-                    <p className="text-gray-600">@{userData.username}</p>
+                    <p className="text-gray-600">@{userDetails?.username}</p>
                   </div>
                   
                   <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
@@ -417,7 +429,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Full Name
                     </div>
-                    <div className="font-medium">{userData.fullName}</div>
+                    <div className="font-medium">{userDetails?.firstName} {userDetails?.lastName}</div>
                   </div>
                   
                   {/* Username */}
@@ -426,7 +438,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Username
                     </div>
-                    <div className="font-medium">@{userData.username}</div>
+                    <div className="font-medium">@{userDetails?.username}</div>
                   </div>
                   
                   {/* Email */}
@@ -435,7 +447,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
                       Email Address
                     </div>
-                    <div className="font-medium">{userData.email}</div>
+                    <div className="font-medium">{userDetails?.email}</div>
                   </div>
                   
                   {/* Phone */}
@@ -444,7 +456,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Phone Number
                     </div>
-                    <div className="font-medium">{userData.phone}</div>
+                    <div className="font-medium">{userDetails?.primaryPhone}</div>
                   </div>
                   
                   {/* NIC */}
@@ -453,7 +465,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faIdCard} className="mr-2" />
                       National ID
                     </div>
-                    <div className="font-medium">{userData.nic}</div>
+                    <div className="font-medium">{userDetails?.username}</div>
                   </div>
                   
                   {/* Status */}
@@ -479,7 +491,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faBirthdayCake} className="mr-2" />
                       Date of Birth
                     </div>
-                    <div className="font-medium">{new Date(userData.dob).toLocaleDateString()}</div>
+                    <div className="font-medium">{new Date(userDetails?.date_of_birth).toLocaleDateString()}</div>
                   </div>
                   
                   {/* Registration Date */}
@@ -491,13 +503,13 @@ export default function ProfilePage() {
                     <div className="font-medium">{new Date(userData.registeredDate).toLocaleDateString()}</div>
                   </div>
                   
-                  <div className="space-y-1.5">
+                  {/* <div className="space-y-1.5">
                     <div className="flex items-center text-sm text-gray-500">
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Address
                     </div>
                     <div className="font-medium">{userData.address}</div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )}

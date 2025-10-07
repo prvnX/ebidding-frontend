@@ -39,11 +39,34 @@ const Dashboard = () => {
   const [items, setItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
+  const [myBids, setMyBids] = useState([]);
 
   const isFirstRender = useRef(true);
 
-  const fetchItems = useCallback((page) => {
+  const fetchMyBids = async () => {
+          setLoading(true);
+      const userName = await localStorage.getItem("username");
+      //getting my bids from bidding service
+     const apiEndPoint = `http://localhost:8081/getMyBidItems/${userName}`;
+      console.log(apiEndPoint);
+      fetchProtectedResource(
+        apiEndPoint,
+        null,
+        'GET'
+      ).then((response) => {
+        setMyBids(response.data);
+
+      }).catch((error) => {
+        console.error('Error fetching MyBids data:', error);
+      }).finally(() => {
+        setLoading(false);
+      });
+      return; // Exit early since we've handled MyBids case
+  };
+
+  const fetchItems =  useCallback(async (page) => {
     setLoading(true);
+
 
     let apiEndPoint = activeTab === 'favourites' ? `/is/v1/getFavourites/NOT IMPLEMENTED YET` : activeTab === 'MyBids' ? `/is/v1/getMyBids/NOT IMPLEMENTED YET` : `http://localhost:8082/is/v1/getItems?status=${activeTab}`;
     
@@ -56,7 +79,6 @@ const Dashboard = () => {
     if(page > 0){
       apiEndPoint += `&page=${page - 1}`
     }
-    console.log(apiEndPoint);
     // try {
     //   setter(await fetchProtectedResource(apiEndPoint, {}, 'GET'));
     // } catch (error) {
@@ -81,7 +103,15 @@ const Dashboard = () => {
   }, [activeTab, searchTerm, selectedCategory]);
   
   useEffect(() => {
-    fetchItems(1);
+    if (activeTab === 'myBids') {
+      console.log("Fetching MyBids data");
+      fetchMyBids();
+      return; // Exit early since we've handled MyBids case
+    }
+    else {
+      fetchItems(1);
+    }
+    
   }, [activeTab, selectedCategory]);
 
   useEffect(() => {
@@ -300,7 +330,7 @@ const Dashboard = () => {
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("myBids")}
+            onClick={() => {setActiveTab("myBids");fetchMyBids();}}
           >
             { t("myBids") }
           </button>
@@ -361,9 +391,18 @@ const Dashboard = () => {
               <h2 className="text-xl mb-3 font-semibold">No Bids</h2>
               <p>You have not placed any bids yet.</p>
             </div>
-          ) : MyBids.map((item) => (
-            <BidCard key={item.id} item={item} />
-          )) 
+          ) : loading ? (
+            <Loading />
+          ) : (
+              <>
+                  {
+                    myBids.map((bid) =>
+                      <BidCard key={bid.itemDTO.id} item={bid} />
+                      )
+                  }
+                </>
+          )
+          
 
           : activeTab === "Pending" ? items.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">

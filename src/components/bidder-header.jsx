@@ -1,12 +1,33 @@
-import React from "react";
+import React, { use } from "react";
+import { useState , useEffect} from "react";
 import custombanner from "../assets/custom-banner.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons"; 
 import { useTranslation } from "react-i18next"
-
+import axios from "axios";
+import { fetchProtectedResource } from "../pages/authApi";
 export default function BidderHeader() {
 
       const {t} = useTranslation();
+      const [Name, setName] = useState('');
+      const fetchData = async () => {
+        try {
+            const {data} = await fetchProtectedResource(
+                    `http://localhost:8084/us/v1/getSelfDetails`,
+                      null,
+                      'GET'
+            );
+            console.log("User Info",data);
+            setName(data.username);
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+        }
+      };
+
+      useEffect(() => {
+        fetchData();
+      }, [BidderHeader]);
+
 
     return (
         <header className="bg-[#1e3a5f] shadow-sm py-1">  
