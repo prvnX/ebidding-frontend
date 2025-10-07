@@ -2,13 +2,36 @@ import { useState, useEffect, useRef } from "react";
 import { User, History, Wallet, LogOut, Gavel } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { fetchProtectedResource } from "../pages/authApi";
 
-const userName = "John Doe"; // Replace with actual user name from props/context if available
 
 export function UserDropdown() {
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
+        const [name, setName] = useState('Loading...');
+        const fetchData = async () => {
+          if(!localStorage.getItem("UserData") || JSON.parse(localStorage.getItem("UserData")).username !== localStorage.getItem("username")){
+          try {
+              const {data} = await fetchProtectedResource(
+                      `http://localhost:8084/us/v1/getSelfDetails`,
+                        null,
+                        'GET'
+              );
+              localStorage.setItem("UserData", JSON.stringify(data));
+              setName(data.firstName + " " + data.lastName);
+          } catch (error) {
+              console.error('Error fetching user info:', error);
+          }
+        } else {
+          const userData = await JSON.parse(localStorage.getItem("UserData"));
+          setName(userData.firstName + " " + userData.lastName);
+        }
+      };
+
+      useEffect(() => {
+        fetchData();
+      }, [UserDropdown]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -32,7 +55,7 @@ export function UserDropdown() {
         className="flex items-center text-white text-sm px-3 py-2 rounded hover:bg-white/10 transition"
       >
         <User className="h-5 w-5 mr-2" />
-        {userName}
+        {name}
       </button>
       {open && (
         <div className="absolute right-0 mt-7 w-56 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
@@ -41,7 +64,7 @@ export function UserDropdown() {
               className="block text-gray-700 font-semibold text-base"
               style={{ color: "#7e8ba3" }}
             >
-              {userName}
+              {name}
             </span>
           </div>
           <div className="py-1">

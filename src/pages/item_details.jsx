@@ -84,7 +84,10 @@ export default function ItemDetails() {
           const itemData = itemResponse.data;
           setItem(itemData);
           console.log('Fetched item details:', itemData);
-
+          const storedUsername = await localStorage.getItem('username');
+          if (storedUsername && storedUsername !== 'undefined' && storedUsername != null) {
+            setIsUserLogged(true);
+          }
           // Step 2: Fetch the bidding history
           const {data : {bidHistoryItems, myAutoBid}} = await fetchProtectedResource(
               `http://localhost:8081/bs/v1/getBiddingDetails/${itemId}`,
@@ -104,6 +107,10 @@ export default function ItemDetails() {
     const handleMyBidMessage = (myBid) => {
       console.log("My Bid received", myBid);
       if (myBid.itemId !== parseInt(itemId)) return;
+    if (storedUsername) {
+      console.log("Stored username:", storedUsername);
+    }
+
       setBidHistory((prevBidHistory) => {
         console.log("Previous Bid History:", prevBidHistory);
 
