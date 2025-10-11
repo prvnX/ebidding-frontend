@@ -56,7 +56,7 @@ export default ({item, select}) => {
           </div>
         </div>
         <div className="px-4 text-lg font-bold mb-1">{item.title}</div>
-        <div className="px-4 text-sm text-gray-500 mb-2">{item.description}</div>
+        <div className="px-4 text-sm text-gray-500 mb-2 line-clamp-3">{item.description}</div>
         <div className="px-4 text-xs text-gray-500 mb-2 flex justify-start items-center gap-2">
             <FontAwesomeIcon icon={faLocationDot}/>
             <div className="h-full border-l border-gray-300"></div>

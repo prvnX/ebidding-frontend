@@ -49,7 +49,9 @@ const Loginpage = () => {
     try {
       const data = await login({ username: formData.username, password: formData.password });
       setSuccess('Login successful!');
-
+      localStorage.setItem('username', data.username);
+      localStorage.setItem('role', data.role);
+      
       switch (data.role) {
         case 'Bidder':
           navigate('/RegisteredUser/dashboard');
