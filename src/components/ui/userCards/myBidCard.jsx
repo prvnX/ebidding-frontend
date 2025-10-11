@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState ,useCallback} from "react";
 import { useNavigate } from "react-router-dom";
 import {
   faHeart as faHeartSolid,
@@ -15,25 +15,57 @@ import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import { formatCurrency } from "../../../function";
 import CountDownDate from "../../countdown";
 import { toast } from "react-toastify";
+import { fetchProtectedResource } from "../../../pages/authApi";
+import useStompSubscriptions from "../../../hooks/useStompSubscriptions";
 
 export default function BidCard({ item }) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [currentHighest, setCurrentHighest] = useState(item.currentHighest);
+  const [myBid, setMyBid] = useState(item.mybid);
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleItemClick = (itemId) => {
     navigate(`/item/${itemId}`);
   };
+     const handleNewMessage = useCallback((bid) => {
+      console.log("New message:", bid);
+      setCurrentHighest(bid.amount);
+      console.log(bid.placedByMe);
+      if(bid.placedByMe == true){
+        console.log("This is my bid");
+        setMyBid(bid.amount);
+      }
+    }, [currentHighest, myBid]);
 
-  const handleFavoriteClick = (e, flag) => {
+  useStompSubscriptions(`/topic/bid:${item.itemDTO.id}`, handleNewMessage);
+  
+
+
+  const handleBidClick = async (e)  => {
     e.stopPropagation(); // Prevent triggering the card click
-    setIsFavorite(flag);
-  };
-
-  const handleBidClick = (e, itemId) => {
-    e.stopPropagation(); // Prevent triggering the card click
-    toast.success("Value Incremented Successfully");
-
+     if (!item) return;
+      const bidAmount = currentHighest + item.itemDTO.increment;
+      const response = await fetchProtectedResource(
+        `http://localhost:8081/bs/v1/bid`,
+        {
+          itemId: item.itemDTO.id,
+          amount: parseInt(bidAmount)
+        },
+        'POST'
+      )
+      .catch((error) => {
+        console.error('Error placing bid:', error);
+        toast.error('Failed to place bid. Please try again.');
+      });
+      if (response) {
+        if (response.data.success) {
+          setCurrentHighest(bidAmount);
+          setMyBid(bidAmount);
+          toast.success(`Bid placed: ${formatCurrency(parseInt(bidAmount))}`);
+          return;
+        }
+        toast.error(`Bid Placing Unsuccessful: ${response.data.message}`);
+      }
 };
 
   const handleViewClick = (e, itemId) => {
@@ -42,12 +74,18 @@ export default function BidCard({ item }) {
   };
 
   useEffect(() => {
-    if(item.currentHighest == item.mybid){
+    if(currentHighest == myBid){
       setIsWinning(true);
     } else {
       setIsWinning(false);
     }
-  }, [item]);
+  }, [currentHighest, myBid,item]);
+
+    const handleBid = async (e) => {
+      e.stopPropagation(); // Prevent triggering the card click
+      e.preventDefault();
+     
+    };
 
   const [isWinning, setIsWinning] = useState(false);
   return (
@@ -91,13 +129,13 @@ export default function BidCard({ item }) {
             <div>
               <div className={`text-sm ${isWinning ? "text-green-600" : "text-red-600"}`}>{t("currentBid")}</div>
               <div className={`text-xl font-bold text-green-600 ${isWinning ? "text-green-600" : "text-red-600"}`}>
-                {formatCurrency(item.currentHighest)}
+                {formatCurrency(currentHighest)}
               </div>
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-500">{t("myBid")}</div>
               <div className="text-sm font-medium">
-                {formatCurrency(item.mybid)}
+                {formatCurrency(myBid)}
               </div>
             </div>
           </div>
