@@ -93,7 +93,14 @@ export default function AppAdminHome() {
         console.log('Yard managers data received:', yardManagersData);
         setYardManagers(yardManagersData || []);
 
-        console.log('All data fetched successfully!');
+        console.log('✅ All data fetched successfully!');
+        console.log('📊 Summary:', {
+          totalUsers: usersData?.length || 0,
+          bidders: biddersData?.length || 0,
+          auctionManagers: auctionManagersData?.length || 0,
+          yardManagers: yardManagersData?.length || 0,
+          pendingApprovals: usersData?.filter(u => u.status === 'PENDING' || u.status === 'INACTIVE').length || 0
+        });
       } catch (err) {
         console.error('Error fetching data:', err);
         console.error('Error details:', {
@@ -110,60 +117,11 @@ export default function AppAdminHome() {
     fetchAllData();
   }, [jwtToken, role, _hasHydrated]);
 
-  // Sample data for pending approvals
-  const pendingUsers = [
-    {
-      id: 1,
-      name: "Kamal Perera",
-      email: "kamal.perera@email.com",
-      phone: "+94771234567",
-      nic: "199012345678",
-      type: "Bidder",
-      registeredDate: "2024-02-10",
-      verificationScore: 85,
-      documents: ["NIC Copy", "User Image"]
-    },
-    {
-      id: 2,
-      name: "Saman Silva",
-      email: "saman.silva@company.lk",
-      phone: "+94712345678",
-      nic: "198512345679",
-      type: "Bidder",
-      registeredDate: "2024-02-09",
-      verificationScore: 92,
-      documents: ["NIC Copy", "User Image"]
-    },
-      {
-      id: 3,
-      name: "Akila De Silva",
-      email: "Akila.silva@gmail.com",
-      phone: "+94712342378",
-      nic: "198312345679",
-      type: "Bidder",
-      registeredDate: "2024-01-19",
-      verificationScore: 92,
-      documents: ["NIC Copy", "User Image"]
-    },
-        {
-      id: 4,
-      name: "Samani S Dharmawardena",
-      email: "saman.dharma@slt.lk",
-      phone: "+94712345678",
-      nic: "198512345679",
-      type: "Bidder",
-      registeredDate: "2024-12-19",
-      verificationScore: 92,
-      documents: ["NIC Copy", "User Image"]
-    },
-
-  ];
+  // Get pending users from all users (filter by PENDING status)
+  const pendingUsers = allUsers.filter(user => user.status === 'PENDING' || user.status === 'INACTIVE');
 
   // Combine all managers (auction managers + yard managers)
   const systemManagers = [...auctionManagers, ...yardManagers];
-
-  // Combine all system users (bidders + managers + regular users)
-  const systemUsers = allUsers;
 
   // Filter managers based on search and filters
   const filteredManagers = systemManagers.filter(manager => {
@@ -244,7 +202,7 @@ export default function AppAdminHome() {
     {
       title: "Auction Managers",
       value: auctionManagers.length.toString(),
-      change: `Online now: ${auctionManagers.filter(m => m.status === 'Active').length}`,
+      change: `Active: ${auctionManagers.filter(m => m.status === 'ACTIVE').length}`,
       icon: faUserTie,
       color: "bg-green-500"
     },
@@ -257,9 +215,9 @@ export default function AppAdminHome() {
   ];
 
   const tabItems = [
-    { id: 'approvals', label: 'User Approvals', count: systemUsers.length },
-    { id: 'users', label: 'Biddders' },
-    { id: 'managers', label: 'System Users' },
+    { id: 'approvals', label: 'User Approvals', count: pendingUsers.length },
+    { id: 'users', label: 'Bidders', count: bidders.length },
+    { id: 'managers', label: 'System Users', count: systemManagers.length },
   ];
 
   return (
@@ -381,38 +339,64 @@ export default function AppAdminHome() {
                 </div>
 
                 <div className="space-y-4">
-                  {pendingUsers.map((user) => (
-                    <div key={user.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                  {loading ? (
+                    <div className="text-center py-8 text-gray-500">
+                      Loading pending approvals...
+                    </div>
+                  ) : error ? (
+                    <div className="text-center py-8 text-red-500">
+                      {error}
+                    </div>
+                  ) : pendingUsers.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No pending approvals at this time
+                    </div>
+                  ) : (
+                    pendingUsers.map((user) => (
+                    <div key={user.userId} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
-                          <h4 className="text-lg font-semibold text-gray-900">{user.name}</h4>
-                          <p className="text-sm text-gray-600">{user.email} • {user.phone}</p>
-                          <p className="text-sm text-gray-600">NIC: {user.nic}</p>
+                          <h4 className="text-lg font-semibold text-gray-900">
+                            {`${user.firstName || ''} ${user.lastName || ''}`}
+                          </h4>
+                          <p className="text-sm text-gray-600">{user.email || 'N/A'} • {user.phoneNumber || 'N/A'}</p>
+                          <p className="text-sm text-gray-600">NIC: {user.nic || 'N/A'}</p>
                           <div className="flex items-center mt-2 space-x-4">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              user.type === 'Bidder' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                              user.role === 'Bidder' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
                             }`}>
-                              {user.type}
+                              {user.role || 'User'}
                             </span>
                             <span className="text-xs text-gray-500">
-                              Registered: {user.registeredDate}
+                              Registered: {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                             </span>
-                            <span className="text-xs text-gray-500">
-                              Verification Score: {user.verificationScore}%
+                            <span className={`text-xs font-semibold ${
+                              user.status === 'PENDING' ? 'text-orange-600' : 'text-gray-600'
+                            }`}>
+                              Status: {user.status || 'N/A'}
                             </span>
                           </div>
                         </div>
                         
                         <div className="flex items-center space-x-2">
-                          <button className="bg-blue-50 text-blue-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-blue-100 transition-colors">
+                          <button 
+                            onClick={() => handleUserEdit(user.userId)}
+                            className="bg-blue-50 text-blue-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-blue-100 transition-colors"
+                          >
                             <FontAwesomeIcon icon={faEye} className="mr-1" />
                             Review
                           </button>
-                          <button className="bg-green-50 text-green-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-green-100 transition-colors">
+                          <button 
+                            onClick={() => handleStatusChange(user.userId, 'ACTIVE')}
+                            className="bg-green-50 text-green-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-green-100 transition-colors"
+                          >
                             <FontAwesomeIcon icon={faCheck} className="mr-1" />
                             Approve
                           </button>
-                          <button className="bg-red-50 text-red-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-red-100 transition-colors">
+                          <button 
+                            onClick={() => handleStatusChange(user.userId, 'SUSPENDED')}
+                            className="bg-red-50 text-red-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-red-100 transition-colors"
+                          >
                             <FontAwesomeIcon icon={faTimes} className="mr-1" />
                             Reject
                           </button>
@@ -420,17 +404,24 @@ export default function AppAdminHome() {
                       </div>
 
                       <div>
-                        <p className="text-sm text-gray-600 mb-2">Submitted Documents:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {user.documents.map((doc, index) => (
-                            <span key={index} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                              {doc}
-                            </span>
-                          ))}
+                        <p className="text-sm text-gray-600 mb-2">User Information:</p>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="bg-gray-50 p-2 rounded">
+                            <span className="font-medium text-gray-700">Email:</span> {user.email || 'N/A'}
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded">
+                            <span className="font-medium text-gray-700">Phone:</span> {user.phoneNumber || 'N/A'}
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded">
+                            <span className="font-medium text-gray-700">NIC:</span> {user.nic || 'N/A'}
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded">
+                            <span className="font-medium text-gray-700">Role:</span> {user.role || 'N/A'}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )))}
                 </div>
               </div>
             )}
@@ -472,9 +463,9 @@ export default function AppAdminHome() {
                       className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent"
                     >
                       <option value="all">All Status</option>
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                      <option value="Suspended">Suspended</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
+                      <option value="SUSPENDED">Suspended</option>
                     </select>
 
                   </div>
@@ -703,7 +694,7 @@ export default function AppAdminHome() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600">Active Managers</p>
-                        <p className="text-2xl font-bold text-gray-900">{auctionManagers.filter(m => m.status === 'Active').length}</p>
+                        <p className="text-2xl font-bold text-gray-900">{auctionManagers.filter(m => m.status === 'ACTIVE').length}</p>
                       </div>
                       <FontAwesomeIcon icon={faUserTie} className="h-8 w-8 text-green-500" />
                     </div>
@@ -711,8 +702,8 @@ export default function AppAdminHome() {
                   <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Total Auctions</p>
-                        <p className="text-2xl font-bold text-gray-900">{auctionManagers.reduce((sum, m) => sum + m.totalAuctions, 0)}</p>
+                        <p className="text-sm font-medium text-gray-600">Total Managers</p>
+                        <p className="text-2xl font-bold text-gray-900">{systemManagers.length}</p>
                       </div>
                       <FontAwesomeIcon icon={faGavel} className="h-8 w-8 text-blue-500" />
                     </div>
@@ -720,8 +711,8 @@ export default function AppAdminHome() {
                   <div className="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Active Auctions</p>
-                        <p className="text-2xl font-bold text-gray-900">{auctionManagers.reduce((sum, m) => sum + m.activeAuctions, 0)}</p>
+                        <p className="text-sm font-medium text-gray-600">Yard Managers</p>
+                        <p className="text-2xl font-bold text-gray-900">{yardManagers.length}</p>
                       </div>
                       <FontAwesomeIcon icon={faChartLine} className="h-8 w-8 text-purple-500" />
                     </div>
@@ -748,8 +739,8 @@ export default function AppAdminHome() {
                       className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent"
                     >
                       <option value="all">All Status</option>
-                      <option value="Active">Active</option>
-                      <option value="Suspended">Suspended</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="SUSPENDED">Suspended</option>
                     </select>
 
                   </div>
