@@ -36,6 +36,7 @@ import CustomHeader from "../components/custom-header";
 import NavBar from "../components/navbar";
  
 import Footer from "../components/footer";
+import { fetchProtectedResource } from "../pages/authApi";
  
 
 // Sample profile picture - replace with actual path
@@ -47,37 +48,47 @@ import BredCrumb from "../components/ui/breadCrumb";
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("bids"); // Start with bids tab active for testing
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
-  const [userDetails, setUserDetails] = useState(null);
-
-  async function getUserData() {
-    const userData = await JSON.parse(localStorage.getItem("UserData"));
-    console.log("User Data from localStorage:", userData);
-    setUserDetails(userData);
-  }
-  useEffect(() => {
-    getUserData();
-  }, []);
   
   // Mock user data - replace with actual data from your API/backend
-  const userData = {
-    fullName: "John D. Smith",
-    username: "johnsmith",
-    email: "john.smith@example.com",
-    nic: "992345678V",
-    status: "Active",
-    dob: "1992-05-15",
-    registeredDate: "2023-10-24",
-    profileImage: profilePic,
-    phone: "+94 77 123 4567",
-    address: "123 Main Street, Colombo 07, Sri Lanka",
-    bidStats: {
-    totalBids: 47,
-    wonBids: 12,
-    activeBids: 5
-    }
+
+  const [userData, setUserData] = useState();
+
+  const fetchData = async () => {
+    const response = await fetchProtectedResource('http://localhost:8083/us/v1/bidders/19', null, 'GET');
+    setUserData({ ...response.data , 
+      profileImage: profilePic, 
+      address: "123 Main Street, Colombo 07, Sri Lanka",
+      bidStats: {
+        totalBids: 47,
+        wonBids: 12,
+        activeBids: 5
+        }  
+      });
   };
+  
+  useEffect(() => {
+    fetchData();
+  }, [])
 
-
+  // const userData = {
+  //   fullName: "John D. Smith",
+  //   firstName: "John",
+  //   lastName: "Smith",
+  //   username: "johnsmith",
+  //   email: "john.smith@example.com",
+  //   nic: "992345678V",
+  //   status: "Active",
+  //   dob: "1992-05-15",
+  //   registeredDate: "2023-10-24",
+  //   profileImage: profilePic,
+  //   phone: "+94 77 123 4567",
+  //   address: "123 Main Street, Colombo 07, Sri Lanka",
+    // bidStats: {
+    // totalBids: 47,
+    // wonBids: 12,
+    // activeBids: 5
+    // }
+  // };
 
   // State to control modal visibility
   const [isEditing, setIsEditing] = useState(false);
@@ -86,13 +97,14 @@ export default function ProfilePage() {
 
   // Initialize form data when modal opens
   useEffect(() => {
-    if (isEditing) {
+    if (isEditing && userData) {
+      // prefer multiple possible phone keys from backend
       setEditFormData({
-        fullName: userData.fullName,
-        email: userData.email,
-        phone: userData.phone,
-        address: userData.address,
-        dob: userData.dob
+        firstName: userData.firstName || userData.first_name || '',
+        lastName: userData.lastName || userData.last_name || '',
+        email: userData.email || '',
+        primaryPhone: userData.primaryPhone || userData.phone || userData.primary_phone || '',
+        date_of_birth: userData.date_of_birth || userData.dob || '',
       });
     }
   }, [isEditing, userData]);
@@ -107,9 +119,11 @@ export default function ProfilePage() {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Here you would update the user data with API call
+    const response = await fetchProtectedResource('http://localhost:8083/us/v1/updateprofile/19', editFormData, 'PUT');
+    await fetchData();
     console.log("Form submitted:", editFormData);
     setIsEditing(false);
   };
@@ -240,6 +254,8 @@ export default function ProfilePage() {
     }
   };
 
+  if (!userData) return null; // Loading animation should be here
+
   return (
     <>
       <CustomHeader />
@@ -250,7 +266,7 @@ export default function ProfilePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Breadcrumb */}
           <BredCrumb page="Profile" breadCrumbs={[
-            { title: "Home", link: "/dashboard" },
+            { title: "Home", link: "/" },
           ]} />
 
           {/* Profile Header - IMPROVED */}
@@ -284,12 +300,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between">
                   <div>
                     <div className="flex items-center">
-                      <h1 className="text-2xl font-bold text-gray-900">{userDetails?.firstName} {userDetails?.lastName}</h1>
+                      <h1 className="text-2xl font-bold text-gray-900">{userData.fullName}</h1>
                       {userData.verificationLevel === "Verified" && (
                         <FontAwesomeIcon icon={faCheckCircle} className="text-[#1e3a5f] ml-2" />
                       )}
                     </div>
-                    <p className="text-gray-600">@{userDetails?.username}</p>
+                    <p className="text-gray-600">@{userData.username}</p>
                   </div>
                   
                   <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
@@ -429,7 +445,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Full Name
                     </div>
-                    <div className="font-medium">{userDetails?.firstName} {userDetails?.lastName}</div>
+                    <div className="font-medium">{userData.fullName}</div>
                   </div>
                   
                   {/* Username */}
@@ -438,7 +454,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Username
                     </div>
-                    <div className="font-medium">@{userDetails?.username}</div>
+                    <div className="font-medium">@{userData.username}</div>
                   </div>
                   
                   {/* Email */}
@@ -447,7 +463,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
                       Email Address
                     </div>
-                    <div className="font-medium">{userDetails?.email}</div>
+                    <div className="font-medium">{userData.email}</div>
                   </div>
                   
                   {/* Phone */}
@@ -456,7 +472,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Phone Number
                     </div>
-                    <div className="font-medium">{userDetails?.primaryPhone}</div>
+                    <div className="font-medium">{userData.phone}</div>
                   </div>
                   
                   {/* NIC */}
@@ -465,7 +481,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faIdCard} className="mr-2" />
                       National ID
                     </div>
-                    <div className="font-medium">{userDetails?.username}</div>
+                    <div className="font-medium">{userData.nic}</div>
                   </div>
                   
                   {/* Status */}
@@ -491,7 +507,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faBirthdayCake} className="mr-2" />
                       Date of Birth
                     </div>
-                    <div className="font-medium">{new Date(userDetails?.date_of_birth).toLocaleDateString()}</div>
+                    <div className="font-medium">{new Date(userData.dob).toLocaleDateString()}</div>
                   </div>
                   
                   {/* Registration Date */}
@@ -503,13 +519,13 @@ export default function ProfilePage() {
                     <div className="font-medium">{new Date(userData.registeredDate).toLocaleDateString()}</div>
                   </div>
                   
-                  {/* <div className="space-y-1.5">
+                  <div className="space-y-1.5">
                     <div className="flex items-center text-sm text-gray-500">
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Address
                     </div>
                     <div className="font-medium">{userData.address}</div>
-                  </div> */}
+                  </div>
                 </div>
               </div>
             )}
@@ -902,13 +918,24 @@ export default function ProfilePage() {
                     </button>
                   </div>
                   
-                  {/* Full Name */}
+                  {/* First Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                     <input
                       type="text"
-                      name="fullName"
-                      value={editFormData.fullName || ''}
+                      name="firstName"
+                      value={editFormData.firstName || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
+                    />
+                  </div>
+                   {/* Last Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={editFormData.lastName || ''}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
                     />
@@ -931,8 +958,8 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                     <input
                       type="tel"
-                      name="phone"
-                      value={editFormData.phone || ''}
+                      name="primaryPhone"
+                      value={editFormData.primaryPhone || ''}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
                     />
@@ -943,24 +970,14 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
                     <input
                       type="date"
-                      name="dob"
-                      value={editFormData.dob || ''}
+                      name="date_of_birth"
+                      value={editFormData.date_of_birth || ''}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
                     />
                   </div>
                   
-                  {/* Address */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <textarea
-                      name="address"
-                      rows={3}
-                      value={editFormData.address || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
-                    />
-                  </div>
+                  
                 </div>
                 
                 {/* Form actions */}
