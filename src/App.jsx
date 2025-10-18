@@ -18,10 +18,12 @@ import AuctionManItemDetails from './pages/AuctionMan/item_details'
 import Dashboard from './pages/RegisteredUser/dashboard';
 import AuctionHistory from './pages/RegisteredUser/auctionHistory';
 import AuctionSummary from './pages/RegisteredUser/auctionSummary';
-import Wallet from './pages/RegisteredUser/wallet';
+import WalletWithStripe from './pages/RegisteredUser/wallet';
 import Payment from './pages/RegisteredUser/payment';
+import PaymentSuccess from './pages/RegisteredUser/paymentSuccess'
 import BankTransfer from './pages/RegisteredUser/bankTransfer';
 import MyBiddingHistory from './pages/RegisteredUser/myBiddingHistory';
+import api from './pages/authApi';
 
 import Appadmin from './pages/AppAdmin/home'
 import AddUser from './pages/AppAdmin/addUser'
@@ -48,6 +50,37 @@ function App() {
   }, [wsCallBackManager]);
   useStompSubscriptions(`/topic/bidder:${username}`, myBid, (!username || role !== 'Bidder'));
 
+  useEffect(() => {
+    const silentRefresh = async () => {
+      try {
+        const response = await api.post('/refresh-token', {}, {
+          withCredentials: true,
+        });
+  
+        const data = response.data;
+  
+        if (data && data.jwtToken) {
+          useAuthStore.getState().setAuthData({
+            jwtToken: data.jwtToken,
+            role: data.role,
+            username: data.username,
+          });
+          console.log("🔄 Silent refresh successful on tab load");
+        } else {
+          console.log("⚠️ Silent refresh failed: No JWT returned");
+        }
+      } catch (error) {
+        if (error.response) {
+          console.log(`⚠️ Silent refresh failed: ${error.response.status} ${error.response.statusText}`);
+        } else {
+          console.log("⚠️ No valid refresh token, user remains logged out");
+        }
+      }
+    };
+  
+    silentRefresh();
+  }, []);
+
   return (
     <>
       {/* <MessageToast locationState={location.state} /> */}
@@ -73,8 +106,9 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path='/auctionHistory' element={<AuctionHistory />} />
         <Route path="/auctionSummary" element={<AuctionSummary />}/>
-        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/wallet" element={<WalletWithStripe />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/paymentSuccess" element={<PaymentSuccess />} />
         <Route path="/bankTransfer" element={<BankTransfer />} />
         <Route path="/myBiddingHistory" element={<MyBiddingHistory />} />
 
