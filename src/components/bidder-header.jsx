@@ -9,24 +9,6 @@ import { fetchProtectedResource } from "../pages/authApi";
 export default function BidderHeader() {
 
       const {t} = useTranslation();
-      const [Name, setName] = useState('');
-      const fetchData = async () => {
-        try {
-            const {data} = await fetchProtectedResource(
-                    `http://localhost:8084/us/v1/getSelfDetails`,
-                      null,
-                      'GET'
-            );
-            console.log("User Info",data);
-            setName(data.username);
-        } catch (error) {
-            console.error('Error fetching user info:', error);
-        }
-      };
-
-      useEffect(() => {
-        fetchData();
-      }, [BidderHeader]);
 
 
     return (
