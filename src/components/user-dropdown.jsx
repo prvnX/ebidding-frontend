@@ -14,7 +14,7 @@ export function UserDropdown() {
           if(!localStorage.getItem("UserData") || JSON.parse(localStorage.getItem("UserData")).username !== localStorage.getItem("username")){
           try {
               const {data} = await fetchProtectedResource(
-                      `http://localhost:8084/us/v1/getSelfDetails`,
+                      `http://localhost:8084/us/v1/getSelfDetails`, //update the URL as needed (the userservice getselfdetails endpoint )
                         null,
                         'GET'
               );
