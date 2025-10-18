@@ -58,19 +58,36 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchProtectedResource = async (url, data = {}, method) => {
-  const { jwtToken } = useAuthStore.getState();
+// 🟡 Lazy refresh if JWT missing
+export const fetchProtectedResource = async (url, data = {}, method = 'get') => {
+  let { jwtToken } = useAuthStore.getState();
+  console.log("jwt token in fetch" + jwtToken);
+  
+  if (!jwtToken) {
+    try {
+      jwtToken = await refreshTokenRequest();
+    } catch (err) {
+      console.error('Lazy refresh failed:', err.message);
+      window.location.href = '/login';
+      throw err;
+    }
+  }
+
   try {
     const response = await api({
       method,
       url,
       data,
-      headers: jwtToken ? { 'Authorization': `Bearer ${jwtToken}` } : {},
+      headers: jwtToken ? { Authorization: `Bearer ${jwtToken}` } : {},
     });
-    return response;
-  } catch (err) {
-    console.error('Fetch error:', err.response ? err.response.data : err.message, 'Status:', err.response?.status);
-    throw err; // Let the calling component handle the error
+
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      useAuthStore.getState().clearAuthData();
+      window.location.href = '/login';
+    }
+    throw error;
   }
 };
 
