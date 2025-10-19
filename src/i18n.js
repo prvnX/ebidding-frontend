@@ -77,6 +77,7 @@ const resources = {
       winningBid: "Winning Bid",
       viewItemDetails: "View Item Details",
       incrementBy: "Increment By",
+      winning: "Winning",
 
     }
   },
@@ -148,7 +149,9 @@ const resources = {
         jewelryWatches: "රන් භාණ්ඩ සහ ඔරලෝසු",
         clothingAccessories: "ඇඳුම් සහ අමතර භාණ්ඩ",
         machinery: " යන්ත්‍රෝපකරණ",
-        otherItems: "වෙනත් භාණ්ඩ"
+        otherItems: "වෙනත් භාණ්ඩ",
+        winning: "ජයග්‍රහණය"
+
 
       
     }
@@ -219,7 +222,8 @@ const resources = {
             jewelryWatches: "ஆபரணங்கள் & கடிகாரங்கள்",
             clothingAccessories: "ஆடைகள் & அணிகலன்கள்",
             machinery: "இயந்திரங்கள்",
-            otherItems: "பிற பொருட்கள்"
+            otherItems: "பிற பொருட்கள்",
+            winning: "வெற்றி"
 
     }
   }
