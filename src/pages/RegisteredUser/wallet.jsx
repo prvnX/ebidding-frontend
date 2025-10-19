@@ -18,9 +18,14 @@ const Wallet = () => {
   const [showIncreaseModal, setShowIncreaseModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showBankTransferModal, setShowBankTransferModal] = useState(false);
-  const [selectedLimit, setSelectedLimit] = useState(100000);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('bank');
+  const [selectedLimit, setSelectedLimit] = useState(50000);
+  const [customAmountInput, setCustomAmountInput] = useState('');
+  const [customAmountError, setCustomAmountError] = useState('');
+  const [modalJustOpened, setModalJustOpened] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('card');
   const [amountToPay, setAmountToPay] = useState(0);
+  const [checkoutAmount, setCheckoutAmount] = useState(0); // full LKR amount user will pay/checkout
+  const [proceedLoading, setProceedLoading] = useState(false);
 
   const { jwtToken } = useAuthStore.getState();
   console.log(jwtToken);
@@ -65,21 +70,213 @@ const Wallet = () => {
 
   const handleIncreaseLimit = () => {
     setShowIncreaseModal(true);
+    setCustomAmountInput('');
+    setCustomAmountError('');
+    setModalJustOpened(true);
   };
 
   const handleCloseModal = () => {
     setShowIncreaseModal(false);
+    setModalJustOpened(false);
   };
 
   const handleLimitChange = (value) => {
-    setSelectedLimit(value);
+    // snap and clamp to allowed range/step (50k steps)
+    const v = Math.round(value / 50000) * 50000;
+    const min = 50000;
+    const max = 1000000;
+    setSelectedLimit(Math.min(Math.max(v, min), max));
+    // clear custom input when slider/quick-select is used
+    setCustomAmountInput('');
+    setCustomAmountError('');
+    setModalJustOpened(false);
   };
 
-  const handleProceedToPay = () => {
-    const paymentAmount = calculateFee(selectedLimit);
-    setAmountToPay(paymentAmount);
-    setShowIncreaseModal(false);
-    setShowPaymentModal(true);
+  const createCheckoutSession = async (amountLKR) => {
+    try {
+      const { jwtToken } = useAuthStore.getState();
+      if (!jwtToken) {
+        alert('You are not logged in or your session expired. Please login and try again.');
+        console.warn('createCheckoutSession aborted: missing jwtToken');
+        return;
+      }
+      const amountInCents = Math.round(amountLKR * 100);
+      // include both representations so backend can pick the expected one
+      const payload = {
+        amount: amountInCents, // legacy: cents
+        amountInCents, // explicit cents
+        amountLKR: amountLKR, // explicit LKR unit
+        currency: 'LKR',
+      };
+      console.log('createCheckoutSession -> sending payload', payload);
+      const response = await fetch('http://localhost:8083/api/payment/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      console.log('createCheckoutSession -> response status', response.status, response.statusText);
+      // log response headers (helpful to see content-type)
+      try {
+        const headers = {};
+        response.headers.forEach((v, k) => headers[k] = v);
+        console.log('createCheckoutSession -> response headers', headers);
+      } catch (hErr) {
+        console.warn('Could not read response headers', hErr);
+      }
+      if (!response.ok) {
+        // If 403, try a safe one-time retry: send amount as LKR (not cents) and include currency
+        if (response.status === 403) {
+          console.warn('createCheckoutSession -> received 403, attempting alternate payload (LKR units)');
+          try {
+            const altPayload = {
+              // alt attempt: send explicit LKR field plus cents to be safe
+              amount: amountInCents,
+              amountInCents,
+              amountLKR: amountLKR,
+              currency: 'LKR',
+            };
+            const altRes = await fetch('http://localhost:8083/api/payment/create-checkout-session', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwtToken}`,
+              },
+              body: JSON.stringify(altPayload),
+            });
+            console.log('createCheckoutSession -> alt response status', altRes.status, altRes.statusText);
+            try {
+              const altHeaders = {};
+              altRes.headers.forEach((v, k) => altHeaders[k] = v);
+              console.log('createCheckoutSession -> alt response headers', altHeaders);
+            } catch (_) {}
+            if (altRes.ok) {
+              const sessionAlt = await altRes.json();
+              console.log('createCheckoutSession -> alt session', sessionAlt);
+              if (sessionAlt.url) {
+                window.location.href = sessionAlt.url;
+                return;
+              }
+            } else {
+              // parse alt response body for diagnostics
+              let altErr = `Alt request returned ${altRes.status} ${altRes.statusText}`;
+              try {
+                const ct = altRes.headers.get('content-type') || '';
+                if (ct.includes('application/json')) {
+                  const b = await altRes.json();
+                  altErr = b.message || JSON.stringify(b) || altErr;
+                } else {
+                  const t = await altRes.text();
+                  if (t) altErr = t;
+                }
+              } catch (e) {
+                console.error('Failed to parse alt response body', e);
+              }
+              console.error('createCheckoutSession -> alt attempt failed:', altErr);
+            }
+          } catch (altErr) {
+            console.error('createCheckoutSession -> alt request error', altErr);
+          }
+        }
+
+        // try to parse server error body (prefer JSON, then text)
+        let errText = `Server returned ${response.status} ${response.statusText}`;
+        try {
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const body = await response.json();
+            console.error('createCheckoutSession -> error body (json)', body);
+            errText = body.message || JSON.stringify(body) || errText;
+          } else {
+            const txt = await response.text();
+            console.error('createCheckoutSession -> error body (text)', txt);
+            if (txt) errText = txt;
+          }
+        } catch (e) {
+          console.error('createCheckoutSession -> failed to parse error body', e);
+        }
+        throw new Error(errText);
+      }
+      const session = await response.json();
+      console.log('createCheckoutSession -> session', session);
+      if (session.url) window.location.href = session.url;
+    } catch (err) {
+      console.error('Auto checkout failed', err);
+      // Surface the server error to the user (no bank-transfer fallback)
+      alert('Card checkout failed: ' + (err && err.message ? err.message : 'Unknown error'));
+    }
+  };
+
+  const handleQuickSelect = (value) => {
+    // set the selected limit (snap/clamp) and clear custom input.
+    // Do NOT start checkout here — user will click "Proceed to Pay" to continue.
+    const v = Math.round(value / 50000) * 50000;
+    const min = 50000;
+    const max = 1000000;
+    const amount = Math.min(Math.max(v, min), max);
+    setSelectedLimit(amount);
+    setCustomAmountInput('');
+    setCustomAmountError('');
+    setModalJustOpened(false);
+  };
+
+  const handleCustomAmountChange = (e) => {
+    setModalJustOpened(false);
+    // allow the user to type any desired amount (no auto-fill). Only validate range and show error.
+    const MIN = 10000; // allow custom amounts from 10,000
+    const MAX = 1000000;
+    const raw = e.target.value;
+    // allow empty string (user clearing field)
+    if (raw === '') {
+      setCustomAmountInput('');
+      setCustomAmountError('');
+      return;
+    }
+    // keep only digits and optional decimal point
+    const cleaned = raw.replace(/[^0-9.]/g, '');
+    setCustomAmountInput(cleaned);
+
+    const parsed = parseFloat(cleaned);
+    if (isNaN(parsed) || !isFinite(parsed)) {
+      setCustomAmountError('Please enter a valid number');
+      return;
+    }
+    const rounded = Math.round(parsed);
+    if (rounded < MIN || rounded > MAX) {
+      setCustomAmountError(`Amount must be between LKR ${MIN.toLocaleString()} and LKR ${MAX.toLocaleString()}`);
+    } else {
+      setCustomAmountError('');
+    }
+  };
+
+  const handleProceedToPay = async () => {
+    const MIN = 10000; // allow proceeding with custom amounts from 10,000
+    const MAX = 1000000;
+    // choose amount: prefer custom input if provided
+    let amountToUse = selectedLimit;
+    if (customAmountInput !== '') {
+      const parsed = Math.round(parseFloat(customAmountInput) || 0);
+      if (isNaN(parsed) || parsed < MIN || parsed > MAX) {
+        setCustomAmountError(`Please enter an amount between LKR ${MIN.toLocaleString()} and LKR ${MAX.toLocaleString()}`);
+        return;
+      }
+      amountToUse = parsed;
+    }
+    setModalJustOpened(false);
+    setProceedLoading(true);
+    try {
+      // set local state for UI and then start checkout
+      setAmountToPay(calculateFee(amountToUse));
+      setCheckoutAmount(amountToUse);
+      // close increase modal immediately
+      setShowIncreaseModal(false);
+      // start card checkout directly
+      await createCheckoutSession(amountToUse);
+    } finally {
+      setProceedLoading(false);
+    }
   };
 
   const handlePaymentMethodSelect = (method) => {
@@ -92,8 +289,8 @@ const Wallet = () => {
       setShowBankTransferModal(true);
     } else {
       try {
-        // Convert amountToPay (LKR) to smallest unit (cents)
-        const amountInCents = Math.round(amountToPay * 100);
+        // Use checkoutAmount (full LKR) and convert to cents
+        const amountInCents = Math.round(checkoutAmount * 100);
 
         const { jwtToken } = useAuthStore.getState();
 
@@ -122,6 +319,8 @@ const Wallet = () => {
 
       } catch (err) {
         console.error('Payment failed:', err);
+        // Surface error to the user (no fallback)
+        alert('Card checkout failed: ' + (err && err.message ? err.message : 'Unknown error'));
       }
       setShowPaymentModal(false);
     }
@@ -147,6 +346,11 @@ const Wallet = () => {
     navigate('/dashboard');
   };
 
+  // display value: show LKR 0 when modal just opened and custom input empty; otherwise prefer custom input when provided
+  const displayAmount = (modalJustOpened && customAmountInput === '')
+    ? 0
+    : (customAmountInput !== '' ? Math.round(parseFloat(customAmountInput) || 0) : selectedLimit);
+
   // JSX remains unchanged
   return (
     <>
@@ -171,7 +375,7 @@ const Wallet = () => {
             <h1 className="text-2xl font-bold text-gray-900 mb-1">My Wallet</h1>
             <p className="text-gray-600">Manage your funds and track all transactions</p>
           </div>
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
+          <div className="bg-gradient-to-r bg-[#1e3a5f] to-blue-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-5 rounded-full -ml-12 -mb-12"></div>
             <div className="relative z-10">
@@ -180,28 +384,13 @@ const Wallet = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <p className="text-blue-100 text-sm mb-1">Available Balance</p>
+                  <p className="text-blue-100 text-sm mb-1">Current Balance</p>
                   <p className="text-3xl font-bold">{formatCurrency(walletData.availableLimit)}</p>
                   <p className="text-blue-200 text-sm">Available for bidding</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-red-100 text-sm mb-1">Total Limit</p>
-                  <p className="text-3xl font-bold">{formatCurrency(walletData.totalLimit)}</p>
-                  <p className="text-blue-200 text-sm">LKR 35,000 allocated to active bids</p>
-                </div>
+                 
               </div>
-              <div className="mb-4">
-                <div className="flex justify-between text-sm text-blue-100 mb-2">
-                  <span>Usage: 35%</span>
-                  <span>Remaining: 65%</span>
-                </div>
-                <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
-                  <div
-                    className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${walletData.usedPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
+              
               <div className="flex gap-3">
                 <button
                   onClick={handleIncreaseLimit}
@@ -300,21 +489,19 @@ const Wallet = () => {
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
               </button>
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Increase Bidding Limit</h3>
-                <p className="text-sm text-gray-600">
-                  Select your desired new bidding limit. The amount payable is 10% of your new total limit.
-                </p>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Increase Wallet Limit</h3>
+                
               </div>
               <div className="mb-6">
                 <div className="flex justify-between text-sm text-gray-600 mb-3">
-                  <span>LKR 100,000</span>
-                  <span>LKR 2,000,000</span>
+                  <span>LKR 50,000</span>
+                  <span>LKR 1,000,000</span>
                 </div>
                 <div className="relative">
                   <input
                     type="range"
-                    min="100000"
-                    max="2000000"
+                    min="50000"
+                    max="1000000"
                     step="50000"
                     value={selectedLimit}
                     onChange={(e) => handleLimitChange(parseInt(e.target.value))}
@@ -331,7 +518,17 @@ const Wallet = () => {
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Select:</h4>
                 <div className="grid grid-cols-3 gap-2 mb-3">
                   <button
-                    onClick={() => handleLimitChange(100000)}
+                    onClick={() => handleQuickSelect(50000)}
+                    className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
+                      selectedLimit === 50000
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                    }`}
+                  >
+                    LKR 50,000
+                  </button>
+                  <button
+                    onClick={() => handleQuickSelect(100000)}
                     className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
                       selectedLimit === 100000
                         ? 'bg-blue-600 text-white border-blue-600'
@@ -341,7 +538,7 @@ const Wallet = () => {
                     LKR 100,000
                   </button>
                   <button
-                    onClick={() => handleLimitChange(200000)}
+                    onClick={() => handleQuickSelect(200000)}
                     className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
                       selectedLimit === 200000
                         ? 'bg-blue-600 text-white border-blue-600'
@@ -350,57 +547,71 @@ const Wallet = () => {
                   >
                     LKR 200,000
                   </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
                   <button
-                    onClick={() => handleLimitChange(500000)}
+                    onClick={() => handleQuickSelect(400000)}
                     className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
-                      selectedLimit === 500000
+                      selectedLimit === 400000
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
                     }`}
                   >
-                    LKR 500,000
+                    LKR 400,000
+                  </button>
+                  <button
+                    onClick={() => handleQuickSelect(600000)}
+                    className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
+                      selectedLimit === 600000
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                    }`}
+                  >
+                    LKR 600,000
+                  </button>
+                  <button
+                    onClick={() => handleQuickSelect(800000)}
+                    className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
+                      selectedLimit === 800000
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                    }`}
+                  >
+                    LKR 800,000
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => handleLimitChange(1000000)}
-                    className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
-                      selectedLimit === 1000000
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
-                    }`}
-                  >
-                    LKR 1,000,000
-                  </button>
-                  <button
-                    onClick={() => handleLimitChange(2000000)}
-                    className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
-                      selectedLimit === 2000000
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
-                    }`}
-                  >
-                    LKR 2,000,000
-                  </button>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Or enter custom amount</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-700">LKR</span>
+                  <input
+                    type="number"
+                    step={1}
+                    placeholder={modalJustOpened && customAmountInput === '' ? '0' : undefined}
+                    value={modalJustOpened && customAmountInput === '' ? '' : (customAmountInput !== '' ? customAmountInput : selectedLimit)}
+                    onChange={handleCustomAmountChange}
+                    className={`w-full px-3 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f] ${customAmountError ? 'border-red-500' : 'border-gray-300'}`}
+                  />
                 </div>
+                {customAmountError && (
+                  <p className="text-xs text-red-600 mt-1">{customAmountError}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Enter any amount you want (LKR). The slider still shows quick ranges.</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-4 mb-4">
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-medium text-gray-600">New Bidding Limit</span>
-                  <span className="text-lg font-bold text-gray-800">{formatCurrency(selectedLimit)}</span>
+                  <span className="text-sm font-medium text-gray-600">New wallet blance</span>
+                  <span className="text-lg font-bold text-gray-800">{formatCurrency(displayAmount)}</span>
                 </div>
               </div>
-              <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">Amount Payable (10% Fee)</span>
-                  <span className="text-lg font-bold text-gray-800">{formatCurrency(calculateFee(selectedLimit))}</span>
-                </div>
-              </div>
+               
               <button
                 onClick={handleProceedToPay}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+                disabled={proceedLoading}
+                className={`w-full ${proceedLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200`}
               >
-                Proceed to Pay
+                {proceedLoading ? 'Processing...' : 'Proceed to Pay'}
               </button>
             </div>
           </div>
@@ -420,34 +631,11 @@ const Wallet = () => {
               </div>
               <div className="text-center py-6 bg-blue-50 rounded-xl mb-6">
                 <p className="text-gray-600 text-sm mb-1">Amount to Pay</p>
-                <h2 className="text-3xl font-bold text-blue-600">{formatCurrency(amountToPay)}</h2>
+                <h2 className="text-3xl font-bold text-blue-600">{formatCurrency(checkoutAmount)}</h2>
               </div>
               <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-4">Select Payment Method:</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-4">Payment Method</h4>
                 <div className="space-y-3">
-                  <div
-                    onClick={() => handlePaymentMethodSelect('bank')}
-                    className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedPaymentMethod === 'bank' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <FontAwesomeIcon icon={faUniversity} className="text-blue-600 text-sm" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">Bank Transfer</h4>
-                        <p className="text-xs text-gray-500">Pay via direct bank deposit</p>
-                      </div>
-                    </div>
-                    <div
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        selectedPaymentMethod === 'bank' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
-                      }`}
-                    >
-                      {selectedPaymentMethod === 'bank' && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                    </div>
-                  </div>
                   <div
                     onClick={() => handlePaymentMethodSelect('card')}
                     className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
@@ -463,11 +651,7 @@ const Wallet = () => {
                         <p className="text-xs text-gray-500">Visa, MasterCard, Amex</p>
                       </div>
                     </div>
-                    <div
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        selectedPaymentMethod === 'card' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
-                      }`}
-                    >
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === 'card' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
                       {selectedPaymentMethod === 'card' && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
                     </div>
                   </div>
@@ -477,7 +661,7 @@ const Wallet = () => {
                 onClick={handleCompletePayment}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
               >
-                Continue with {selectedPaymentMethod === 'bank' ? 'Bank Transfer' : 'Card Payment'}
+                Continue with Card Payment
               </button>
             </div>
           </div>
@@ -499,7 +683,7 @@ const Wallet = () => {
               </div>
               <div className="text-center py-4 bg-blue-50 rounded-xl mb-6">
                 <p className="text-gray-600 text-sm mb-1">Amount to Pay</p>
-                <h2 className="text-2xl font-bold text-blue-600">{formatCurrency(amountToPay)}</h2>
+                <h2 className="text-2xl font-bold text-blue-600">{formatCurrency(checkoutAmount)}</h2>
               </div>
               <div className="bg-gray-50 rounded-xl p-4 mb-6">
                 <h4 className="font-semibold text-gray-800 mb-3">Bank Account Details</h4>
