@@ -54,8 +54,13 @@ export default function ProfilePage() {
   const [userData, setUserData] = useState();
 
   const fetchData = async () => {
-    const response = await fetchProtectedResource('http://localhost:8083/us/v1/bidders/20', null, 'GET');
-    const data = response && response.data ? response.data : {};
+    console.log('Fetching user profile data...');
+    const storedUser = JSON.parse(localStorage.getItem('UserData') || '{}');
+    const userIdToUse = (userData && (userData.id || userData.userId || userData.user_id)) || storedUser.id || storedUser.userId || storedUser.user_id;
+    const response = await fetchProtectedResource(`http://localhost:8083/us/v1/bidders/${userIdToUse}`, null, 'GET');
+    console.log('Raw profile response:', response);
+    console.log('Raw profile response data:', response.data);
+    const data = response ? response : {};
 
     // normalize common backend field variants to the UI shape
     const firstName = data.first_name || data.firstName || data.first || '';
@@ -189,7 +194,7 @@ export default function ProfilePage() {
       console.log('Using userId for update:', userIdToUse);
       const response = await fetchProtectedResource(`http://localhost:8083/us/v1/updateprofile/${userIdToUse}`, payload, 'PUT');
       console.log('Update response:', response);
-      if (response && response.status && response.status >= 200 && response.status < 300) {
+      if (response) {
         setSaveStatus('success');
         setSaveMessage('Profile updated successfully.');
         // update cached localStorage so header and other components can read newest values
