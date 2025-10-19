@@ -54,16 +54,52 @@ export default function ProfilePage() {
   const [userData, setUserData] = useState();
 
   const fetchData = async () => {
-    const response = await fetchProtectedResource('http://localhost:8083/us/v1/bidders/19', null, 'GET');
-    setUserData({ ...response.data , 
-      profileImage: profilePic, 
-      address: "123 Main Street, Colombo 07, Sri Lanka",
-      bidStats: {
-        totalBids: 47,
-        wonBids: 12,
-        activeBids: 5
-        }  
-      });
+    const response = await fetchProtectedResource('http://localhost:8083/us/v1/bidders/20', null, 'GET');
+    const data = response && response.data ? response.data : {};
+
+    // normalize common backend field variants to the UI shape
+    const firstName = data.first_name || data.firstName || data.first || '';
+    const lastName = data.last_name || data.lastName || data.last || '';
+    const fullName = data.full_name || data.fullName || `${firstName} ${lastName}`.trim() || data.name || '';
+
+    const phone = data.primary_phone || data.primaryPhone || data.phone || data.mobile || '';
+    const dob = data.date_of_birth || data.dateOfBirth || data.dob || data.birth_date || null;
+    const registeredDate = data.registered_date || data.registeredDate || data.created_at || data.createdAt || data.registeredDate || null;
+
+  const existingImage = userData && userData.profileImage ? userData.profileImage : null;
+
+  const user = {
+      // core fields used by the UI
+      fullName,
+      firstName,
+      lastName,
+      username: data.username || data.user_name || data.userName || '',
+      email: data.email || '',
+      phone: phone,
+      primaryPhone: phone,
+      nic: data.nic || data.nic_number || data.national_id || '',
+      status: data.status || data.account_status || 'Unknown',
+      dob: dob,
+      date_of_birth: dob,
+      registeredDate: registeredDate,
+  // preserve previously-displayed profile image (do not overwrite from backend)
+  profileImage: existingImage || profilePic,
+      verificationLevel: data.verification_level || (data.is_verified ? 'Verified' : undefined) || data.verificationLevel,
+      // copy through other server fields in case they're needed elsewhere
+      ...data
+    };
+
+    // normalize bid stats if provided by backend, otherwise fallback to sample
+    user.bidStats = data.bid_stats || data.bidStats || user.bidStats || {
+      totalBids: 47,
+      wonBids: 12,
+      activeBids: 5
+    };
+
+    // fallback address
+    user.address = data.address || data.location || user.address || "123 Main Street, Colombo 07, Sri Lanka";
+
+    setUserData(user);
   };
   
   useEffect(() => {
@@ -94,6 +130,10 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   // State to store form data
   const [editFormData, setEditFormData] = useState({});
+  // Saving state and feedback
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null); // null | 'success' | 'error'
+  const [saveMessage, setSaveMessage] = useState('');
 
   // Initialize form data when modal opens
   useEffect(() => {
@@ -121,11 +161,76 @@ export default function ProfilePage() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would update the user data with API call
-    const response = await fetchProtectedResource('http://localhost:8083/us/v1/updateprofile/19', editFormData, 'PUT');
-    await fetchData();
-    console.log("Form submitted:", editFormData);
-    setIsEditing(false);
+    // Prepare payload and map primaryPhone to common backend keys
+    const payload = { ...editFormData };
+    const phoneValue = editFormData.primaryPhone || editFormData.phone || editFormData.primary_phone || '';
+    if (phoneValue) {
+      // include multiple possible keys the backend might expect
+      payload.primary_phone = phoneValue;
+      payload.phone = phoneValue;
+      payload.primaryPhone = phoneValue;
+    }
+
+    try {
+      setIsSaving(true);
+      setSaveStatus(null);
+      setSaveMessage('');
+      console.log('Submitting profile update payload:', payload);
+      // determine user id to call update endpoint with. prefer current userData, then localStorage cached UserData
+      const storedUser = JSON.parse(localStorage.getItem('UserData') || '{}');
+      const userIdToUse = (userData && (userData.id || userData.userId || userData.user_id)) || storedUser.id || storedUser.userId || storedUser.user_id;
+      if (!userIdToUse) {
+        setSaveStatus('error');
+        setSaveMessage('Could not determine user id for profile update.');
+        setIsSaving(false);
+        return;
+      }
+
+      console.log('Using userId for update:', userIdToUse);
+      const response = await fetchProtectedResource(`http://localhost:8083/us/v1/updateprofile/${userIdToUse}`, payload, 'PUT');
+      console.log('Update response:', response);
+      if (response && response.status && response.status >= 200 && response.status < 300) {
+        setSaveStatus('success');
+        setSaveMessage('Profile updated successfully.');
+        // update cached localStorage so header and other components can read newest values
+        try {
+          const merged = { ...(JSON.parse(localStorage.getItem('UserData') || '{}')), ...payload };
+          localStorage.setItem('UserData', JSON.stringify(merged));
+          if (payload.username) localStorage.setItem('username', payload.username);
+        } catch (err) {
+          // ignore localStorage errors
+          console.warn('Could not update localStorage with new profile data', err);
+        }
+        // notify other components (header) the profile updated
+        try {
+          const eventDetail = {
+            firstName: payload.firstName || payload.first_name || payload.firstName,
+            lastName: payload.lastName || payload.last_name || payload.lastName,
+            username: payload.username || payload.user_name || payload.userName
+          };
+          window.dispatchEvent(new CustomEvent('profileUpdated', { detail: eventDetail }));
+        } catch (err) {
+          console.warn('Could not dispatch profileUpdated event', err);
+        }
+        await fetchData();
+        // close the modal after a short delay so users can see the success message
+        setTimeout(() => {
+          setIsEditing(false);
+          setSaveStatus(null);
+          setSaveMessage('');
+        }, 800);
+      } else {
+        setSaveStatus('error');
+        const msg = (response && response.data && response.data.message) || 'Failed to update profile';
+        setSaveMessage(msg);
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setSaveStatus('error');
+      setSaveMessage((err && err.message) || 'Network or server error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Fixed Settings Tab Content
@@ -475,17 +580,17 @@ export default function ProfilePage() {
                     <div className="font-medium">{userData.phone}</div>
                   </div>
                   
-                  {/* NIC */}
+                  {/* NIC (show username here as requested) */}
                   <div className="space-y-1.5">
                     <div className="flex items-center text-sm text-gray-500">
                       <FontAwesomeIcon icon={faIdCard} className="mr-2" />
                       National ID
                     </div>
-                    <div className="font-medium">{userData.nic}</div>
+                    <div className="font-medium">{userData.username}</div>
                   </div>
                   
                   {/* Status */}
-                  <div className="space-y-1.5">
+                  {/* <div className="space-y-1.5">
                     <div className="flex items-center text-sm text-gray-500">
                       <FontAwesomeIcon icon={faCircleCheck} className="mr-2" />
                       Account Status
@@ -499,7 +604,7 @@ export default function ProfilePage() {
                         {userData.status}
                       </span>
                     </div>
-                  </div>
+                  </div> */}
                   
                   {/* DOB */}
                   <div className="space-y-1.5">
@@ -519,13 +624,7 @@ export default function ProfilePage() {
                     <div className="font-medium">{new Date(userData.registeredDate).toLocaleDateString()}</div>
                   </div>
                   
-                  <div className="space-y-1.5">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <FontAwesomeIcon icon={faUser} className="mr-2" />
-                      Address
-                    </div>
-                    <div className="font-medium">{userData.address}</div>
-                  </div>
+                   
                 </div>
               </div>
             )}
@@ -991,11 +1090,18 @@ export default function ProfilePage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#1e3a5f] border border-transparent rounded-md shadow-sm text-white hover:bg-[#294b78] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a5f] font-medium"
+                    disabled={isSaving}
+                    className={`px-4 py-2 bg-[#1e3a5f] border border-transparent rounded-md shadow-sm text-white hover:bg-[#294b78] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a5f] font-medium ${isSaving ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
-                    Save Changes
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
+                {saveStatus === 'success' && (
+                  <div className="mt-3 text-sm text-green-700">{saveMessage}</div>
+                )}
+                {saveStatus === 'error' && (
+                  <div className="mt-3 text-sm text-red-700">{saveMessage}</div>
+                )}
               </form>
             </div>
           </div>
