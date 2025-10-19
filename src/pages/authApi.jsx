@@ -10,6 +10,22 @@ const api = axios.create({
 let isRefreshing = false;
 let refreshSubscribers = [];
 
+const onRefreshed = (newJwtToken) => {
+  refreshSubscribers.forEach((callback) => callback(newJwtToken));
+  refreshSubscribers = [];
+};
+
+const refreshTokenRequest = async () => {
+  const refreshResponse = await api.post('/refresh-token');
+  console.log(refreshResponse.data);
+  if (refreshResponse.data && refreshResponse.data.jwtToken) {
+    const { jwtToken, role, username } = refreshResponse.data;
+    useAuthStore.getState().setAuthData({ jwtToken, role, username });
+    return jwtToken;
+  }
+  throw new Error('Refresh failed: no jwtToken in response');
+};
+
 api.interceptors.response.use(
   (response) => {
     console.log('Successful response:', response.status, 'Data:', response.data);
@@ -58,7 +74,7 @@ api.interceptors.response.use(
   }
 );
 
-// 🟡 Lazy refresh if JWT missing
+//  Lazy refresh if JWT missing
 export const fetchProtectedResource = async (url, data = {}, method = 'get') => {
   let { jwtToken } = useAuthStore.getState();
   console.log("jwt token in fetch" + jwtToken);
