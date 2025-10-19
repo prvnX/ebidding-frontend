@@ -97,7 +97,7 @@ export const fetchProtectedResource = async (url, data = {}, method = 'get') => 
       headers: jwtToken ? { Authorization: `Bearer ${jwtToken}` } : {},
     });
 
-    return response.data;
+    return response;
   } catch (error) {
     if (error.response && error.response.status === 401) {
       useAuthStore.getState().clearAuthData();
