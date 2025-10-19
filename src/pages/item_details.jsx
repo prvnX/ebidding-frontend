@@ -103,13 +103,14 @@ export default function ItemDetails() {
   };
 
   useEffect(() => {
+    console.log("🟡🟡🟡🟡🟡 Item status updated:", item?.status);
+  }, [item]);
+
+  useEffect(() => {
     fetchItem();
     const handleMyBidMessage = (myBid) => {
       console.log("My Bid received", myBid);
       if (myBid.itemId !== parseInt(itemId)) return;
-    if (storedUsername) {
-      console.log("Stored username:", storedUsername);
-    }
 
       setBidHistory((prevBidHistory) => {
         console.log("Previous Bid History:", prevBidHistory);
@@ -148,7 +149,7 @@ export default function ItemDetails() {
     });
   }, [setBidHistory, itemId]);
 
-  useStompSubscriptions(`/topic/bid:${itemId}`, handleNewMessage, (item?.status !== "Active" && item?.status !== "Ending Soon"));
+  useStompSubscriptions(`/topic/bid:${item?.id}`, handleNewMessage, (item?.status !== "Active" && item?.status !== "Ending Soon"));
 
   //Auto Bid
   useEffect(() => {
@@ -278,10 +279,10 @@ export default function ItemDetails() {
       console.error('Error placing bid:', error);
       toast.error('Failed to place bid. Please try again.');
     });
-
-    if (response) {
+    if (response && response.data.success)
       toast.success(`Bid placed: ${formatCurrency(parseInt(bidAmount))}`);
-    }
+    else
+      toast.error('Failed to place bid. Please try again.');
   };
 
   const handleAddToWatchlist = () => {
