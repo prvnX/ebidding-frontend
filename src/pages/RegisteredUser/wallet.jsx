@@ -5,22 +5,32 @@ import { useNavigate } from 'react-router-dom';
 import CustomHeader from '../../components/custom-header';
 import NavBar from '../../components/navbar';
 import Footer from '../../components/footer';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, useStripe } from '@stripe/react-stripe-js'; // Import Elements and useStripe
+import useAuthStore from '../../components/useAuthStore';
+
+// Initialize stripePromise outside the component
+const stripePromise = loadStripe('pk_test_51SJ8x8HqZtjJD6uKJqHP6zLPnFYfK89FPoIeTz75LXQOxkHiTo78JtpNNCQqbHWuk75toh6KquAeEVC68dOxYDmM0046j493vO');
 
 const Wallet = () => {
   const navigate = useNavigate();
+  const stripe = useStripe(); // Use the useStripe hook to access the Stripe instance
   const [showIncreaseModal, setShowIncreaseModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showBankTransferModal, setShowBankTransferModal] = useState(false);
   const [selectedLimit, setSelectedLimit] = useState(100000);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('bank');
   const [amountToPay, setAmountToPay] = useState(0);
-  
+
+  const { jwtToken } = useAuthStore.getState();
+  console.log(jwtToken);
+
   // Sample data - replace with actual data from your API/store
   const walletData = {
     availableLimit: 65000,
     totalLimit: 100000,
     usedAmount: 35000,
-    usedPercentage: 35
+    usedPercentage: 35,
   };
 
   const recentTransactions = [
@@ -30,7 +40,7 @@ const Wallet = () => {
       date: '2024-07-11',
       amount: 50000.00,
       status: 'Completed',
-      isCredit: true
+      isCredit: true,
     },
     {
       id: 2,
@@ -38,8 +48,8 @@ const Wallet = () => {
       date: '2024-07-10',
       amount: 25000.00,
       status: 'Pending',
-      isCredit: false
-    }
+      isCredit: false,
+    },
   ];
 
   const formatCurrency = (amount) => {
@@ -47,12 +57,13 @@ const Wallet = () => {
       style: 'currency',
       currency: 'LKR',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(amount).replace('LKR', 'LKR');
+      maximumFractionDigits: 2,
+    })
+      .format(amount)
+      .replace('LKR', 'LKR');
   };
 
   const handleIncreaseLimit = () => {
-    // Open the increase limit modal
     setShowIncreaseModal(true);
   };
 
@@ -65,7 +76,6 @@ const Wallet = () => {
   };
 
   const handleProceedToPay = () => {
-    // Calculate the amount to pay and show payment modal
     const paymentAmount = calculateFee(selectedLimit);
     setAmountToPay(paymentAmount);
     setShowIncreaseModal(false);
@@ -76,15 +86,43 @@ const Wallet = () => {
     setSelectedPaymentMethod(method);
   };
 
-  const handleCompletePayment = () => {
+  const handleCompletePayment = async () => {
     if (selectedPaymentMethod === 'bank') {
-      // Show bank transfer modal instead of navigating
       setShowPaymentModal(false);
       setShowBankTransferModal(true);
     } else {
-      // Handle card payment
-      console.log('Payment completed with method:', selectedPaymentMethod);
-      // Navigate back to wallet or show success message
+      try {
+        // Convert amountToPay (LKR) to smallest unit (cents)
+        const amountInCents = Math.round(amountToPay * 100);
+
+        const { jwtToken } = useAuthStore.getState();
+
+        const response = await fetch('http://localhost:8083/api/payment/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken}`,
+          },
+          body: JSON.stringify({ amount: amountInCents }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create checkout session');
+        }
+
+        const session = await response.json();
+        console.log('Session response:', session);
+
+        // Redirect to Stripe Checkout using useStripe
+        if (session.url) {
+          window.location.href = session.url; // or window.location.assign(session.url)
+        } else {
+          console.error('No Checkout URL returned');
+        }
+
+      } catch (err) {
+        console.error('Payment failed:', err);
+      }
       setShowPaymentModal(false);
     }
   };
@@ -102,7 +140,6 @@ const Wallet = () => {
   };
 
   const handleViewAllTransactions = () => {
-    // Handle view all transactions functionality
     console.log('View all transactions clicked');
   };
 
@@ -110,12 +147,11 @@ const Wallet = () => {
     navigate('/dashboard');
   };
 
+  // JSX remains unchanged
   return (
     <>
       <CustomHeader />
       <NavBar />
-      
-      {/* Header with Back Button */}
       <div className="bg-white shadow-sm">
         <div className="max-w-md mx-auto ml-0 px-4 py-4">
           <div className="flex items-center gap-4">
@@ -129,59 +165,43 @@ const Wallet = () => {
           </div>
         </div>
       </div>
-
-      
       <div className="min-h-screen bg-gray-50 pb-20">
         <div className="max-w-4xl mx-auto p-4 space-y-6">
-          {/* My Wallet Header */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-1">My Wallet</h1>
             <p className="text-gray-600">Manage your funds and track all transactions</p>
           </div>
-
-          {/* Wallet Balance Section - Blue Gradient */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
-            {/* Background Pattern */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-5 rounded-full -ml-12 -mb-12"></div>
-            
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Wallet Balance</h2>
-                 
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Available Balance */}
                 <div>
                   <p className="text-blue-100 text-sm mb-1">Available Balance</p>
                   <p className="text-3xl font-bold">{formatCurrency(walletData.availableLimit)}</p>
                   <p className="text-blue-200 text-sm">Available for bidding</p>
                 </div>
-
-                {/* Total Limit */}
                 <div className="text-right">
                   <p className="text-red-100 text-sm mb-1">Total Limit</p>
                   <p className="text-3xl font-bold">{formatCurrency(walletData.totalLimit)}</p>
                   <p className="text-blue-200 text-sm">LKR 35,000 allocated to active bids</p>
                 </div>
               </div>
-
-              {/* Usage Progress */}
               <div className="mb-4">
                 <div className="flex justify-between text-sm text-blue-100 mb-2">
                   <span>Usage: 35%</span>
                   <span>Remaining: 65%</span>
                 </div>
                 <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
-                  <div 
+                  <div
                     className="bg-green-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${walletData.usedPercentage}%` }}
                   ></div>
                 </div>
               </div>
-
-              {/* Add Funds and Increase Limit Buttons */}
               <div className="flex gap-3">
                 <button
                   onClick={handleIncreaseLimit}
@@ -189,14 +209,10 @@ const Wallet = () => {
                 >
                   Increase Limit
                 </button>
-                
               </div>
             </div>
           </div>
-
-          {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Transaction History */}
             <div className="lg:col-span-3">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-0">
                 <div className="flex justify-between items-center mb-6">
@@ -216,16 +232,19 @@ const Wallet = () => {
                     </select>
                   </div>
                 </div>
-
-                {/* Transaction Items */}
                 <div className="space-y-4">
                   {recentTransactions.map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors">
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-colors"
+                    >
                       <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          transaction.status === 'Completed' ? 'bg-green-100' : 'bg-orange-100'
-                        }`}>
-                          <FontAwesomeIcon 
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            transaction.status === 'Completed' ? 'bg-green-100' : 'bg-orange-100'
+                          }`}
+                        >
+                          <FontAwesomeIcon
                             icon={transaction.status === 'Completed' ? faCheckCircle : faClock}
                             className={`text-sm ${
                               transaction.status === 'Completed' ? 'text-green-600' : 'text-orange-600'
@@ -238,25 +257,28 @@ const Wallet = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`font-semibold ${
-                          transaction.isCredit ? 'text-green-600' : 'text-red-600'
-                        }`}>
+                        <p
+                          className={`font-semibold ${
+                            transaction.isCredit ? 'text-green-600' : 'text-red-600'
+                          }`}
+                        >
                           {transaction.isCredit ? '+' : '-'}{formatCurrency(transaction.amount)}
                         </p>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          transaction.status === 'Completed'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-orange-100 text-orange-700'
-                        }`}>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            transaction.status === 'Completed'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-orange-100 text-orange-700'
+                          }`}
+                        >
                           {transaction.status}
                         </span>
                       </div>
                     </div>
                   ))}
                 </div>
-
                 <div className="mt-6 text-center">
-                  <button 
+                  <button
                     onClick={handleViewAllTransactions}
                     className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 mx-auto"
                   >
@@ -268,36 +290,26 @@ const Wallet = () => {
             </div>
           </div>
         </div>
-
-        {/* Increase Limit Modal */}
         {showIncreaseModal && (
           <div className="fixed inset-0 bg-black/70 bg-opacity-500 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl max-w-md w-full mx-4 p-6 relative shadow-2xl">
-              {/* Close Button */}
               <button
                 onClick={handleCloseModal}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
               </button>
-
-              {/* Modal Header */}
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Increase Bidding Limit
-                </h3>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Increase Bidding Limit</h3>
                 <p className="text-sm text-gray-600">
                   Select your desired new bidding limit. The amount payable is 10% of your new total limit.
                 </p>
               </div>
-
-              {/* Limit Slider */}
               <div className="mb-6">
                 <div className="flex justify-between text-sm text-gray-600 mb-3">
                   <span>LKR 100,000</span>
                   <span>LKR 2,000,000</span>
                 </div>
-                
                 <div className="relative">
                   <input
                     type="range"
@@ -308,13 +320,13 @@ const Wallet = () => {
                     onChange={(e) => handleLimitChange(parseInt(e.target.value))}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, #2563eb 0%, #2563eb ${((selectedLimit - 100000) / (2000000 - 100000)) * 100}%, #e5e7eb ${((selectedLimit - 100000) / (2000000 - 100000)) * 100}%, #e5e7eb 100%)`
+                      background: `linear-gradient(to right, #2563eb 0%, #2563eb ${
+                        ((selectedLimit - 100000) / (2000000 - 100000)) * 100
+                      }%, #e5e7eb ${((selectedLimit - 100000) / (2000000 - 100000)) * 100}%, #e5e7eb 100%)`,
                     }}
                   />
                 </div>
               </div>
-
-              {/* Quick Select Buttons */}
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Select:</h4>
                 <div className="grid grid-cols-3 gap-2 mb-3">
@@ -372,28 +384,18 @@ const Wallet = () => {
                   </button>
                 </div>
               </div>
-
-              {/* New Limit Display */}
               <div className="bg-gray-50 rounded-xl p-4 mb-4">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm font-medium text-gray-600">New Bidding Limit</span>
-                  <span className="text-lg font-bold text-gray-800">
-                    {formatCurrency(selectedLimit)}
-                  </span>
+                  <span className="text-lg font-bold text-gray-800">{formatCurrency(selectedLimit)}</span>
                 </div>
               </div>
-
-              {/* Fee Display */}
               <div className="bg-blue-50 rounded-xl p-4 mb-6">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Amount Payable (10% Fee)</span>
-                  <span className="text-lg font-bold text-gray-800">
-                    {formatCurrency(calculateFee(selectedLimit))}
-                  </span>
+                  <span className="text-lg font-bold text-gray-800">{formatCurrency(calculateFee(selectedLimit))}</span>
                 </div>
               </div>
-
-              {/* Proceed Button */}
               <button
                 onClick={handleProceedToPay}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
@@ -403,48 +405,30 @@ const Wallet = () => {
             </div>
           </div>
         )}
-
-        {/* Payment Modal */}
         {showPaymentModal && (
           <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl max-w-md w-full mx-4 p-6 relative shadow-2xl">
-              {/* Close Button */}
               <button
                 onClick={handleClosePaymentModal}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
               </button>
-
-              {/* Modal Header */}
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Complete Payment
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Choose your preferred payment method to complete the transaction.
-                </p>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Complete Payment</h3>
+                <p className="text-sm text-gray-600">Choose your preferred payment method to complete the transaction.</p>
               </div>
-
-              {/* Amount to Pay */}
               <div className="text-center py-6 bg-blue-50 rounded-xl mb-6">
                 <p className="text-gray-600 text-sm mb-1">Amount to Pay</p>
-                <h2 className="text-3xl font-bold text-blue-600">
-                  {formatCurrency(amountToPay)}
-                </h2>
+                <h2 className="text-3xl font-bold text-blue-600">{formatCurrency(amountToPay)}</h2>
               </div>
-
-              {/* Payment Methods */}
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-4">Select Payment Method:</h4>
                 <div className="space-y-3">
-                  {/* Bank Transfer Option */}
                   <div
                     onClick={() => handlePaymentMethodSelect('bank')}
                     className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedPaymentMethod === 'bank'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      selectedPaymentMethod === 'bank' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -456,24 +440,18 @@ const Wallet = () => {
                         <p className="text-xs text-gray-500">Pay via direct bank deposit</p>
                       </div>
                     </div>
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      selectedPaymentMethod === 'bank'
-                        ? 'border-blue-500 bg-blue-500'
-                        : 'border-gray-300'
-                    }`}>
-                      {selectedPaymentMethod === 'bank' && (
-                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                      )}
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        selectedPaymentMethod === 'bank' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
+                      }`}
+                    >
+                      {selectedPaymentMethod === 'bank' && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
                     </div>
                   </div>
-
-                  {/* Card Payment Option */}
                   <div
                     onClick={() => handlePaymentMethodSelect('card')}
                     className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedPaymentMethod === 'card'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      selectedPaymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -485,20 +463,16 @@ const Wallet = () => {
                         <p className="text-xs text-gray-500">Visa, MasterCard, Amex</p>
                       </div>
                     </div>
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      selectedPaymentMethod === 'card'
-                        ? 'border-blue-500 bg-blue-500'
-                        : 'border-gray-300'
-                    }`}>
-                      {selectedPaymentMethod === 'card' && (
-                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                      )}
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        selectedPaymentMethod === 'card' ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
+                      }`}
+                    >
+                      {selectedPaymentMethod === 'card' && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Continue Button */}
               <button
                 onClick={handleCompletePayment}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
@@ -508,38 +482,25 @@ const Wallet = () => {
             </div>
           </div>
         )}
-
-        {/* Bank Transfer Modal */}
         {showBankTransferModal && (
           <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl max-w-md w-full mx-4 p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-              {/* Close Button */}
               <button
                 onClick={handleCloseBankTransferModal}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
               </button>
-
-              {/* Modal Header */}
               <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Bank Transfer Details
-                </h3>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Bank Transfer Details</h3>
                 <p className="text-sm text-gray-600">
                   Transfer the amount to the following bank account and upload your deposit slip.
                 </p>
               </div>
-
-              {/* Amount to Pay */}
               <div className="text-center py-4 bg-blue-50 rounded-xl mb-6">
                 <p className="text-gray-600 text-sm mb-1">Amount to Pay</p>
-                <h2 className="text-2xl font-bold text-blue-600">
-                  {formatCurrency(amountToPay)}
-                </h2>
+                <h2 className="text-2xl font-bold text-blue-600">{formatCurrency(amountToPay)}</h2>
               </div>
-
-              {/* Bank Account Details */}
               <div className="bg-gray-50 rounded-xl p-4 mb-6">
                 <h4 className="font-semibold text-gray-800 mb-3">Bank Account Details</h4>
                 <div className="space-y-2 text-sm">
@@ -561,23 +522,14 @@ const Wallet = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Upload Section */}
               <div className="mb-6">
                 <h4 className="font-semibold text-gray-800 mb-3">Upload Deposit Slip</h4>
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
                   <div className="mb-3">
                     <FontAwesomeIcon icon={faUniversity} className="text-gray-400 text-3xl" />
                   </div>
-                  <p className="text-gray-600 text-sm mb-3">
-                    Click to upload or drag and drop your deposit slip
-                  </p>
-                  <input
-                    type="file"
-                    accept="image/*,.pdf"
-                    className="hidden"
-                    id="depositSlip"
-                  />
+                  <p className="text-gray-600 text-sm mb-3">Click to upload or drag and drop your deposit slip</p>
+                  <input type="file" accept="image/*,.pdf" className="hidden" id="depositSlip" />
                   <label
                     htmlFor="depositSlip"
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-700 transition-colors"
@@ -586,14 +538,10 @@ const Wallet = () => {
                   </label>
                 </div>
               </div>
-
-              {/* Submit Button */}
               <button
                 onClick={() => {
-                  // Handle deposit slip submission
                   console.log('Deposit slip submitted');
                   setShowBankTransferModal(false);
-                  // You can add success message or navigation here
                 }}
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
               >
@@ -603,10 +551,16 @@ const Wallet = () => {
           </div>
         )}
       </div>
-      
       <Footer />
     </>
   );
 };
 
-export default Wallet;
+// Wrap Wallet component with Elements to provide Stripe context
+const WalletWithStripe = (props) => (
+  <Elements stripe={stripePromise}>
+    <Wallet {...props} />
+  </Elements>
+);
+
+export default WalletWithStripe;

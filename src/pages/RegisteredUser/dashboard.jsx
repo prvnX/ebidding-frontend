@@ -125,128 +125,6 @@ const Dashboard = () => {
   }, [searchTerm]);
   
 
-  // const items = [
-  //   {
-  //     id: 1,
-  //     title: "Classic Car",
-  //     description: "A well-maintained 1967 Ford Mustang in original condition.",
-  //     images: [mustang, "mustang.png"],
-  //     status: "ending-soon",
-  //     currentBid: 25000000,
-  //     startingBid: 2000000,
-  //     timeLeft: "3 days 4 hours",
-  //     totalBids: 15,
-  //     location: "Colombo, Sri Lanka",
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "Vintage Motorcycle",
-  //     description: "A rare 1950s Royal Enfield Bullet, fully restored.",
-  //     images: [royal, "enfield.png"],
-  //     status: "Active",
-  //     currentBid: 800000,
-  //     startingBid: 600000,
-  //     timeLeft: "1 day 8 hours",
-  //     totalBids: 10,
-  //     location: "Kandy, Sri Lanka",
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "Antique Bicycle",
-  //     description: "Classic Raleigh bicycle from the 1940s, in working order.",
-  //     images: [bicycle, "bicycle.png"],
-  //     status: "ending-soon",
-  //     currentBid: 120000,
-  //     startingBid: 90000,
-  //     timeLeft: "2 days 2 hours",
-  //     totalBids: 7,
-  //     location: "Galle, Sri Lanka",
-  //   },
-  //   {
-  //     id: 4,
-  //     title: "Bronze Sculpture",
-  //     description: "Handcrafted bronze sculpture from the 19th century.",
-  //     images: [bronze, "sculpture.png"],
-  //     status: "Active",
-  //     currentBid: 1800000,
-  //     startingBid: 120000,
-  //     timeLeft: "2 days 10 hours",
-  //     totalBids: 18,
-  //     location: "Negombo, Sri Lanka",
-  //   },
-  //   {
-  //     id: 5,
-  //     title: "Ancient Sword",
-  //     description: "An ancient ceremonial sword with intricate designs.",
-  //     images: [sword, "sword.png"],
-  //     status: "Pending",
-  //     currentBid: 2700,
-  //     startingBid: 2000,
-  //     timeLeft: "3 days 8 hours",
-  //     totalBids: 19,
-  //     location: "Anuradhapura, Sri Lanka",
-  //   },
-  //   {
-  //     id: 6,
-  //     title: "Ancient Vass",
-  //     description: "An ancient vass from Itali.",
-  //     images: [avimg, "figurine.png"],
-  //     status: "Active",
-  //     currentBid: 600,
-  //     startingBid: 400,
-  //     timeLeft: "8 hours",
-  //     totalBids: 10,
-  //     location: "Batticaloa, Sri Lanka",
-  //   },
-  // ];
-
-  const MyBids = [
-    {
-      id: 1,
-      title: "Classic Car",
-      description: "A well-maintained 1967 Ford Mustang in original condition.",
-      images: [mustang, "mustang.png"],
-      status: "ending-soon",
-      currentBid: 25000000,
-      startingBid: 2000000,
-      myBid: 25000000,
-      timeLeft: "3 days 4 hours",
-      totalBids: 15,
-      location: "Colombo, Sri Lanka",
-      isWinning: true,
-      increment: 100000,
-    },
-    {
-      id: 2,
-      title: "Vintage Motorcycle",
-      description: "A rare 1950s Royal Enfield Bullet, fully restored.",
-      images: [royal, "enfield.png"],
-      status: "Active",
-      currentBid: 800000,
-      startingBid: 600000,
-      myBid: 700000,
-      timeLeft: "1 day 8 hours",
-      totalBids: 10,
-      location: "Kandy, Sri Lanka",
-      isWinning: false,
-      increment: 5000,
-    },
-    {
-      id: 3,
-      title: "Antique Bicycle",
-      description: "Classic Raleigh bicycle from the 1940s, in working order.",
-      images: [bicycle, "bicycle.png"],
-      status: "ending-soon",
-      currentBid: 120000,
-      startingBid: 90000,
-      myBid: 100000,
-      timeLeft: "2 days 2 hours",
-      totalBids: 7,
-      location: "Galle, Sri Lanka",
-      isWinning: false,
-      increment: 10000,
-    }
-  ];
 
   const favoriteItems = items.filter((item) => item.id === 1 || item.id === 2); // Example
   const bidHistoryItems = items.filter(
@@ -382,7 +260,7 @@ const Dashboard = () => {
 
           : favoriteItems.map((item) => (
             <ViewCard key={item.id} item={item} />
-          )) : activeTab === "myBids" ? MyBids.length === 0 ? (
+          )) : activeTab === "myBids" ? myBids.length === 0 ? (
             <div className="col-span-3 text-center text-gray-500">
               <FontAwesomeIcon
                 icon={faSearch}
