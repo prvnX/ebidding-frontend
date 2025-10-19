@@ -36,6 +36,7 @@ import CustomHeader from "../components/custom-header";
 import NavBar from "../components/navbar";
  
 import Footer from "../components/footer";
+import { fetchProtectedResource } from "../pages/authApi";
  
 
 // Sample profile picture - replace with actual path
@@ -47,52 +48,103 @@ import BredCrumb from "../components/ui/breadCrumb";
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("bids"); // Start with bids tab active for testing
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
-  const [userDetails, setUserDetails] = useState(null);
-
-  async function getUserData() {
-    const userData = await JSON.parse(localStorage.getItem("UserData"));
-    console.log("User Data from localStorage:", userData);
-    setUserDetails(userData);
-  }
-  useEffect(() => {
-    getUserData();
-  }, []);
   
   // Mock user data - replace with actual data from your API/backend
-  const userData = {
-    fullName: "John D. Smith",
-    username: "johnsmith",
-    email: "john.smith@example.com",
-    nic: "992345678V",
-    status: "Active",
-    dob: "1992-05-15",
-    registeredDate: "2023-10-24",
-    profileImage: profilePic,
-    phone: "+94 77 123 4567",
-    address: "123 Main Street, Colombo 07, Sri Lanka",
-    bidStats: {
-    totalBids: 47,
-    wonBids: 12,
-    activeBids: 5
-    }
+
+  const [userData, setUserData] = useState();
+
+  const fetchData = async () => {
+    const response = await fetchProtectedResource('http://localhost:8083/us/v1/bidders/20', null, 'GET');
+    const data = response && response.data ? response.data : {};
+
+    // normalize common backend field variants to the UI shape
+    const firstName = data.first_name || data.firstName || data.first || '';
+    const lastName = data.last_name || data.lastName || data.last || '';
+    const fullName = data.full_name || data.fullName || `${firstName} ${lastName}`.trim() || data.name || '';
+
+    const phone = data.primary_phone || data.primaryPhone || data.phone || data.mobile || '';
+    const dob = data.date_of_birth || data.dateOfBirth || data.dob || data.birth_date || null;
+    const registeredDate = data.registered_date || data.registeredDate || data.created_at || data.createdAt || data.registeredDate || null;
+
+  const existingImage = userData && userData.profileImage ? userData.profileImage : null;
+
+  const user = {
+      // core fields used by the UI
+      fullName,
+      firstName,
+      lastName,
+      username: data.username || data.user_name || data.userName || '',
+      email: data.email || '',
+      phone: phone,
+      primaryPhone: phone,
+      nic: data.nic || data.nic_number || data.national_id || '',
+      status: data.status || data.account_status || 'Unknown',
+      dob: dob,
+      date_of_birth: dob,
+      registeredDate: registeredDate,
+  // preserve previously-displayed profile image (do not overwrite from backend)
+  profileImage: existingImage || profilePic,
+      verificationLevel: data.verification_level || (data.is_verified ? 'Verified' : undefined) || data.verificationLevel,
+      // copy through other server fields in case they're needed elsewhere
+      ...data
+    };
+
+    // normalize bid stats if provided by backend, otherwise fallback to sample
+    user.bidStats = data.bid_stats || data.bidStats || user.bidStats || {
+      totalBids: 47,
+      wonBids: 12,
+      activeBids: 5
+    };
+
+    // fallback address
+    user.address = data.address || data.location || user.address || "123 Main Street, Colombo 07, Sri Lanka";
+
+    setUserData(user);
   };
+  
+  useEffect(() => {
+    fetchData();
+  }, [])
 
-
+  // const userData = {
+  //   fullName: "John D. Smith",
+  //   firstName: "John",
+  //   lastName: "Smith",
+  //   username: "johnsmith",
+  //   email: "john.smith@example.com",
+  //   nic: "992345678V",
+  //   status: "Active",
+  //   dob: "1992-05-15",
+  //   registeredDate: "2023-10-24",
+  //   profileImage: profilePic,
+  //   phone: "+94 77 123 4567",
+  //   address: "123 Main Street, Colombo 07, Sri Lanka",
+    // bidStats: {
+    // totalBids: 47,
+    // wonBids: 12,
+    // activeBids: 5
+    // }
+  // };
 
   // State to control modal visibility
   const [isEditing, setIsEditing] = useState(false);
   // State to store form data
   const [editFormData, setEditFormData] = useState({});
+  // Saving state and feedback
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null); // null | 'success' | 'error'
+  const [saveMessage, setSaveMessage] = useState('');
 
   // Initialize form data when modal opens
   useEffect(() => {
-    if (isEditing) {
+    if (isEditing && userData) {
+      // prefer multiple possible phone keys from backend
       setEditFormData({
-        fullName: userData.fullName,
-        email: userData.email,
-        phone: userData.phone,
-        address: userData.address,
-        dob: userData.dob
+        firstName: userData.firstName || userData.first_name || '',
+        lastName: userData.lastName || userData.last_name || '',
+        email: userData.email || '',
+        primaryPhone: userData.primaryPhone || userData.phone || userData.primary_phone || '',
+        date_of_birth: userData.date_of_birth || userData.dob || '',
       });
     }
   }, [isEditing, userData]);
@@ -107,11 +159,78 @@ export default function ProfilePage() {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would update the user data with API call
-    console.log("Form submitted:", editFormData);
-    setIsEditing(false);
+    // Prepare payload and map primaryPhone to common backend keys
+    const payload = { ...editFormData };
+    const phoneValue = editFormData.primaryPhone || editFormData.phone || editFormData.primary_phone || '';
+    if (phoneValue) {
+      // include multiple possible keys the backend might expect
+      payload.primary_phone = phoneValue;
+      payload.phone = phoneValue;
+      payload.primaryPhone = phoneValue;
+    }
+
+    try {
+      setIsSaving(true);
+      setSaveStatus(null);
+      setSaveMessage('');
+      console.log('Submitting profile update payload:', payload);
+      // determine user id to call update endpoint with. prefer current userData, then localStorage cached UserData
+      const storedUser = JSON.parse(localStorage.getItem('UserData') || '{}');
+      const userIdToUse = (userData && (userData.id || userData.userId || userData.user_id)) || storedUser.id || storedUser.userId || storedUser.user_id;
+      if (!userIdToUse) {
+        setSaveStatus('error');
+        setSaveMessage('Could not determine user id for profile update.');
+        setIsSaving(false);
+        return;
+      }
+
+      console.log('Using userId for update:', userIdToUse);
+      const response = await fetchProtectedResource(`http://localhost:8083/us/v1/updateprofile/${userIdToUse}`, payload, 'PUT');
+      console.log('Update response:', response);
+      if (response && response.status && response.status >= 200 && response.status < 300) {
+        setSaveStatus('success');
+        setSaveMessage('Profile updated successfully.');
+        // update cached localStorage so header and other components can read newest values
+        try {
+          const merged = { ...(JSON.parse(localStorage.getItem('UserData') || '{}')), ...payload };
+          localStorage.setItem('UserData', JSON.stringify(merged));
+          if (payload.username) localStorage.setItem('username', payload.username);
+        } catch (err) {
+          // ignore localStorage errors
+          console.warn('Could not update localStorage with new profile data', err);
+        }
+        // notify other components (header) the profile updated
+        try {
+          const eventDetail = {
+            firstName: payload.firstName || payload.first_name || payload.firstName,
+            lastName: payload.lastName || payload.last_name || payload.lastName,
+            username: payload.username || payload.user_name || payload.userName
+          };
+          window.dispatchEvent(new CustomEvent('profileUpdated', { detail: eventDetail }));
+        } catch (err) {
+          console.warn('Could not dispatch profileUpdated event', err);
+        }
+        await fetchData();
+        // close the modal after a short delay so users can see the success message
+        setTimeout(() => {
+          setIsEditing(false);
+          setSaveStatus(null);
+          setSaveMessage('');
+        }, 800);
+      } else {
+        setSaveStatus('error');
+        const msg = (response && response.data && response.data.message) || 'Failed to update profile';
+        setSaveMessage(msg);
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setSaveStatus('error');
+      setSaveMessage((err && err.message) || 'Network or server error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Fixed Settings Tab Content
@@ -240,6 +359,8 @@ export default function ProfilePage() {
     }
   };
 
+  if (!userData) return null; // Loading animation should be here
+
   return (
     <>
       <CustomHeader />
@@ -250,7 +371,7 @@ export default function ProfilePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Breadcrumb */}
           <BredCrumb page="Profile" breadCrumbs={[
-            { title: "Home", link: "/dashboard" },
+            { title: "Home", link: "/" },
           ]} />
 
           {/* Profile Header - IMPROVED */}
@@ -284,12 +405,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between">
                   <div>
                     <div className="flex items-center">
-                      <h1 className="text-2xl font-bold text-gray-900">{userDetails?.firstName} {userDetails?.lastName}</h1>
+                      <h1 className="text-2xl font-bold text-gray-900">{userData.fullName}</h1>
                       {userData.verificationLevel === "Verified" && (
                         <FontAwesomeIcon icon={faCheckCircle} className="text-[#1e3a5f] ml-2" />
                       )}
                     </div>
-                    <p className="text-gray-600">@{userDetails?.username}</p>
+                    <p className="text-gray-600">@{userData.username}</p>
                   </div>
                   
                   <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
@@ -429,7 +550,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Full Name
                     </div>
-                    <div className="font-medium">{userDetails?.firstName} {userDetails?.lastName}</div>
+                    <div className="font-medium">{userData.fullName}</div>
                   </div>
                   
                   {/* Username */}
@@ -438,7 +559,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Username
                     </div>
-                    <div className="font-medium">@{userDetails?.username}</div>
+                    <div className="font-medium">@{userData.username}</div>
                   </div>
                   
                   {/* Email */}
@@ -447,7 +568,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
                       Email Address
                     </div>
-                    <div className="font-medium">{userDetails?.email}</div>
+                    <div className="font-medium">{userData.email}</div>
                   </div>
                   
                   {/* Phone */}
@@ -456,20 +577,20 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faUser} className="mr-2" />
                       Phone Number
                     </div>
-                    <div className="font-medium">{userDetails?.primaryPhone}</div>
+                    <div className="font-medium">{userData.phone}</div>
                   </div>
                   
-                  {/* NIC */}
+                  {/* NIC (show username here as requested) */}
                   <div className="space-y-1.5">
                     <div className="flex items-center text-sm text-gray-500">
                       <FontAwesomeIcon icon={faIdCard} className="mr-2" />
                       National ID
                     </div>
-                    <div className="font-medium">{userDetails?.username}</div>
+                    <div className="font-medium">{userData.username}</div>
                   </div>
                   
                   {/* Status */}
-                  <div className="space-y-1.5">
+                  {/* <div className="space-y-1.5">
                     <div className="flex items-center text-sm text-gray-500">
                       <FontAwesomeIcon icon={faCircleCheck} className="mr-2" />
                       Account Status
@@ -483,7 +604,7 @@ export default function ProfilePage() {
                         {userData.status}
                       </span>
                     </div>
-                  </div>
+                  </div> */}
                   
                   {/* DOB */}
                   <div className="space-y-1.5">
@@ -491,7 +612,7 @@ export default function ProfilePage() {
                       <FontAwesomeIcon icon={faBirthdayCake} className="mr-2" />
                       Date of Birth
                     </div>
-                    <div className="font-medium">{new Date(userDetails?.date_of_birth).toLocaleDateString()}</div>
+                    <div className="font-medium">{new Date(userData.dob).toLocaleDateString()}</div>
                   </div>
                   
                   {/* Registration Date */}
@@ -503,13 +624,7 @@ export default function ProfilePage() {
                     <div className="font-medium">{new Date(userData.registeredDate).toLocaleDateString()}</div>
                   </div>
                   
-                  {/* <div className="space-y-1.5">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <FontAwesomeIcon icon={faUser} className="mr-2" />
-                      Address
-                    </div>
-                    <div className="font-medium">{userData.address}</div>
-                  </div> */}
+                   
                 </div>
               </div>
             )}
@@ -902,13 +1017,24 @@ export default function ProfilePage() {
                     </button>
                   </div>
                   
-                  {/* Full Name */}
+                  {/* First Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                     <input
                       type="text"
-                      name="fullName"
-                      value={editFormData.fullName || ''}
+                      name="firstName"
+                      value={editFormData.firstName || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
+                    />
+                  </div>
+                   {/* Last Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={editFormData.lastName || ''}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
                     />
@@ -931,8 +1057,8 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                     <input
                       type="tel"
-                      name="phone"
-                      value={editFormData.phone || ''}
+                      name="primaryPhone"
+                      value={editFormData.primaryPhone || ''}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
                     />
@@ -943,24 +1069,14 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
                     <input
                       type="date"
-                      name="dob"
-                      value={editFormData.dob || ''}
+                      name="date_of_birth"
+                      value={editFormData.date_of_birth || ''}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
                     />
                   </div>
                   
-                  {/* Address */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <textarea
-                      name="address"
-                      rows={3}
-                      value={editFormData.address || ''}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
-                    />
-                  </div>
+                  
                 </div>
                 
                 {/* Form actions */}
@@ -974,11 +1090,18 @@ export default function ProfilePage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#1e3a5f] border border-transparent rounded-md shadow-sm text-white hover:bg-[#294b78] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a5f] font-medium"
+                    disabled={isSaving}
+                    className={`px-4 py-2 bg-[#1e3a5f] border border-transparent rounded-md shadow-sm text-white hover:bg-[#294b78] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a5f] font-medium ${isSaving ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
-                    Save Changes
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
+                {saveStatus === 'success' && (
+                  <div className="mt-3 text-sm text-green-700">{saveMessage}</div>
+                )}
+                {saveStatus === 'error' && (
+                  <div className="mt-3 text-sm text-red-700">{saveMessage}</div>
+                )}
               </form>
             </div>
           </div>

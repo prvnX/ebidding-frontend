@@ -14,12 +14,14 @@ export function UserDropdown() {
           if(!localStorage.getItem("UserData") || JSON.parse(localStorage.getItem("UserData")).username !== localStorage.getItem("username")){
           try {
               const {data} = await fetchProtectedResource(
-                      `http://localhost:8084/us/v1/getSelfDetails`, //update the URL as needed (the userservice getselfdetails endpoint )
+                      `http://localhost:8083/us/v1/getSelfDetails`,
                         null,
                         'GET'
               );
               localStorage.setItem("UserData", JSON.stringify(data));
               setName(data.firstName + " " + data.lastName);
+              // keep username in localStorage for consistency
+              if (data.username) localStorage.setItem('username', data.username);
           } catch (error) {
               console.error('Error fetching user info:', error);
           }
@@ -32,6 +34,31 @@ export function UserDropdown() {
       useEffect(() => {
         fetchData();
       }, [UserDropdown]);
+
+      // Listen for profile updates so header can update immediately
+      useEffect(() => {
+        const onProfileUpdated = (e) => {
+          try {
+            const d = e && e.detail ? e.detail : {};
+            const f = d.firstName || d.first_name || '';
+            const l = d.lastName || d.last_name || '';
+            const u = d.username || d.user_name || d.userName || null;
+            if (f || l) setName((f + ' ' + l).trim());
+            // update cached UserData in localStorage
+            const stored = JSON.parse(localStorage.getItem('UserData') || '{}');
+            if (f) stored.firstName = f;
+            if (l) stored.lastName = l;
+            if (u) stored.username = u;
+            localStorage.setItem('UserData', JSON.stringify(stored));
+            if (u) localStorage.setItem('username', u);
+          } catch (err) {
+            console.error('Error applying profileUpdated event:', err);
+          }
+        };
+
+        window.addEventListener('profileUpdated', onProfileUpdated);
+        return () => window.removeEventListener('profileUpdated', onProfileUpdated);
+      }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
