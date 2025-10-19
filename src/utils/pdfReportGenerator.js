@@ -1,6 +1,12 @@
 // PDF Report Generation Utility for Auction Manager Analytics
 
 export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) => {
+  // Validate data exists
+  if (!analyticsData) {
+    alert('No analytics data available to generate report.');
+    return;
+  }
+
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -11,7 +17,28 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
       style: 'currency',
       currency: 'LKR',
       minimumFractionDigits: 0
-    }).format(amount);
+    }).format(amount || 0);
+  };
+
+  // Safe data accessors with defaults
+  const safeData = {
+    totalRevenue: analyticsData.totalRevenue || 0,
+    totalProfit: analyticsData.totalProfit || 0,
+    totalAuctions: analyticsData.totalAuctions || 0,
+    totalBids: analyticsData.totalBids || 0,
+    totalItems: analyticsData.totalItems || 0,
+    successRate: analyticsData.successRate || 0,
+    averageBidPerItem: analyticsData.averageBidPerItem || 0,
+    topCategory: analyticsData.topCategory || 'N/A',
+    monthlyComparison: {
+      revenueChange: analyticsData.monthlyComparison?.revenueChange || 0,
+      profitChange: analyticsData.monthlyComparison?.profitChange || 0,
+      auctionsChange: analyticsData.monthlyComparison?.auctionsChange || 0,
+      bidsChange: analyticsData.monthlyComparison?.bidsChange || 0
+    },
+    categoryBreakdown: analyticsData.categoryBreakdown || [],
+    weeklyPerformance: analyticsData.weeklyPerformance || [],
+    topItems: analyticsData.topItems || []
   };
 
   // Create HTML content for printing
@@ -144,7 +171,7 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
     <body>
       <div class="header">
         <h1>Sri Lanka Customs - Auction Analytics Report</h1>
-        <p><strong>Report Period:</strong> ${months[selectedMonth]} ${selectedYear}</p>
+        <p><strong>Report Period:</strong> ${months[selectedMonth - 1]} ${selectedYear}</p>
         <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
       </div>
 
@@ -153,19 +180,19 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
         <div class="metric-grid">
           <div class="metric-item">
             <div class="label">Total Revenue</div>
-            <div class="value">${formatCurrency(analyticsData.totalRevenue)}</div>
+            <div class="value">${formatCurrency(safeData.totalRevenue)}</div>
           </div>
           <div class="metric-item">
             <div class="label">Total Profit</div>
-            <div class="value">${formatCurrency(analyticsData.totalProfit)}</div>
+            <div class="value">${formatCurrency(safeData.totalProfit)}</div>
           </div>
           <div class="metric-item">
             <div class="label">Profit Margin</div>
-            <div class="value">${((analyticsData.totalProfit / analyticsData.totalRevenue) * 100).toFixed(1)}%</div>
+            <div class="value">${safeData.totalRevenue > 0 ? ((safeData.totalProfit / safeData.totalRevenue) * 100).toFixed(1) : '0.0'}%</div>
           </div>
           <div class="metric-item">
             <div class="label">Success Rate</div>
-            <div class="value">${analyticsData.successRate}%</div>
+            <div class="value">${safeData.successRate}%</div>
           </div>
         </div>
       </div>
@@ -173,27 +200,27 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
       <div class="summary-grid">
         <div class="summary-card">
           <h3>Total Auctions Conducted</h3>
-          <div class="value">${analyticsData.totalAuctions}</div>
-          <div class="change ${analyticsData.monthlyComparison.auctionsChange > 0 ? 'positive' : 'negative'}">
-            ${analyticsData.monthlyComparison.auctionsChange > 0 ? '↑' : '↓'} 
-            ${Math.abs(analyticsData.monthlyComparison.auctionsChange)}% from last month
+          <div class="value">${safeData.totalAuctions}</div>
+          <div class="change ${safeData.monthlyComparison.auctionsChange > 0 ? 'positive' : 'negative'}">
+            ${safeData.monthlyComparison.auctionsChange > 0 ? '↑' : '↓'} 
+            ${Math.abs(safeData.monthlyComparison.auctionsChange)}% from last month
           </div>
         </div>
         <div class="summary-card">
           <h3>Total Bids Received</h3>
-          <div class="value">${analyticsData.totalBids.toLocaleString()}</div>
-          <div class="change ${analyticsData.monthlyComparison.bidsChange > 0 ? 'positive' : 'negative'}">
-            ${analyticsData.monthlyComparison.bidsChange > 0 ? '↑' : '↓'} 
-            ${Math.abs(analyticsData.monthlyComparison.bidsChange)}% from last month
+          <div class="value">${safeData.totalBids.toLocaleString()}</div>
+          <div class="change ${safeData.monthlyComparison.bidsChange > 0 ? 'positive' : 'negative'}">
+            ${safeData.monthlyComparison.bidsChange > 0 ? '↑' : '↓'} 
+            ${Math.abs(safeData.monthlyComparison.bidsChange)}% from last month
           </div>
         </div>
         <div class="summary-card">
           <h3>Items Sold</h3>
-          <div class="value">${analyticsData.totalItems}</div>
+          <div class="value">${safeData.totalItems}</div>
         </div>
         <div class="summary-card">
           <h3>Average Bids per Item</h3>
-          <div class="value">${analyticsData.averageBidPerItem.toFixed(2)}</div>
+          <div class="value">${safeData.averageBidPerItem.toFixed(2)}</div>
         </div>
       </div>
 
@@ -209,7 +236,7 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
           </tr>
         </thead>
         <tbody>
-          ${analyticsData.categoryBreakdown.map(category => `
+          ${safeData.categoryBreakdown.length > 0 ? safeData.categoryBreakdown.map(category => `
             <tr>
               <td><strong>${category.name}</strong></td>
               <td style="text-align: right;">${formatCurrency(category.revenue)}</td>
@@ -217,7 +244,7 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
               <td style="text-align: right;">${category.items}</td>
               <td style="text-align: right;"><strong>${category.percentage}%</strong></td>
             </tr>
-          `).join('')}
+          `).join('') : '<tr><td colspan="5" style="text-align: center; color: #999;">No category data available</td></tr>'}
         </tbody>
       </table>
 
@@ -232,14 +259,14 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
           </tr>
         </thead>
         <tbody>
-          ${analyticsData.weeklyPerformance.map(week => `
+          ${safeData.weeklyPerformance.length > 0 ? safeData.weeklyPerformance.map(week => `
             <tr>
               <td><strong>${week.week}</strong></td>
               <td style="text-align: right;">${formatCurrency(week.revenue)}</td>
               <td style="text-align: right;">${week.auctions}</td>
-              <td style="text-align: right;">${formatCurrency(week.revenue / week.auctions)}</td>
+              <td style="text-align: right;">${week.auctions > 0 ? formatCurrency(week.revenue / week.auctions) : 'N/A'}</td>
             </tr>
-          `).join('')}
+          `).join('') : '<tr><td colspan="4" style="text-align: center; color: #999;">No weekly data available</td></tr>'}
         </tbody>
       </table>
 
@@ -255,7 +282,7 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
           </tr>
         </thead>
         <tbody>
-          ${analyticsData.topItems.map((item, index) => `
+          ${safeData.topItems.length > 0 ? safeData.topItems.map((item, index) => `
             <tr>
               <td><strong>#${index + 1}</strong></td>
               <td>${item.name}</td>
@@ -263,26 +290,36 @@ export const generatePDFReport = (analyticsData, selectedMonth, selectedYear) =>
               <td style="text-align: right; color: #10b981;"><strong>${formatCurrency(item.finalBid)}</strong></td>
               <td style="text-align: right;">${item.bids}</td>
             </tr>
-          `).join('')}
+          `).join('') : '<tr><td colspan="5" style="text-align: center; color: #999;">No top items data available</td></tr>'}
         </tbody>
       </table>
 
       <div class="footer">
         <p><strong>Sri Lanka Customs - E-Bidding System</strong></p>
         <p>This is a computer-generated report. For inquiries, please contact the Auction Management Department.</p>
-        <p>Report ID: AUC-${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}-${Date.now()}</p>
+        <p>Report ID: AUC-${selectedYear}-${(selectedMonth).toString().padStart(2, '0')}-${Date.now()}</p>
       </div>
     </body>
     </html>
   `;
 
   // Open print dialog with the report
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(reportContent);
-  printWindow.document.close();
-  
-  // Wait for content to load, then trigger print
-  printWindow.onload = function() {
-    printWindow.print();
-  };
+  try {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow pop-ups to download the report.');
+      return;
+    }
+    
+    printWindow.document.write(reportContent);
+    printWindow.document.close();
+    
+    // Wait for content to load, then trigger print
+    printWindow.onload = function() {
+      printWindow.print();
+    };
+  } catch (error) {
+    console.error('Error generating PDF report:', error);
+    alert('Failed to generate report. Please try again.');
+  }
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CountUp from "react-countup";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -19,50 +19,41 @@ import Footer from "../../components/footer";
 import { generatePDFReport } from "../../utils/pdfReportGenerator";
 import { Link } from "react-router-dom";
 import { Home } from "lucide-react";
+import analyticsService from "../../services/analyticsService";
 
 export default function AuctionManAnalytics() {
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Backend expects 1-12
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock data - Replace with actual API calls
-  const analyticsData = {
-    totalRevenue: 1250000,
-    totalProfit: 315000,
-    totalAuctions: 45,
-    totalBids: 1250,
-    totalItems: 180,
-    successRate: 87.5,
-    averageBidPerItem: 6.94,
-    topCategory: "Vehicles",
-    
-    monthlyComparison: {
-      revenueChange: 12.5,
-      profitChange: 8.3,
-      auctionsChange: -2.1,
-      bidsChange: 15.7
-    },
+  // Fetch analytics data when component mounts or when month/year changes
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log(`Fetching analytics for month: ${selectedMonth}, year: ${selectedYear}`);
+        const data = await analyticsService.getMonthlyAnalytics(selectedMonth, selectedYear);
+        console.log("Analytics data received:", data);
+        setAnalyticsData(data);
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+        if (err.response?.status === 401) {
+          setError("Authentication required. Please log in again.");
+        } else if (err.code === 'ERR_NETWORK') {
+          setError("Cannot connect to backend server. Please ensure the server is running on http://localhost:8081");
+        } else {
+          setError("Failed to load analytics data. Please try again.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    categoryBreakdown: [
-      { name: "Vehicles", revenue: 680000, profit: 170000, items: 78, percentage: 54.4 },
-      { name: "Jewelry", revenue: 320000, profit: 80000, items: 45, percentage: 25.6 },
-      { name: "General", revenue: 250000, profit: 65000, items: 57, percentage: 20.0 }
-    ],
-
-    weeklyPerformance: [
-      { week: "Week 1", revenue: 280000, auctions: 10 },
-      { week: "Week 2", revenue: 350000, auctions: 12 },
-      { week: "Week 3", revenue: 295000, auctions: 11 },
-      { week: "Week 4", revenue: 325000, auctions: 12 }
-    ],
-
-    topItems: [
-      { name: "Toyota Prado 2020", finalBid: 8500000, bids: 45, category: "Vehicles" },
-      { name: "Gold Necklace Set", finalBid: 450000, bids: 28, category: "Jewelry" },
-      { name: "Samsung LED TV 65\"", finalBid: 180000, bids: 15, category: "General" },
-      { name: "Honda Civic 2019", finalBid: 6200000, bids: 38, category: "Vehicles" },
-      { name: "Diamond Ring", finalBid: 385000, bids: 22, category: "Jewelry" }
-    ]
-  };
+    fetchAnalytics();
+  }, [selectedMonth, selectedYear]);
 
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -76,11 +67,15 @@ export default function AuctionManAnalytics() {
       style: 'currency',
       currency: 'LKR',
       minimumFractionDigits: 0
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const downloadPDFReport = () => {
-    generatePDFReport(analyticsData, selectedMonth, selectedYear);
+    if (analyticsData) {
+      generatePDFReport(analyticsData, selectedMonth, selectedYear);
+    } else {
+      alert('No data available to generate report. Please wait for data to load.');
+    }
   };
 
   const printReport = () => {
@@ -101,14 +96,16 @@ export default function AuctionManAnalytics() {
           </Link>
           <button
             onClick={downloadPDFReport}
-            className="bg-white text-[#1e3a5f] hover:bg-gray-100 rounded-lg py-2 px-4 flex items-center cursor-pointer transition-colors"
+            disabled={!analyticsData || loading}
+            className="bg-white text-[#1e3a5f] hover:bg-gray-100 rounded-lg py-2 px-4 flex items-center cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FontAwesomeIcon icon={faDownload} className="mr-2" />
             Download Report
           </button>
           <button
             onClick={printReport}
-            className="bg-white/10 text-white hover:bg-white/20 border border-white/20 rounded-lg py-2 px-4 flex items-center cursor-pointer transition-colors"
+            disabled={!analyticsData || loading}
+            className="bg-white/10 text-white hover:bg-white/20 border border-white/20 rounded-lg py-2 px-4 flex items-center cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FontAwesomeIcon icon={faPrint} className="mr-2" />
             Print
@@ -117,6 +114,53 @@ export default function AuctionManAnalytics() {
       </AuctionManHeader>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Loading State */}
+        {loading && (
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#1e3a5f] mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading analytics data...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                <p className="text-sm text-red-600 mt-1">Please ensure the backend server is running on http://localhost:8081</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* No Data State */}
+        {!loading && !error && !analyticsData && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">No data available</h3>
+                <p className="text-sm text-yellow-600 mt-1">No analytics data found for the selected period.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Analytics Content */}
+        {!loading && !error && analyticsData && (
+          <>
         {/* Month/Year Selector */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -133,7 +177,7 @@ export default function AuctionManAnalytics() {
                   className="px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"
                 >
                   {months.map((month, index) => (
-                    <option key={index} value={index}>{month}</option>
+                    <option key={index + 1} value={index + 1}>{month}</option>
                   ))}
                 </select>
               </div>
@@ -161,7 +205,7 @@ export default function AuctionManAnalytics() {
               <div>
                 <p className="text-blue-100 text-sm font-medium">Total Revenue</p>
                 <h2 className="text-3xl font-bold mt-2">
-                  <CountUp start={0} end={analyticsData.totalRevenue} duration={2} separator="," prefix="Rs. " />
+                  <CountUp start={0} end={analyticsData?.totalRevenue || 0} duration={2} separator="," prefix="Rs. " />
                 </h2>
               </div>
               <div className="bg-white/20 rounded-full p-3">
@@ -170,11 +214,11 @@ export default function AuctionManAnalytics() {
             </div>
             <div className="flex items-center text-sm">
               <FontAwesomeIcon 
-                icon={analyticsData.monthlyComparison.revenueChange > 0 ? faArrowUp : faArrowDown} 
+                icon={(analyticsData?.monthlyComparison?.revenueChange || 0) > 0 ? faArrowUp : faArrowDown} 
                 className="mr-2" 
               />
-              <span className={analyticsData.monthlyComparison.revenueChange > 0 ? "text-green-200" : "text-red-200"}>
-                {Math.abs(analyticsData.monthlyComparison.revenueChange)}% from last month
+              <span className={(analyticsData?.monthlyComparison?.revenueChange || 0) > 0 ? "text-green-200" : "text-red-200"}>
+                {Math.abs(analyticsData?.monthlyComparison?.revenueChange || 0)}% from last month
               </span>
             </div>
           </div>
@@ -185,7 +229,7 @@ export default function AuctionManAnalytics() {
               <div>
                 <p className="text-green-100 text-sm font-medium">Total Profit</p>
                 <h2 className="text-3xl font-bold mt-2">
-                  <CountUp start={0} end={analyticsData.totalProfit} duration={2} separator="," prefix="Rs. " />
+                  <CountUp start={0} end={analyticsData?.totalProfit || 0} duration={2} separator="," prefix="Rs. " />
                 </h2>
               </div>
               <div className="bg-white/20 rounded-full p-3">
@@ -194,11 +238,11 @@ export default function AuctionManAnalytics() {
             </div>
             <div className="flex items-center text-sm">
               <FontAwesomeIcon 
-                icon={analyticsData.monthlyComparison.profitChange > 0 ? faArrowUp : faArrowDown} 
+                icon={(analyticsData?.monthlyComparison?.profitChange || 0) > 0 ? faArrowUp : faArrowDown} 
                 className="mr-2" 
               />
-              <span className={analyticsData.monthlyComparison.profitChange > 0 ? "text-green-200" : "text-red-200"}>
-                {Math.abs(analyticsData.monthlyComparison.profitChange)}% from last month
+              <span className={(analyticsData?.monthlyComparison?.profitChange || 0) > 0 ? "text-green-200" : "text-red-200"}>
+                {Math.abs(analyticsData?.monthlyComparison?.profitChange || 0)}% from last month
               </span>
             </div>
           </div>
@@ -209,7 +253,7 @@ export default function AuctionManAnalytics() {
               <div>
                 <p className="text-purple-100 text-sm font-medium">Total Auctions</p>
                 <h2 className="text-3xl font-bold mt-2">
-                  <CountUp start={0} end={analyticsData.totalAuctions} duration={2} />
+                  <CountUp start={0} end={analyticsData?.totalAuctions || 0} duration={2} />
                 </h2>
               </div>
               <div className="bg-white/20 rounded-full p-3">
@@ -218,11 +262,11 @@ export default function AuctionManAnalytics() {
             </div>
             <div className="flex items-center text-sm">
               <FontAwesomeIcon 
-                icon={analyticsData.monthlyComparison.auctionsChange > 0 ? faArrowUp : faArrowDown} 
+                icon={(analyticsData?.monthlyComparison?.auctionsChange || 0) > 0 ? faArrowUp : faArrowDown} 
                 className="mr-2" 
               />
-              <span className={analyticsData.monthlyComparison.auctionsChange > 0 ? "text-green-200" : "text-red-200"}>
-                {Math.abs(analyticsData.monthlyComparison.auctionsChange)}% from last month
+              <span className={(analyticsData?.monthlyComparison?.auctionsChange || 0) > 0 ? "text-green-200" : "text-red-200"}>
+                {Math.abs(analyticsData?.monthlyComparison?.auctionsChange || 0)}% from last month
               </span>
             </div>
           </div>
@@ -233,7 +277,7 @@ export default function AuctionManAnalytics() {
               <div>
                 <p className="text-orange-100 text-sm font-medium">Total Bids</p>
                 <h2 className="text-3xl font-bold mt-2">
-                  <CountUp start={0} end={analyticsData.totalBids} duration={2} separator="," />
+                  <CountUp start={0} end={analyticsData?.totalBids || 0} duration={2} separator="," />
                 </h2>
               </div>
               <div className="bg-white/20 rounded-full p-3">
@@ -242,11 +286,11 @@ export default function AuctionManAnalytics() {
             </div>
             <div className="flex items-center text-sm">
               <FontAwesomeIcon 
-                icon={analyticsData.monthlyComparison.bidsChange > 0 ? faArrowUp : faArrowDown} 
+                icon={(analyticsData?.monthlyComparison?.bidsChange || 0) > 0 ? faArrowUp : faArrowDown} 
                 className="mr-2" 
               />
-              <span className={analyticsData.monthlyComparison.bidsChange > 0 ? "text-green-200" : "text-red-200"}>
-                {Math.abs(analyticsData.monthlyComparison.bidsChange)}% from last month
+              <span className={(analyticsData?.monthlyComparison?.bidsChange || 0) > 0 ? "text-green-200" : "text-red-200"}>
+                {Math.abs(analyticsData?.monthlyComparison?.bidsChange || 0)}% from last month
               </span>
             </div>
           </div>
@@ -259,7 +303,7 @@ export default function AuctionManAnalytics() {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Items Sold</p>
                 <h3 className="text-2xl font-bold text-[#1e3a5f] mt-1">
-                  <CountUp start={0} end={analyticsData.totalItems} duration={2} />
+                  <CountUp start={0} end={analyticsData?.totalItems || 0} duration={2} />
                 </h3>
               </div>
               <FontAwesomeIcon icon={faChartBar} className="text-3xl text-blue-500" />
@@ -271,7 +315,7 @@ export default function AuctionManAnalytics() {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Success Rate</p>
                 <h3 className="text-2xl font-bold text-[#1e3a5f] mt-1">
-                  <CountUp start={0} end={analyticsData.successRate} duration={2} decimals={1} suffix="%" />
+                  <CountUp start={0} end={analyticsData?.successRate || 0} duration={2} decimals={1} suffix="%" />
                 </h3>
               </div>
               <FontAwesomeIcon icon={faArrowUp} className="text-3xl text-green-500" />
@@ -283,7 +327,7 @@ export default function AuctionManAnalytics() {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Avg Bids/Item</p>
                 <h3 className="text-2xl font-bold text-[#1e3a5f] mt-1">
-                  <CountUp start={0} end={analyticsData.averageBidPerItem} duration={2} decimals={2} />
+                  <CountUp start={0} end={analyticsData?.averageBidPerItem || 0} duration={2} decimals={2} />
                 </h3>
               </div>
               <FontAwesomeIcon icon={faGavel} className="text-3xl text-purple-500" />
@@ -310,7 +354,7 @@ export default function AuctionManAnalytics() {
                 </tr>
               </thead>
               <tbody>
-                {analyticsData.categoryBreakdown.map((category, index) => (
+                {(analyticsData?.categoryBreakdown || []).map((category, index) => (
                   <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-4">
                       <div className="font-medium text-gray-900">{category.name}</div>
@@ -349,29 +393,41 @@ export default function AuctionManAnalytics() {
             Weekly Performance Trend
           </h2>
           <div className="space-y-4">
-            {analyticsData.weeklyPerformance.map((week, index) => (
-              <div key={index} className="flex items-center">
-                <div className="w-24 text-sm font-medium text-gray-700">{week.week}</div>
-                <div className="flex-1 mx-4">
-                  <div className="flex items-center">
-                    <div className="flex-1 bg-gray-200 rounded-full h-8 relative">
-                      <div
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-semibold transition-all duration-500"
-                        style={{ width: `${(week.revenue / 400000) * 100}%` }}
-                      >
-                        {formatCurrency(week.revenue)}
+            {(analyticsData?.weeklyPerformance || []).map((week, index, array) => {
+              // Calculate max revenue to properly scale the bars
+              const maxRevenue = Math.max(...array.map(w => w.revenue || 0), 1);
+              const widthPercentage = Math.min((week.revenue / maxRevenue) * 100, 100);
+              const showTextInside = widthPercentage > 30; // Only show text inside if bar is wide enough
+              
+              return (
+                <div key={index} className="flex items-center">
+                  <div className="w-24 text-sm font-medium text-gray-700">{week.week}</div>
+                  <div className="flex-1 mx-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 rounded-full h-8 relative overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-semibold transition-all duration-500"
+                          style={{ width: `${widthPercentage}%`, minWidth: widthPercentage > 0 ? '40px' : '0' }}
+                        >
+                          {showTextInside && formatCurrency(week.revenue)}
+                        </div>
                       </div>
+                      {!showTextInside && (
+                        <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+                          {formatCurrency(week.revenue)}
+                        </span>
+                      )}
                     </div>
                   </div>
+                  <div className="w-32 text-right">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                      <FontAwesomeIcon icon={faGavel} className="mr-2" />
+                      {week.auctions} Auctions
+                    </span>
+                  </div>
                 </div>
-                <div className="w-32 text-right">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                    <FontAwesomeIcon icon={faGavel} className="mr-2" />
-                    {week.auctions} Auctions
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -393,7 +449,7 @@ export default function AuctionManAnalytics() {
                 </tr>
               </thead>
               <tbody>
-                {analyticsData.topItems.map((item, index) => (
+                {(analyticsData?.topItems || []).map((item, index) => (
                   <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-4">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#1e3a5f] text-white font-bold">
@@ -431,16 +487,18 @@ export default function AuctionManAnalytics() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-blue-200 text-sm mb-2">Report Period</p>
-              <p className="text-xl font-semibold">{months[selectedMonth]} {selectedYear}</p>
+              <p className="text-xl font-semibold">{months[selectedMonth - 1]} {selectedYear}</p>
             </div>
             <div>
               <p className="text-blue-200 text-sm mb-2">Top Performing Category</p>
-              <p className="text-xl font-semibold">{analyticsData.topCategory}</p>
+              <p className="text-xl font-semibold">{analyticsData?.topCategory || 'N/A'}</p>
             </div>
             <div>
               <p className="text-blue-200 text-sm mb-2">Profit Margin</p>
               <p className="text-xl font-semibold">
-                {((analyticsData.totalProfit / analyticsData.totalRevenue) * 100).toFixed(1)}%
+                {analyticsData?.totalRevenue && analyticsData?.totalProfit 
+                  ? ((analyticsData.totalProfit / analyticsData.totalRevenue) * 100).toFixed(1) 
+                  : '0.0'}%
               </p>
             </div>
             <div>
@@ -449,6 +507,8 @@ export default function AuctionManAnalytics() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
 
       <Footer />
