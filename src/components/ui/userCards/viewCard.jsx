@@ -33,10 +33,10 @@ export default function ViewCard({ item }) {
         {},
         'GET'
       );
-      setHighestBid(response.highestAmount);
-      setTotalViews(response.totalBids);
-      setIsPlaceByMe(response.placedByMe);
-      
+      setHighestBid(response.data.highestAmount);
+      setTotalViews(response.data.totalBids);
+      setIsPlaceByMe(response.data.placedByMe);
+
     } catch (error) {
       console.error('Error fetching item details:', error);
     }

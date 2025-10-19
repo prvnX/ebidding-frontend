@@ -78,6 +78,16 @@ const resources = {
       viewItemDetails: "View Item Details",
       incrementBy: "Increment By",
       winning: "Winning",
+      all: "All",
+      lost: "Lost",
+      claimed: "Claimed",
+      discarded: "Discarded",
+      wonUnclaimed: "Won But Unclaimed",
+      noBidsFound: "No bids found",
+      tryAdjustingSearchOrFilter: "Try adjusting your search or filter to find bids.",
+      searchPlaceholderHistory:"Search by item name ..."
+
+
 
     }
   },
@@ -150,8 +160,15 @@ const resources = {
         clothingAccessories: "ඇඳුම් සහ අමතර භාණ්ඩ",
         machinery: " යන්ත්‍රෝපකරණ",
         otherItems: "වෙනත් භාණ්ඩ",
-        winning: "ජයග්‍රහණය"
-
+        winning: "ජයග්‍රහණය",
+        all: "සියලුම",
+        lost: "අහිමිවූ",
+        claimed: "දැක්මට ලක් කළ",
+        discarded: "තහනම් කළ",
+        wonUnclaimed: "ජයග්‍රහණය කළ නමුත් දැක්මට ලක් නොකළ",
+        noBidsFound: "වෙන්දේසි කිසිවක් හමු නොවීය",
+        tryAdjustingSearchOrFilter: "වෙන්දේසි සොයා ගැනීමට ඔබේ සෙවුම හෝ පෙරහන් වෙනස් කිරීමට උත්සාහ කරන්න.",
+        searchPlaceholderHistory:"අයිතම නාමය අනුව සෙවීම ..."
 
       
     }
@@ -223,7 +240,15 @@ const resources = {
             clothingAccessories: "ஆடைகள் & அணிகலன்கள்",
             machinery: "இயந்திரங்கள்",
             otherItems: "பிற பொருட்கள்",
-            winning: "வெற்றி"
+            winning: "வெற்றி",
+            all: "அனைத்து",
+            lost: "தோல்வியடைந்தது",
+            claimed: "கோரப்பட்டது",
+            discarded: "நிராகரிக்கப்பட்டது",
+            wonUnclaimed: "வெற்றி பெற்றது ஆனால் கோரப்படவில்லை",
+            noBidsFound: "விலை எதுவும் கிடைக்கவில்லை",
+            tryAdjustingSearchOrFilter: "விலைகளை கண்டுபிடிக்க உங்கள் தேடல் அல்லது வடிகட்டியை சரிசெய்ய முயற்சிக்கவும்.",
+            searchPlaceholderHistory: "பொருளின் பெயர் மூலம் தேடுங்கள் ..."
 
     }
   }
