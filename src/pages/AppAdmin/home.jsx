@@ -11,7 +11,6 @@ import {
   faEye, 
   faCheck, 
   faTimes,
-  faChartLine,
   faSearch,
   faUserPlus,
   faEdit,
@@ -27,7 +26,6 @@ import {
 export default function AppAdminHome() {
   const [activeTab, setActiveTab] = useState('approvals');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -120,11 +118,20 @@ export default function AppAdminHome() {
   // Get pending users from all users (filter by PENDING status)
   const pendingUsers = allUsers.filter(user => user.status === 'PENDING' || user.status === 'INACTIVE');
 
-  // Combine all managers (auction managers + yard managers)
-  const systemManagers = [...auctionManagers, ...yardManagers];
+  // Filter auction managers based on search and filters
+  const filteredAuctionManagers = auctionManagers.filter(manager => {
+    const matchesSearch = manager.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         manager.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         manager.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         manager.nic?.includes(searchTerm) ||
+                         manager.employeeId?.includes(searchTerm);
+    const matchesStatus = filterStatus === 'all' || manager.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
 
-  // Filter managers based on search and filters
-  const filteredManagers = systemManagers.filter(manager => {
+  // Filter yard managers based on search and filters
+  const filteredYardManagers = yardManagers.filter(manager => {
     const matchesSearch = manager.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          manager.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          manager.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,11 +159,17 @@ export default function AppAdminHome() {
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  // Pagination for managers
-  const indexOfLastManager = currentPage * itemsPerPage;
-  const indexOfFirstManager = indexOfLastManager - itemsPerPage;
-  const currentManagers = filteredManagers.slice(indexOfFirstManager, indexOfLastManager);
-  const totalManagerPages = Math.ceil(filteredManagers.length / itemsPerPage);
+  // Pagination for auction managers
+  const indexOfLastAuctionManager = currentPage * itemsPerPage;
+  const indexOfFirstAuctionManager = indexOfLastAuctionManager - itemsPerPage;
+  const currentAuctionManagers = filteredAuctionManagers.slice(indexOfFirstAuctionManager, indexOfLastAuctionManager);
+  const totalAuctionManagerPages = Math.ceil(filteredAuctionManagers.length / itemsPerPage);
+
+  // Pagination for yard managers
+  const indexOfLastYardManager = currentPage * itemsPerPage;
+  const indexOfFirstYardManager = indexOfLastYardManager - itemsPerPage;
+  const currentYardManagers = filteredYardManagers.slice(indexOfFirstYardManager, indexOfLastYardManager);
+  const totalYardManagerPages = Math.ceil(filteredYardManagers.length / itemsPerPage);
 
   const handleStatusChange = (userId, newStatus) => {
     // Handle status change logic here
@@ -206,18 +219,20 @@ export default function AppAdminHome() {
       icon: faUserTie,
       color: "bg-green-500"
     },
-  ];
-
-  const quickStats = [
-    { label: "Total Bidders", value: bidders.length.toString() },
-    { label: "Auction Managers", value: auctionManagers.length.toString() },
-    { label: "Yard Managers", value: yardManagers.length.toString() }
+    {
+      title: "Yard Managers",
+      value: yardManagers.length.toString(),
+      change: `Active: ${yardManagers.filter(m => m.status === 'ACTIVE').length}`,
+      icon: faGavel,
+      color: "bg-purple-500"
+    },
   ];
 
   const tabItems = [
     { id: 'approvals', label: 'User Approvals', count: pendingUsers.length },
     { id: 'users', label: 'Bidders', count: bidders.length },
-    { id: 'managers', label: 'System Users', count: systemManagers.length },
+    { id: 'auctionManagers', label: 'Auction Managers', count: auctionManagers.length },
+    { id: 'yardManagers', label: 'Yard Managers', count: yardManagers.length },
   ];
 
   return (
@@ -271,7 +286,7 @@ export default function AppAdminHome() {
         )}
         
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
             <div key={index} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#1e3a5f]">
               <div className="flex items-center justify-between">
@@ -286,18 +301,6 @@ export default function AppAdminHome() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Quick Stats Bar */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {quickStats.map((item, index) => (
-              <div key={index} className="text-center p-4 border-r border-gray-200 last:border-r-0">
-                <div className="text-2xl font-bold text-[#1e3a5f]">{item.value}</div>
-                <div className="text-sm text-gray-600">{item.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Navigation Tabs */}
@@ -315,8 +318,18 @@ export default function AppAdminHome() {
                   }`}
                 >
                   {tab.label}
-                  {tab.count && (
-                    <span className="ml-2 bg-red-100 text-red-600 text-xs font-medium px-2 py-1 rounded-full">
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${
+                      tab.id === 'approvals' 
+                        ? 'bg-red-100 text-red-600' 
+                        : tab.id === 'users'
+                        ? 'bg-orange-100 text-orange-600'
+                        : tab.id === 'auctionManagers'
+                        ? 'bg-green-100 text-green-600'
+                        : tab.id === 'yardManagers'
+                        ? 'bg-purple-100 text-purple-600'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
                       {tab.count}
                     </span>
                   )}
@@ -430,7 +443,7 @@ export default function AppAdminHome() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    System Users Management
+                    Bidders Management
                   </h3>
                 </div>
 
@@ -441,22 +454,12 @@ export default function AppAdminHome() {
                       <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-3 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Search users by name, email, or NIC..."
+                        placeholder="Search bidders by name, email, or NIC..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent"
                       />
                     </div>
-                    <select
-                      value={filterRole}
-                      onChange={(e) => setFilterRole(e.target.value)}
-                      className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent"
-                    >
-                      <option value="all">All Roles</option>
-                      <option value="Bidder">Bidder</option>
-                      <option value="Auction Manager">Auction Manager</option>
-                      <option value="Super Admin"> Admin</option>
-                    </select>
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
@@ -676,7 +679,7 @@ export default function AppAdminHome() {
               </div>
             )}
 
-            {activeTab === 'managers' && (
+            {activeTab === 'auctionManagers' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -684,40 +687,8 @@ export default function AppAdminHome() {
                   </h3>
                   <button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors">
                     <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
-                    Add New Manager
+                    Add New Auction Manager
                   </button>
-                </div>
-
-                {/* Manager Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Active Managers</p>
-                        <p className="text-2xl font-bold text-gray-900">{auctionManagers.filter(m => m.status === 'ACTIVE').length}</p>
-                      </div>
-                      <FontAwesomeIcon icon={faUserTie} className="h-8 w-8 text-green-500" />
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Total Managers</p>
-                        <p className="text-2xl font-bold text-gray-900">{systemManagers.length}</p>
-                      </div>
-                      <FontAwesomeIcon icon={faGavel} className="h-8 w-8 text-blue-500" />
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Yard Managers</p>
-                        <p className="text-2xl font-bold text-gray-900">{yardManagers.length}</p>
-                      </div>
-                      <FontAwesomeIcon icon={faChartLine} className="h-8 w-8 text-purple-500" />
-                    </div>
-                  </div>
-
                 </div>
 
                 {/* Search and Filter Section */}
@@ -727,7 +698,7 @@ export default function AppAdminHome() {
                       <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-3 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Search managers by name, email, or Employee ID..."
+                        placeholder="Search auction managers by name, email, or Employee ID..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent"
@@ -746,22 +717,22 @@ export default function AppAdminHome() {
                   </div>
                 </div>
 
-                {/* Managers Cards */}
+                {/* Auction Managers Cards */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {loading ? (
                     <div className="col-span-2 text-center py-8 text-gray-500">
-                      Loading managers...
+                      Loading auction managers...
                     </div>
                   ) : error ? (
                     <div className="col-span-2 text-center py-8 text-red-500">
                       {error}
                     </div>
-                  ) : currentManagers.length === 0 ? (
+                  ) : currentAuctionManagers.length === 0 ? (
                     <div className="col-span-2 text-center py-8 text-gray-500">
-                      No managers found
+                      No auction managers found
                     </div>
                   ) : (
-                    currentManagers.map((manager) => (
+                    currentAuctionManagers.map((manager) => (
                     <div key={manager.userId || manager.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200">
                       <div className="p-6">
                         {/* Manager Header */}
@@ -777,7 +748,7 @@ export default function AppAdminHome() {
                                 {`${manager.firstName || ''} ${manager.lastName || ''}`}
                               </h4>
                               <p className="text-sm text-blue-700 bg-blue-100 rounded-lg py-1/2 px-1 center my-1">
-                                {manager.role || 'Manager'}
+                                {manager.role || 'Auction Manager'}
                               </p>
                               <p className="text-sm text-gray-500">
                                 Employee ID: {manager.employeeId || manager.userId || 'N/A'}
@@ -866,7 +837,7 @@ export default function AppAdminHome() {
                 </div>
 
                 {/* Pagination */}
-                {filteredManagers.length > itemsPerPage && (
+                {filteredAuctionManagers.length > itemsPerPage && (
                   <div className="mt-8 flex items-center justify-between">
                     <div className="flex-1 flex justify-between sm:hidden">
                       <button
@@ -877,8 +848,8 @@ export default function AppAdminHome() {
                         Previous
                       </button>
                       <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalManagerPages))}
-                        disabled={currentPage === totalManagerPages}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalAuctionManagerPages))}
+                        disabled={currentPage === totalAuctionManagerPages}
                         className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                       >
                         Next
@@ -888,13 +859,13 @@ export default function AppAdminHome() {
                       <div>
                         <p className="text-sm text-gray-700">
                           Showing{' '}
-                          <span className="font-medium">{indexOfFirstManager + 1}</span>
+                          <span className="font-medium">{indexOfFirstAuctionManager + 1}</span>
                           {' '}to{' '}
                           <span className="font-medium">
-                            {Math.min(indexOfLastManager, filteredManagers.length)}
+                            {Math.min(indexOfLastAuctionManager, filteredAuctionManagers.length)}
                           </span>
                           {' '}of{' '}
-                          <span className="font-medium">{filteredManagers.length}</span>
+                          <span className="font-medium">{filteredAuctionManagers.length}</span>
                           {' '}results
                         </p>
                       </div>
@@ -907,7 +878,7 @@ export default function AppAdminHome() {
                           >
                             Previous
                           </button>
-                          {Array.from({ length: totalManagerPages }, (_, i) => i + 1).map((page) => (
+                          {Array.from({ length: totalAuctionManagerPages }, (_, i) => i + 1).map((page) => (
                             <button
                               key={page}
                               onClick={() => setCurrentPage(page)}
@@ -921,8 +892,235 @@ export default function AppAdminHome() {
                             </button>
                           ))}
                           <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalManagerPages))}
-                            disabled={currentPage === totalManagerPages}
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalAuctionManagerPages))}
+                            disabled={currentPage === totalAuctionManagerPages}
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            Next
+                          </button>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'yardManagers' && (
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Yard Managers Management
+                  </h3>
+                  <button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors">
+                    <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
+                    Add New Yard Manager
+                  </button>
+                </div>
+
+                {/* Search and Filter Section */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative">
+                      <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-3 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search yard managers by name, email, or Employee ID..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent"
+                      />
+                    </div>
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="ACTIVE">Active</option>
+                      <option value="SUSPENDED">Suspended</option>
+                    </select>
+
+                  </div>
+                </div>
+
+                {/* Yard Managers Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {loading ? (
+                    <div className="col-span-2 text-center py-8 text-gray-500">
+                      Loading yard managers...
+                    </div>
+                  ) : error ? (
+                    <div className="col-span-2 text-center py-8 text-red-500">
+                      {error}
+                    </div>
+                  ) : currentYardManagers.length === 0 ? (
+                    <div className="col-span-2 text-center py-8 text-gray-500">
+                      No yard managers found
+                    </div>
+                  ) : (
+                    currentYardManagers.map((manager) => (
+                    <div key={manager.userId || manager.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200">
+                      <div className="p-6">
+                        {/* Manager Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="h-16 w-16 rounded-full bg-purple-600 flex items-center justify-center">
+                              <span className="text-white font-bold text-lg">
+                                {`${manager.firstName?.[0] || ''}${manager.lastName?.[0] || ''}`}
+                              </span>
+                            </div>
+                            <div className="ml-4">
+                              <h4 className="text-lg font-semibold text-gray-900">
+                                {`${manager.firstName || ''} ${manager.lastName || ''}`}
+                              </h4>
+                              <p className="text-sm text-purple-700 bg-purple-100 rounded-lg py-1/2 px-1 center my-1">
+                                {manager.role || 'Yard Manager'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Employee ID: {manager.employeeId || manager.userId || 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                              manager.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {manager.status || 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Contact Information */}
+                        <div className="mb-4 space-y-2">
+                          <div className="flex items-center text-sm text-gray-600">
+                            <FontAwesomeIcon icon={faEnvelope} className="mr-2 text-gray-400" />
+                            {manager.email || 'N/A'}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <FontAwesomeIcon icon={faPhone} className="mr-2 text-gray-400" />
+                            {manager.phoneNumber || 'N/A'}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <FontAwesomeIcon icon={faCalendar} className="mr-2 text-gray-400" />
+                            Registered: {manager.createdAt ? new Date(manager.createdAt).toLocaleDateString() : 'N/A'}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            NIC: {manager.nic || 'N/A'}
+                          </div>
+                        </div>
+
+                        {/* Performance Metrics */}
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="bg-blue-50 rounded-lg p-3">
+                            <div className="text-sm text-blue-600 font-medium">Role</div>
+                            <div className="text-lg font-bold text-blue-900">{manager.role || 'N/A'}</div>
+                          </div>
+     
+                          <div className="bg-purple-50 rounded-lg p-3">
+                            <div className="text-sm text-purple-600 font-medium">Department</div>
+                            <div className="text-lg font-bold text-purple-900">{manager.department || 'N/A'}</div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+                          <button
+                            onClick={() => handleManagerEdit(manager.userId || manager.id)}
+                            className="flex items-center px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-100 transition-colors"
+                          >
+                            <FontAwesomeIcon icon={faEdit} className="mr-1" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleManagerEdit(manager.userId || manager.id)}
+                            className="flex items-center px-3 py-1 bg-green-50 text-green-600 rounded-md text-sm font-medium hover:bg-green-100 transition-colors"
+                          >
+                            <FontAwesomeIcon icon={faEye} className="mr-1" />
+                            View Details
+                          </button>
+                          {manager.status === 'ACTIVE' ? (
+                            <button
+                              onClick={() => handleManagerStatusChange(manager.userId || manager.id, 'SUSPENDED')}
+                              className="flex items-center px-3 py-1 bg-red-50 text-red-600 rounded-md text-sm font-medium hover:bg-red-100 transition-colors"
+                            >
+                              <FontAwesomeIcon icon={faBan} className="mr-1" />
+                              Suspend
+                            </button>
+                          ) : manager.status === 'SUSPENDED' ? (
+                            <button
+                              onClick={() => handleManagerStatusChange(manager.userId || manager.id, 'ACTIVE')}
+                              className="flex items-center px-3 py-1 bg-green-50 text-green-600 rounded-md text-sm font-medium hover:bg-green-100 transition-colors"
+                            >
+                              <FontAwesomeIcon icon={faUnlock} className="mr-1" />
+                              Activate
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  )))}
+                </div>
+
+                {/* Pagination */}
+                {filteredYardManagers.length > itemsPerPage && (
+                  <div className="mt-8 flex items-center justify-between">
+                    <div className="flex-1 flex justify-between sm:hidden">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalYardManagerPages))}
+                        disabled={currentPage === totalYardManagerPages}
+                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          Showing{' '}
+                          <span className="font-medium">{indexOfFirstYardManager + 1}</span>
+                          {' '}to{' '}
+                          <span className="font-medium">
+                            {Math.min(indexOfLastYardManager, filteredYardManagers.length)}
+                          </span>
+                          {' '}of{' '}
+                          <span className="font-medium">{filteredYardManagers.length}</span>
+                          {' '}results
+                        </p>
+                      </div>
+                      <div>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            Previous
+                          </button>
+                          {Array.from({ length: totalYardManagerPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                page === currentPage
+                                  ? 'z-10 bg-[#1e3a5f] border-[#1e3a5f] text-white'
+                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalYardManagerPages))}
+                            disabled={currentPage === totalYardManagerPages}
                             className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                           >
                             Next
