@@ -57,7 +57,7 @@ const Loginpage = () => {
           navigate('/RegisteredUser/dashboard');
           break;
         case 'Auction_manager':
-          navigate('/auctionMan');
+          navigate('/AuctionMan');
           break;
         case 'UserManager':
           navigate('/user-manager/overview');

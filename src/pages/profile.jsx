@@ -60,7 +60,7 @@ export default function ProfilePage() {
     const response = await fetchProtectedResource(`http://localhost:8083/us/v1/bidders/${userIdToUse}`, null, 'GET');
     console.log('Raw profile response:', response);
     console.log('Raw profile response data:', response.data);
-    const data = response ? response : {};
+    const data = response ? response.data : {};
 
     // normalize common backend field variants to the UI shape
     const firstName = data.first_name || data.firstName || data.first || '';

@@ -11,7 +11,7 @@ export function UserDropdown() {
   const menuRef = useRef(null);
         const [name, setName] = useState('Loading...');
         const fetchData = async () => {
-          if(!localStorage.getItem("UserData") || JSON.parse(localStorage.getItem("UserData")).username !== localStorage.getItem("username")){
+          if(localStorage.getItem("UserData") == undefined || !localStorage.getItem("UserData") || JSON.parse(localStorage.getItem("UserData")).username !== localStorage.getItem("username")){
           try {
               const {data} = await fetchProtectedResource(
                       `http://localhost:8083/us/v1/getSelfDetails`,

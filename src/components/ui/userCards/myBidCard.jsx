@@ -58,6 +58,7 @@ export default function BidCard({ item }) {
         toast.error('Failed to place bid. Please try again.');
       });
       if (response) {
+        // console.log("Bid response:", response.data);
         if (response.data.success) {
           setCurrentHighest(bidAmount);
           setMyBid(bidAmount);
