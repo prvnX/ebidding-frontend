@@ -17,6 +17,7 @@ import CountDownDate from "../../countdown";
 import { toast } from "react-toastify";
 import { fetchProtectedResource } from "../../../pages/authApi";
 import useStompSubscriptions from "../../../hooks/useStompSubscriptions";
+import noImage from "../../../assets/ImageNotAvailable.png";
 
 export default function BidCard({ item }) {
   const [currentHighest, setCurrentHighest] = useState(item.currentHighest);
@@ -97,11 +98,19 @@ export default function BidCard({ item }) {
     >
       <div className="relative">
         <div className="relative h-48 overflow-hidden">
-          <img
-            src={item.itemDTO.images[0]}
-            alt={item.itemDTO.title}
-            className="w-full h-full object-cover transition-transform hover:scale-105"
-          />
+          {item.itemDTO.images && item.itemDTO.images.length > 0 ? (
+            <img
+              src={`http://localhost:8082/items/${item.itemDTO.caseNumber}-${item.itemDTO.id}/images/${item.itemDTO.images.find(img => img.cover)?.url || item.itemDTO.images[0].url}`}
+              alt={item.itemDTO.title}
+              className="w-full h-full object-cover transition-transform hover:scale-105"
+            />
+          ) : (
+            <img
+              src={noImage}
+              alt={item.title}
+              className="w-full h-full object-contain transition-transform hover:scale-105"
+            />
+          )}
           {item.itemDTO.images.length > 1 && (
             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
               +{item.itemDTO.images.length - 1} {t("more")}
