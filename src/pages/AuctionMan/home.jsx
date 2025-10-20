@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import CountUp from "react-countup";
-import { Plus, Gavel, Filter } from "lucide-react";
+import { Plus, Gavel, Filter, TrendingUp } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
@@ -20,7 +20,8 @@ import Footer from "../../components/footer";
 import Loading from "../../components/loading";
 
 
-export default () => {
+function AuctionHome() {
+  console.log('[AuctionHome] Component mounting...');
   const [selectedItems, setSelectedItems] = useState([]);
 
   const select = (id, flag) => {
@@ -83,7 +84,7 @@ const fetchItems = useCallback((page) => {
 
   useEffect(() => {
     fetchItems(1);
-  }, [activeTab, selectedCategory]);
+  }, [activeTab, selectedCategory, fetchItems]);
 
   useEffect(() => {
       if (isFirstRender.current) {
@@ -93,19 +94,25 @@ const fetchItems = useCallback((page) => {
     setLoading(true)
     const handler = setTimeout(() => {fetchItems(1)}, 2000);
     return () => clearTimeout(handler);
-  }, [searchTerm]);
+  }, [searchTerm, fetchItems]);
 
   const handleTabChange = useCallback((tab) => {
     setItems([]);
     setActiveTab(tab);
-  });
+  }, []);
 
   const navigate = useNavigate();
 
   const handleClick = () => {
     localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
-    navigate("/auctionman/scheduleauctions");
+    navigate("/AuctionMan/scheduleauctions");
   };
+
+  console.log('[AuctionHome] Rendering with state:', { 
+    loading, 
+    itemsCount: items.length, 
+    activeTab
+  });
 
   return (
     <>
@@ -113,10 +120,22 @@ const fetchItems = useCallback((page) => {
 
       {/* dashboard header */}
       <AuctionManHeader>
-        <Link to="/auctionman/additem" className="bg-white text-[#1e3a5f] hover:bg-[#e0e0ee] rounded-lg py-2 px-4 flex items-center border-1 cursor-pointer">
-          <Plus size={15} className="mr-3"/> Add Items
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/AuctionMan/analytics" className="bg-white/10 text-white hover:bg-white/20 rounded-lg py-2 px-4 flex items-center border border-white/20 cursor-pointer transition-colors">
+            <TrendingUp size={15} className="mr-2"/> Analytics
+          </Link>
+          <Link to="/AuctionMan/additem" className="bg-white text-[#1e3a5f] hover:bg-[#e0e0ee] rounded-lg py-2 px-4 flex items-center border-1 cursor-pointer">
+            <Plus size={15} className="mr-3"/> Add Items
+          </Link>
+        </div>
       </AuctionManHeader>
+
+      <div className="bg-white p-8 text-center">
+        <h1 className="text-4xl font-bold text-[#1e3a5f]">Auction Manager Dashboard</h1>
+        <p className="text-gray-600 mt-4">Loading: {loading ? 'Yes' : 'No'}</p>
+        <p className="text-gray-600">Items: {items.length}</p>
+        <p className="text-gray-600">Active Tab: {activeTab}</p>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 max-w-7xl my-5 mx-auto px-4 gap-2 sm:px-6 lg:px-8">
         <div className="flex flex-1 h-full justify-between items-center space-x-4 bg-white text-[#1e3a5f] rounded-lg shadow p-4 border-l-4 border-blue-900">
@@ -306,3 +325,5 @@ const fetchItems = useCallback((page) => {
       </>
   )
 }
+
+export default AuctionHome;
