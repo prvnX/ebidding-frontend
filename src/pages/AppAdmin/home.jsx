@@ -8,12 +8,11 @@ import {
   faUsers, 
   faClipboardCheck, 
   faUserTie, 
-  faEye, 
+  faEye,
   faCheck, 
   faTimes,
   faSearch,
   faUserPlus,
-  faEdit,
   faTrash,
   faBan,
   faUnlock,
@@ -44,10 +43,10 @@ export default function AppAdminHome() {
   // Fetch all data on component mount
   useEffect(() => {
     // Wait for hydration to complete
-    if (!_hasHydrated) {
-      console.log('[App Admin] Waiting for store hydration...');
-      return;
-    }
+    // if (!_hasHydrated) {
+    //   console.log('[App Admin] Waiting for store hydration...');
+    //   return;
+    // }
 
     // Check authentication after hydration
     if (!jwtToken) {
@@ -191,11 +190,6 @@ export default function AppAdminHome() {
     console.log(`Changing status for manager ${managerId} to ${newStatus}`);
   };
 
-  const handleManagerEdit = (managerId) => {
-    // Handle manager edit logic here
-    console.log(`Editing manager ${managerId}`);
-  };
-
   // Analytics data with real counts
   const stats = [
     {
@@ -229,10 +223,10 @@ export default function AppAdminHome() {
   ];
 
   const tabItems = [
-    { id: 'approvals', label: 'User Approvals', count: pendingUsers.length },
+    {/* id: 'approvals', label: 'User Approvals', count: pendingUsers.length */},
     { id: 'users', label: 'Bidders', count: bidders.length },
     { id: 'auctionManagers', label: 'Auction Managers', count: auctionManagers.length },
-    { id: 'yardManagers', label: 'Yard Managers', count: yardManagers.length },
+    { id: 'yardManagers', label: 'Inventory Managers', count: yardManagers.length },
   ];
 
   return (
@@ -492,27 +486,24 @@ export default function AppAdminHome() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Activity
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {loading ? (
                           <tr>
-                            <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                            <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
                               Loading data...
                             </td>
                           </tr>
                         ) : error ? (
                           <tr>
-                            <td colSpan="5" className="px-6 py-4 text-center text-red-500">
+                            <td colSpan="4" className="px-6 py-4 text-center text-red-500">
                               {error}
                             </td>
                           </tr>
                         ) : currentUsers.length === 0 ? (
                           <tr>
-                            <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                            <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
                               No users found
                             </td>
                           </tr>
@@ -561,48 +552,6 @@ export default function AppAdminHome() {
                                 Registered: {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                               </div>
                               <div>Role: {user.role || 'Bidder'}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={() => handleUserEdit(user.userId)}
-                                  className="text-blue-600 hover:text-blue-900 transition-colors"
-                                  title="Edit User"
-                                >
-                                  <FontAwesomeIcon icon={faEdit} />
-                                </button>
-                                <button
-                                  onClick={() => handleUserEdit(user.userId)}
-                                  className="text-green-600 hover:text-green-900 transition-colors"
-                                  title="View Details"
-                                >
-                                  <FontAwesomeIcon icon={faEye} />
-                                </button>
-                                {user.status === 'ACTIVE' ? (
-                                  <button
-                                    onClick={() => handleStatusChange(user.userId, 'SUSPENDED')}
-                                    className="text-red-600 hover:text-red-900 transition-colors"
-                                    title="Suspend User"
-                                  >
-                                    <FontAwesomeIcon icon={faBan} />
-                                  </button>
-                                ) : user.status === 'SUSPENDED' ? (
-                                  <button
-                                    onClick={() => handleStatusChange(user.userId, 'ACTIVE')}
-                                    className="text-green-600 hover:text-green-900 transition-colors"
-                                    title="Activate User"
-                                  >
-                                    <FontAwesomeIcon icon={faUnlock} />
-                                  </button>
-                                ) : null}
-                                <button
-                                  onClick={() => handleUserDelete(user.userId)}
-                                  className="text-red-600 hover:text-red-900 transition-colors"
-                                  title="Delete User"
-                                >
-                                  <FontAwesomeIcon icon={faTrash} />
-                                </button>
-                              </div>
                             </td>
                           </tr>
                         )))}
@@ -685,10 +634,10 @@ export default function AppAdminHome() {
                   <h3 className="text-lg font-semibold text-gray-900">
                     Auction Managers Management
                   </h3>
-                  <button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors">
+                  {/*<button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors">
                     <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
                     Add New Auction Manager
-                  </button>
+                  </button>*/}
                 </div>
 
                 {/* Search and Filter Section */}
@@ -799,20 +748,6 @@ export default function AppAdminHome() {
 
                         {/* Action Buttons */}
                         <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
-                          <button
-                            onClick={() => handleManagerEdit(manager.userId || manager.id)}
-                            className="flex items-center px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-100 transition-colors"
-                          >
-                            <FontAwesomeIcon icon={faEdit} className="mr-1" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleManagerEdit(manager.userId || manager.id)}
-                            className="flex items-center px-3 py-1 bg-green-50 text-green-600 rounded-md text-sm font-medium hover:bg-green-100 transition-colors"
-                          >
-                            <FontAwesomeIcon icon={faEye} className="mr-1" />
-                            View Details
-                          </button>
                           {manager.status === 'ACTIVE' ? (
                             <button
                               onClick={() => handleManagerStatusChange(manager.userId || manager.id, 'SUSPENDED')}
@@ -910,12 +845,12 @@ export default function AppAdminHome() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Yard Managers Management
+                    Inventory Managers Management
                   </h3>
-                  <button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors">
+                  {/*<button className="bg-[#1e3a5f] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#1e3a5f]/90 transition-colors">
                     <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
                     Add New Yard Manager
-                  </button>
+                  </button>*/}
                 </div>
 
                 {/* Search and Filter Section */}
@@ -925,7 +860,7 @@ export default function AppAdminHome() {
                       <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-3 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Search yard managers by name, email, or Employee ID..."
+                        placeholder="Search Inventory managers by name, email, or Employee ID..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent"
@@ -948,7 +883,7 @@ export default function AppAdminHome() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {loading ? (
                     <div className="col-span-2 text-center py-8 text-gray-500">
-                      Loading yard managers...
+                      Loading Inventory managers...
                     </div>
                   ) : error ? (
                     <div className="col-span-2 text-center py-8 text-red-500">
@@ -956,7 +891,7 @@ export default function AppAdminHome() {
                     </div>
                   ) : currentYardManagers.length === 0 ? (
                     <div className="col-span-2 text-center py-8 text-gray-500">
-                      No yard managers found
+                      No Inventory managers found
                     </div>
                   ) : (
                     currentYardManagers.map((manager) => (
@@ -1026,20 +961,6 @@ export default function AppAdminHome() {
 
                         {/* Action Buttons */}
                         <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
-                          <button
-                            onClick={() => handleManagerEdit(manager.userId || manager.id)}
-                            className="flex items-center px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-100 transition-colors"
-                          >
-                            <FontAwesomeIcon icon={faEdit} className="mr-1" />
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleManagerEdit(manager.userId || manager.id)}
-                            className="flex items-center px-3 py-1 bg-green-50 text-green-600 rounded-md text-sm font-medium hover:bg-green-100 transition-colors"
-                          >
-                            <FontAwesomeIcon icon={faEye} className="mr-1" />
-                            View Details
-                          </button>
                           {manager.status === 'ACTIVE' ? (
                             <button
                               onClick={() => handleManagerStatusChange(manager.userId || manager.id, 'SUSPENDED')}
