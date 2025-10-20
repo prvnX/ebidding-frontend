@@ -46,7 +46,7 @@ import BredCrumb from "../components/ui/breadCrumb";
 
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState("bids"); // Start with bids tab active for testing
+  const [activeTab, setActiveTab] = useState("profile"); // Start with bids tab active for testing
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
   
   // Mock user data - replace with actual data from your API/backend
@@ -54,8 +54,13 @@ export default function ProfilePage() {
   const [userData, setUserData] = useState();
 
   const fetchData = async () => {
-    const response = await fetchProtectedResource('http://localhost:8083/us/v1/bidders/20', null, 'GET');
-    const data = response && response.data ? response.data : {};
+    console.log('Fetching user profile data...');
+    const storedUser = JSON.parse(localStorage.getItem('UserData') || '{}');
+    const userIdToUse = (userData && (userData.id || userData.userId || userData.user_id)) || storedUser.id || storedUser.userId || storedUser.user_id;
+    const response = await fetchProtectedResource(`http://localhost:8083/us/v1/bidders/${userIdToUse}`, null, 'GET');
+    console.log('Raw profile response:', response);
+    console.log('Raw profile response data:', response.data);
+    const data = response ? response.data : {};
 
     // normalize common backend field variants to the UI shape
     const firstName = data.first_name || data.firstName || data.first || '';
@@ -189,7 +194,7 @@ export default function ProfilePage() {
       console.log('Using userId for update:', userIdToUse);
       const response = await fetchProtectedResource(`http://localhost:8083/us/v1/updateprofile/${userIdToUse}`, payload, 'PUT');
       console.log('Update response:', response);
-      if (response && response.status && response.status >= 200 && response.status < 300) {
+      if (response) {
         setSaveStatus('success');
         setSaveMessage('Profile updated successfully.');
         // update cached localStorage so header and other components can read newest values
@@ -414,13 +419,13 @@ export default function ProfilePage() {
                   </div>
                   
                   <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
+                    {/* <span className={`px-3 py-1 rounded-full text-sm ${
                       userData.status === "Active" 
                         ? "bg-green-100 text-green-800" 
                         : "bg-red-100 text-red-800"
                     }`}>
                       {userData.status}
-                    </span>
+                    </span> */}
                     
                     {/* Edit button moved here for better UX */}
                     <button 
@@ -433,61 +438,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 
-                {/* Professional Bid Statistics Cards - Neutral Color Scheme */}
-                <div className="flex justify-center my-5">
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 w-full max-w-3xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-gray-700 font-semibold">Bid Statistics</h3>
-                      <span className="text-xs text-gray-500">Last updated: Today</span>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-6">
-                      {/* Total Bids */}
-                      <div className="p-3 border border-gray-100 rounded-lg bg-gray-50 hover:shadow-sm transition-shadow">
-                        <div className="flex items-center mb-2">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-                            <FontAwesomeIcon icon={faGavel} className="text-gray-700" />
-                          </div>
-                          <span className="text-sm text-gray-600 font-medium">Total Bids</span>
-                        </div>
-                        <div className="mt-2">
-                          <span className="text-2xl font-bold text-gray-800">{userData.bidStats.totalBids}</span>
-                          <div className="mt-1 text-xs text-gray-500">Across all auctions</div>
-                        </div>
-                      </div>
-                      
-                      {/* Won Bids */}
-                      <div className="p-3 border border-gray-100 rounded-lg bg-gray-50 hover:shadow-sm transition-shadow">
-                        <div className="flex items-center mb-2">
-                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
-                            <FontAwesomeIcon icon={faTrophy} className="text-green-600" />
-                          </div>
-                          <span className="text-sm text-gray-600 font-medium">Won Bids</span>
-                        </div>
-                        <div className="mt-2">
-                          <span className="text-2xl font-bold text-gray-800">{userData.bidStats.wonBids}</span>
-                          <div className="mt-1 text-xs text-green-600 font-medium">
-                            {Math.round((userData.bidStats.wonBids / userData.bidStats.totalBids) * 100)}% success rate
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Active Bids */}
-                      <div className="p-3 border border-gray-100 rounded-lg bg-gray-50 hover:shadow-sm transition-shadow">
-                        <div className="flex items-center mb-2">
-                          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-2">
-                            <FontAwesomeIcon icon={faBolt} className="text-amber-600" />
-                          </div>
-                          <span className="text-sm text-gray-600 font-medium">Active Bids</span>
-                        </div>
-                        <div className="mt-2">
-                          <span className="text-2xl font-bold text-gray-800">{userData.bidStats.activeBids}</span>
-                          <div className="mt-1 text-xs text-amber-600 font-medium">Currently in progress</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -506,7 +456,7 @@ export default function ProfilePage() {
               >
                 Profile Information
               </button>
-              <button
+              {/* <button
                 onClick={() => setActiveTab("bids")}
                 className={`py-4 px-6 text-center whitespace-nowrap ${
                   activeTab === "bids" 
@@ -515,8 +465,8 @@ export default function ProfilePage() {
                 }`}
               >
                 My Bids
-              </button>
-              <button
+              </button> */}
+              {/* <button
                 onClick={() => setActiveTab("favorites")}
                 className={`py-4 px-6 text-center whitespace-nowrap ${
                   activeTab === "favorites" 
@@ -525,8 +475,8 @@ export default function ProfilePage() {
                 }`}
               >
                 Favorites
-              </button>
-              <button
+              </button> */}
+              {/* <button
                 onClick={() => setActiveTab("settings")}
                 className={`py-4 px-6 text-center whitespace-nowrap ${
                   activeTab === "settings" 
@@ -535,7 +485,7 @@ export default function ProfilePage() {
                 }`}
               >
                 Settings
-              </button>
+              </button> */}
             </div>
             
             {/* Profile Information Tab */}
@@ -614,8 +564,8 @@ export default function ProfilePage() {
                     </div>
                     <div className="font-medium">{new Date(userData.dob).toLocaleDateString()}</div>
                   </div>
-                  
-                  {/* Registration Date */}
+{/*                   
+                  Registration Date
                   <div className="space-y-1.5">
                     <div className="flex items-center text-sm text-gray-500">
                       <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
@@ -623,12 +573,12 @@ export default function ProfilePage() {
                     </div>
                     <div className="font-medium">{new Date(userData.registeredDate).toLocaleDateString()}</div>
                   </div>
-                  
+                   */}
                    
                 </div>
               </div>
             )}
-            
+{/*             
             {/* My Bids Tab - ENHANCED */}
             {activeTab === "bids" && (
               <div className="p-6">
@@ -1107,7 +1057,7 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-      
+       */
       <Footer />
     </>
   );

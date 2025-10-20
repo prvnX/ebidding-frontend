@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState,useEffect } from "react";
+import { useState,useEffect,useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   faHeart as faHeartSolid,
@@ -14,13 +14,46 @@ import  noImage   from '../../../assets/ImageNotAvailable.png';
 
 import { formatCurrency } from "../../../function";
 import CountDownDate from "../../countdown";
+import { fetchProtectedResource } from "../../../pages/authApi";
+import useStompSubscriptions from "../../../hooks/useStompSubscriptions";
 
 export default function ViewCard({ item }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isEndingSoon, setIsEndingSoon] = useState(false);
+  const [highestBid, setHighestBid] = useState(null);
+  const [totalViews, setTotalViews] = useState(0);
+  const [isPlaceByMe, setIsPlaceByMe] = useState(false);
 
+  const loadItemDetails = async () => {
+    try {
+      const response = await fetchProtectedResource(
+        `http://localhost:8081/bs/v1/getHighestBid/${item.id}`,
+        {},
+        'GET'
+      );
+      setHighestBid(response.data.highestAmount);
+      setTotalViews(response.data.totalBids);
+      setIsPlaceByMe(response.data.placedByMe);
+
+    } catch (error) {
+      console.error('Error fetching item details:', error);
+    }
+  };
+       const handleNewMessage = useCallback((bid) => {
+        console.log("New message:", bid);
+        setHighestBid(bid.amount);
+        console.log(bid.placedByMe);
+        setIsPlaceByMe(bid.placedByMe);
+        setTotalViews(totalViews + 1);
+      }, [highestBid, totalViews]);
+
+    useStompSubscriptions(`/topic/bid:${item.id}`, handleNewMessage);
+
+  useEffect(() => {
+    loadItemDetails();
+  }, [item.id]);
 
   const handleItemClick = (itemId) => {
     navigate(`/item/${itemId}`);
@@ -35,6 +68,19 @@ export default function ViewCard({ item }) {
     e.stopPropagation(); // Prevent triggering the card click
     navigate(`/item/${itemId}`);
   };
+  const loaItemDetails = async () => {
+    try {
+      const response = await fetchProtectedResource(
+        `http://localhost:8081/bs/v1/getHighestBid/${item.id}`,
+        {},
+        'GET'
+      );
+      
+    } catch (error) {
+      console.error('Error fetching favorite status:', error);
+    }
+
+  }
 
   useEffect(() => {
   const currentTime = new Date();
@@ -79,10 +125,10 @@ export default function ViewCard({ item }) {
         </div>
         <div
           className={`absolute top-2 right-2 text-xs font-semibold px-3 py-0.5 text-white rounded-xl shadow-sm ${
-            isEndingSoon ? "bg-red-500" : "bg-green-500"
+            isEndingSoon ? "bg-red-500" : (isPlaceByMe ? "bg-yellow-500" : "bg-green-500")
           }`}
         >
-          {isEndingSoon ? t("endingSoon") : t("active")}
+          {isEndingSoon ? t("endingSoon") : (isPlaceByMe ? t("winning") : t("active"))}
         </div>
         <div className="absolute top-2 left-2 bg-white/80 hover:bg-white w-8 h-8 rounded-md flex items-center justify-center shadow-md text-red-500 ">
           {isFavorite ? (
@@ -114,7 +160,7 @@ export default function ViewCard({ item }) {
               <div className="text-sm text-gray-500">{t("currentBid")}</div>
               <div className="text-xl font-bold text-green-600">
                 {/* {formatCurrency(item.currentBid)} */} 
-                N/A
+                {highestBid ? formatCurrency(highestBid) : item.startingBid}
                 
                 </div>
             </div>
@@ -133,8 +179,7 @@ export default function ViewCard({ item }) {
             </div>
             <div className="flex items-center text-gray-500">
               <FontAwesomeIcon icon={faUsers} className="mr-1" />
-              {/* {item.totalBids} {t("bids")} */}
-             N/A {t("bids")}
+              {totalViews} {t("bids")}
             </div>
           </div>
 
