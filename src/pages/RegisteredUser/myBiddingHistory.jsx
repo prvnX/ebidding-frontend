@@ -1,118 +1,96 @@
+import React, { useState, useEffect } from "react";
 import CustomHeader from "../../components/custom-header";
 import Footer from "../../components/footer";
 import NavBar from "../../components/navbar";
-
-import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faSearch,
-  faClock,
-  faCheckCircle,
-} from "@fortawesome/free-solid-svg-icons";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { Filter } from "lucide-react";
-
-import Card from "../../components/ui/card";
-
-import avimg from "../../assets/av1.png";
-import mustang from "../../assets/mustang.jpg";
-import royal from "../../assets/royal.jpg";
-import sword from "../../assets/sword.png";
-import bicycle from "../../assets/bicycle.JPG";
-import bronze from "../../assets/bronze.jpg";
+import { fetchProtectedResource } from "../authApi";
+import EndedItemCard from "../../components/ui/endeditemcard";
+import BreadCrumbs from "../../components/ui/breadCrumb";
 const MyBiddingHistory = () => {
   const { t } = useTranslation();
+  const [biddingHistory, setBiddingHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [activeTab, setActiveTab] = useState("all-bids");
 
-  const items = [
-    {
-      id: 1,
-      title: "Classic Car",
-      description: "A well-maintained 1967 Ford Mustang in original condition.",
-      images: [mustang, "mustang.png"],
-      status: "ending-soon",
-      currentBid: 25000000,
-      startingBid: 2000000,
-      timeLeft: "3 days 4 hours",
-      totalBids: 15,
-      location: "Colombo, Sri Lanka",
-    },
-    {
-      id: 2,
-      title: "Vintage Motorcycle",
-      description: "A rare 1950s Royal Enfield Bullet, fully restored.",
-      images: [royal, "enfield.png"],
-      status: "active",
-      currentBid: 800000,
-      startingBid: 600000,
-      timeLeft: "1 day 8 hours",
-      totalBids: 10,
-      location: "Kandy, Sri Lanka",
-    },
-    {
-      id: 3,
-      title: "Antique Bicycle",
-      description: "Classic Raleigh bicycle from the 1940s, in working order.",
-      images: [bicycle, "bicycle.png"],
-      status: "ending-soon",
-      currentBid: 120000,
-      startingBid: 90000,
-      timeLeft: "2 days 2 hours",
-      totalBids: 7,
-      location: "Galle, Sri Lanka",
-    },
-    {
-      id: 4,
-      title: "Bronze Sculpture",
-      description: "Handcrafted bronze sculpture from the 19th century.",
-      images: [bronze, "sculpture.png"],
-      status: "active",
-      currentBid: 1800000,
-      startingBid: 120000,
-      timeLeft: "2 days 10 hours",
-      totalBids: 18,
-      location: "Negombo, Sri Lanka",
-    },
-    {
-      id: 5,
-      title: "Ancient Sword",
-      description: "An ancient ceremonial sword with intricate designs.",
-      images: [sword, "sword.png"],
-      status: "active",
-      currentBid: 2700,
-      startingBid: 2000,
-      timeLeft: "3 days 8 hours",
-      totalBids: 19,
-      location: "Anuradhapura, Sri Lanka",
-    },
-    {
-      id: 6,
-      title: "Ancient Vass",
-      description: "An ancient vass from Itali.",
-      images: [avimg, "figurine.png"],
-      status: "ended",
-      currentBid: 600,
-      startingBid: 400,
-      timeLeft: "0 hours",
-      totalBids: 10,
-      location: "Batticaloa, Sri Lanka",
-    },
-  ];
+  // Assuming username is stored in localStorage or can be fetched from auth context
+  const username = localStorage.getItem("username") || "defaultUser";
 
-  const favoriteItems = items.filter((item) => item.id === 1 || item.id === 2); // Example
-  const bidHistoryItems = items.filter(
-    (item) => item.id === 3 || item.id === 4
-  ); // Example
-  const pendingItems = items.filter((item) => item.status === "pending"); // Example: add status to items if needed
+  useEffect(() => {
+    const fetchBiddingHistory = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchProtectedResource(
+          `http://localhost:8081/getMyBiddingHistory/${username}`
+        );
+        if (response) {
+          // console.log("Bidding history response inner:", response);
+          // console.log("Bidding history data:", response.data);
+          setBiddingHistory(response.data);
+        } else {
+          setBiddingHistory([]);
+        }
+      } catch (error) {
+        setBiddingHistory([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBiddingHistory();
+  }, [username]);
+
+  // Filter items by active tab
+  const filteredByTab = biddingHistory.filter((entry) => {
+    const status = entry.status?.toLowerCase() || "";
+    switch (activeTab) {
+      case "all":
+        return true;
+      case "lost":
+        return status === "lost";
+      case "claimed":
+        return status === "claimed";
+      case "discarded":
+        return status === "discarded";
+      case "won_unclaimed":
+        return status === "won_unclaimed";
+      default:
+        return true;
+    }
+  });
+
+  // Filter by category
+  const filteredByCategory =
+    selectedCategory === "all"
+      ? filteredByTab
+      : filteredByTab.filter(
+          (entry) =>
+            entry.itemDetails?.category &&
+            entry.itemDetails.category.toLowerCase() === selectedCategory.toLowerCase()
+        );
+
+  // Filter by search term
+  const filteredItems = filteredByCategory.filter((entry) => {
+    const title = entry.itemDetails?.title?.toLowerCase() || "";
+    const description = entry.itemDetails?.description?.toLowerCase() || "";
+    const search = searchTerm.toLowerCase();
+    return title.includes(search) || description.includes(search);
+  });
 
   return (
+    
     <>
+
       <CustomHeader />
       <NavBar />
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <BreadCrumbs page="Bid History" breadCrumbs={[{ title: "Home", link: "/RegisteredUser/dashboard" }]} />
+
         <div className="flex flex-col md:flex-row gap-4 mb-8">
+
           {/* Search Input */}
           <div className="flex-1 relative">
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -123,10 +101,11 @@ const MyBiddingHistory = () => {
 
               <input
                 type="text"
-                placeholder={t("searchPlaceholder")}
+                placeholder={t("searchPlaceholderHistory")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-800"
+                aria-label={t("searchPlaceholderHistory")}
               />
             </div>
           </div>
@@ -136,54 +115,27 @@ const MyBiddingHistory = () => {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label={t("categorySelect")}
             >
               <option value="all">{t("allCategories")}</option>
-              <option value="vehicles">{t("vehicles")}</option>
-              <option value="electronics">{t("electronics")}</option>
+              <option value="vehicle">{t("vehicles")}</option>
               <option value="jewelry">{t("jewelryWatches")}</option>
-              <option value="clothing">{t("clothingAccessories")}</option>
-              <option value="machinery">{t("machinery")}</option>
               <option value="other">{t("otherItems")}</option>
             </select>
           </div>
-          <button
-            type="button"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <Filter size={15} className="mr-2" /> {t("moreFilters")}
-          </button>
+ 
         </div>
-        {/* New Tabs */}
-        <div className="w-full flex grid-cols-4 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
+        {/* Tabs */}
+        <div className="w-full flex grid-cols-5 gap-2 mb-4 bg-gray-100 text-gray-700 p-1 rounded-md shadow-xs">
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "all-bids"
+              activeTab === "all"
                 ? "bg-white text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab("all-bids")}
+            onClick={() => setActiveTab("all")}
           >
-            All Bids
-          </button>
-          <button
-            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "active"
-                ? "bg-white text-black"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("active")}
-          >
-            Active
-          </button>
-          <button
-            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
-              activeTab === "won"
-                ? "bg-white text-black"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("won")}
-          >
-            Won
+            {t("all")}
           </button>
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
@@ -193,87 +145,85 @@ const MyBiddingHistory = () => {
             }`}
             onClick={() => setActiveTab("lost")}
           >
-            Lost
+            {t("lost")}
+          </button>
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "claimed"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("claimed")}
+          >
+            {t("claimed")}
+          </button>
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "discarded"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("discarded")}
+          >
+            {t("discarded")}
+          </button>
+          <button
+            className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
+              activeTab === "won_unclaimed"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setActiveTab("won_unclaimed")}
+          >
+            {t("wonUnclaimed")}
           </button>
         </div>
       </section>
-      {/* Tab Content */}
-      {activeTab === "all-bids" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {items.map((item) => (
-            <Card key={item.id} item={item} />
-          ))}
-          {items.length === 0 && (
-            <div className="col-span-3 text-center text-gray-500">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="text-4xl mb-4 text-gray-400"
-              />
-              <h2 className="text-xl mb-3 font-semibold">No Bids Found</h2>
-              <p>Try adjusting your search or filter criteria.</p>
-            </div>
-          )}
-        </div>
-      )}
-      {activeTab === "active" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {items
-            .filter((item) => item.status === "active")
-            .map((item) => (
-              <Card key={item.id} item={item} />
-            ))}
-          {items.filter((item) => item.status === "active").length === 0 && (
-            <div className="col-span-3 text-center text-gray-500">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="text-4xl mb-4 text-gray-400"
-              />
-              <h2 className="text-xl mb-3 font-semibold">No Active Bids</h2>
-              <p>There are no active bids at the moment.</p>
-            </div>
-          )}
-        </div>
-      )}
-      {activeTab === "won" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {items
-            .filter((item) => item.status === "won")
-            .map((item) => (
-              <Card key={item.id} item={item} />
-            ))}
-          {items.filter((item) => item.status === "won").length === 0 && (
-            <div className="col-span-3 text-center text-gray-500">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="text-4xl mb-4 text-gray-400"
-              />
-              <h2 className="text-xl mb-3 font-semibold">No Won Bids</h2>
-              <p>You haven't won any auctions yet.</p>
-            </div>
-          )}
-        </div>
-      )}
-      {activeTab === "lost" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-20 lg:px-60">
-          {items
-            .filter((item) => item.status === "lost")
-            .map((item) => (
-              <Card key={item.id} item={item} />
-            ))}
-          {items.filter((item) => item.status === "lost").length === 0 && (
-            <div className="col-span-3 text-center text-gray-500">
-              <FontAwesomeIcon
-                icon={faSearch}
-                className="text-4xl mb-4 text-gray-400"
-              />
-              <h2 className="text-xl mb-3 font-semibold">No Lost Bids</h2>
-              <p>You haven't lost any auctions yet.</p>
-            </div>
-          )}
-        </div>
-      )}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        {loading ? (
+          <div className="text-center text-gray-500 py-20">{t("loading")}...</div>
+        ) : filteredItems.length === 0 ? (
+          <div className="text-center text-gray-500 py-20">
+            <FontAwesomeIcon
+              icon={faSearch}
+              className="text-4xl mb-4 text-gray-400 mx-auto"
+            />
+            <h2 className="text-xl mb-3 font-semibold">{t("noBidsFound")}</h2>
+            <p>{t("tryAdjustingSearchOrFilter")}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredItems.map((entry, index) => {
+              const item = entry.itemDetails;
+              const bidStatus = entry.status;
+              const myBid = entry.myBid;
+              
+
+              return (
+                <EndedItemCard
+                  key={item.id || index}
+                  item={{
+                    id: item.id,
+                    title: item.title,
+                    description: item.description,
+                    location: item.location?.name,
+                    images: item.images?.map((img) => `/uploads/${img.url}`),
+                    startDate: new Date(item.auction.startingTime),
+                    endDate: new Date(item.auction.endingTime),
+                    startBid: item.startingBid,
+                    finalPrice: item.valuation,
+                    status: bidStatus,
+                  }}
+                  userBid={myBid}
+                />
+              );
+            })}
+          </div>
+        )}
+      </section>
       <Footer />
     </>
   );
 };
+
 export default MyBiddingHistory;

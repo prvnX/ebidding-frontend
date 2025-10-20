@@ -9,56 +9,44 @@ export function UserDropdown() {
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
-        const [name, setName] = useState('Loading...');
-        const fetchData = async () => {
-          if(localStorage.getItem("UserData") == undefined || !localStorage.getItem("UserData") || JSON.parse(localStorage.getItem("UserData")).username !== localStorage.getItem("username")){
-          try {
-              const {data} = await fetchProtectedResource(
-                      `http://localhost:8083/us/v1/getSelfDetails`,
-                        null,
-                        'GET'
-              );
-              localStorage.setItem("UserData", JSON.stringify(data));
-              setName(data.firstName + " " + data.lastName);
-              // keep username in localStorage for consistency
-              if (data.username) localStorage.setItem('username', data.username);
-          } catch (error) {
-              console.error('Error fetching user info:', error);
-          }
-        } else {
-          const userData = await JSON.parse(localStorage.getItem("UserData"));
-          setName(userData.firstName + " " + userData.lastName);
-        }
-      };
+  const [name, setName] = useState("Loading...");
+  const navigate = useNavigate();
 
-      useEffect(() => {
-        fetchData();
-      }, [UserDropdown]);
+  const fetchData = async () => {
+    try {
+      const response = await fetchProtectedResource(
+        http://localhost:8083/us/v1/getSelfDetails,
+        null,
+        "GET"
+      );
 
-      // Listen for profile updates so header can update immediately
-      useEffect(() => {
-        const onProfileUpdated = (e) => {
-          try {
-            const d = e && e.detail ? e.detail : {};
-            const f = d.firstName || d.first_name || '';
-            const l = d.lastName || d.last_name || '';
-            const u = d.username || d.user_name || d.userName || null;
-            if (f || l) setName((f + ' ' + l).trim());
-            // update cached UserData in localStorage
-            const stored = JSON.parse(localStorage.getItem('UserData') || '{}');
-            if (f) stored.firstName = f;
-            if (l) stored.lastName = l;
-            if (u) stored.username = u;
-            localStorage.setItem('UserData', JSON.stringify(stored));
-            if (u) localStorage.setItem('username', u);
-          } catch (err) {
-            console.error('Error applying profileUpdated event:', err);
-          }
-        };
+      const data = response.data;
+      setName(${data.firstName} ${data.lastName});
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+    }
+  };
 
-        window.addEventListener('profileUpdated', onProfileUpdated);
-        return () => window.removeEventListener('profileUpdated', onProfileUpdated);
-      }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const onProfileUpdated = (e) => {
+      try {
+        const d = e?.detail || {};
+        const f = d.firstName || d.first_name || "";
+        const l = d.lastName || d.last_name || "";
+
+        if (f || l) setName((f + " " + l).trim());
+      } catch (err) {
+        console.error("Error applying profileUpdated event:", err);
+      }
+    };
+
+    window.addEventListener("profileUpdated", onProfileUpdated);
+    return () => window.removeEventListener("profileUpdated", onProfileUpdated);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -67,13 +55,12 @@ export function UserDropdown() {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Import useNavigate from react-router-dom
-  const navigate = useNavigate();
+  const handleLogout = () => {
+    navigate("/login");
+  };
 
   return (
     <div className="relative inline-block text-left" ref={menuRef}>
@@ -84,6 +71,7 @@ export function UserDropdown() {
         <User className="h-5 w-5 mr-2" />
         {name}
       </button>
+
       {open && (
         <div className="absolute right-0 mt-7 w-56 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
           <div className="px-4 py-3 border-b border-gray-100">
@@ -94,6 +82,7 @@ export function UserDropdown() {
               {name}
             </span>
           </div>
+
           <div className="py-1">
             <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
@@ -103,9 +92,7 @@ export function UserDropdown() {
             </div>
             <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-              onClick={() => {
-                navigate("/wallet");
-              }}
+              onClick={() => navigate("/wallet")}
             >
               <Wallet className="h-4 w-4 mr-2 text-yellow-500" /> Wallet
             </div>
@@ -116,19 +103,19 @@ export function UserDropdown() {
               <Gavel className="h-4 w-4 mr-2 text-purple-500" /> My Bidding
               History
             </div>
-            {/* <div
+            <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
               onClick={() => navigate("/auctionHistory")}
             >
               <History className="h-4 w-4 mr-2 text-green-500" /> Auction
               History
-            </div> */}
+            </div>
+
             <hr className="my-2 border-gray-200" />
+
             <div
               className="flex items-center px-4 py-2 text-sm text-red-600 cursor-pointer hover:bg-red-50"
-              onClick={() => {
-                /* Handle logout */
-              }}
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2 text-red-500" /> Logout
             </div>
