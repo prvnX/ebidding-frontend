@@ -192,7 +192,7 @@ const Dashboard = () => {
           >
             { t("activeAuctions") }
           </button>
-          <button
+          {/* <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
               activeTab === "favorite"
                 ? "bg-white text-black"
@@ -201,7 +201,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("favorite")}
           >
             { t("favoriteAuctions") }
-          </button>
+          </button> */}
           <button
             className={`px-4 py-2 flex-1 text-sm font-medium rounded cursor-pointer ${
               activeTab === "myBids"
