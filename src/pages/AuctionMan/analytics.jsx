@@ -37,7 +37,21 @@ export default function AuctionManAnalytics() {
         console.log(`Fetching analytics for month: ${selectedMonth}, year: ${selectedYear}`);
         const data = await analyticsService.getMonthlyAnalytics(selectedMonth, selectedYear);
         console.log("Analytics data received:", data);
-        setAnalyticsData(data);
+        
+        // Transform the data structure to match what the UI expects
+        // Backend returns: { analytics: {...}, categoryBreakdown: [...], weeklyPerformance: [...], topItems: [...] }
+        // UI expects: all properties at root level
+        const transformedData = {
+          // Spread analytics object properties to root level
+          ...(data.analytics || {}),
+          // Keep the arrays at root level
+          categoryBreakdown: data.categoryBreakdown || [],
+          weeklyPerformance: data.weeklyPerformance || [],
+          topItems: data.topItems || []
+        };
+        
+        console.log("Transformed analytics data:", transformedData);
+        setAnalyticsData(transformedData);
       } catch (err) {
         console.error("Error fetching analytics:", err);
         if (err.response?.status === 401) {
