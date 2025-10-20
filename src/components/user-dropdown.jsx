@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+ import { useState, useEffect, useRef } from "react";
 import { User, History, Wallet, LogOut, Gavel } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +15,7 @@ export function UserDropdown() {
   const fetchData = async () => {
     try {
       const response = await fetchProtectedResource(
-       `http://localhost:8083/us/v1/getSelfDetails`,
+        `http://localhost:8083/us/v1/getSelfDetails`,
         null,
         "GET"
       );
@@ -105,14 +105,9 @@ export function UserDropdown() {
               <Gavel className="h-4 w-4 mr-2 text-purple-500" /> My Bidding
               History
             </div>
-            <div
-              className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-              onClick={() => navigate("/Bidder/auctionHistory")}
-            >
-              <History className="h-4 w-4 mr-2 text-green-500" /> Auction
-              History
-            </div>
-            <hr className="my-2 border-gray-200" />
+             
+  
+           
 
             <div
               className="flex items-center px-4 py-2 text-sm text-red-600 cursor-pointer hover:bg-red-50"

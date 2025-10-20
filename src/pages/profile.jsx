@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -438,6 +438,61 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 
+                {/* Professional Bid Statistics Cards - Neutral Color Scheme */}
+                <div className="flex justify-center my-5">
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 w-full max-w-3xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-gray-700 font-semibold">Bid Statistics</h3>
+                      <span className="text-xs text-gray-500">Last updated: Today</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-6">
+                      {/* Total Bids */}
+                      <div className="p-3 border border-gray-100 rounded-lg bg-gray-50 hover:shadow-sm transition-shadow">
+                        <div className="flex items-center mb-2">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+                            <FontAwesomeIcon icon={faGavel} className="text-gray-700" />
+                          </div>
+                          <span className="text-sm text-gray-600 font-medium">Total Bids</span>
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-2xl font-bold text-gray-800">{userData.bidStats.totalBids}</span>
+                          <div className="mt-1 text-xs text-gray-500">Across all auctions</div>
+                        </div>
+                      </div>
+                      
+                      {/* Won Bids */}
+                      <div className="p-3 border border-gray-100 rounded-lg bg-gray-50 hover:shadow-sm transition-shadow">
+                        <div className="flex items-center mb-2">
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                            <FontAwesomeIcon icon={faTrophy} className="text-green-600" />
+                          </div>
+                          <span className="text-sm text-gray-600 font-medium">Won Bids</span>
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-2xl font-bold text-gray-800">{userData.bidStats.wonBids}</span>
+                          <div className="mt-1 text-xs text-green-600 font-medium">
+                            {Math.round((userData.bidStats.wonBids / userData.bidStats.totalBids) * 100)}% success rate
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Active Bids */}
+                      <div className="p-3 border border-gray-100 rounded-lg bg-gray-50 hover:shadow-sm transition-shadow">
+                        <div className="flex items-center mb-2">
+                          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-2">
+                            <FontAwesomeIcon icon={faBolt} className="text-amber-600" />
+                          </div>
+                          <span className="text-sm text-gray-600 font-medium">Active Bids</span>
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-2xl font-bold text-gray-800">{userData.bidStats.activeBids}</span>
+                          <div className="mt-1 text-xs text-amber-600 font-medium">Currently in progress</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
