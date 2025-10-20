@@ -16,14 +16,20 @@ const onRefreshed = (newJwtToken) => {
 };
 
 const refreshTokenRequest = async () => {
-  const refreshResponse = await api.post('/refresh-token');
-  console.log(refreshResponse.data);
-  if (refreshResponse.data && refreshResponse.data.jwtToken) {
-    const { jwtToken, role, username } = refreshResponse.data;
-    useAuthStore.getState().setAuthData({ jwtToken, role, username });
-    return jwtToken;
+  
+  try {
+    const refreshResponse = await api.post('/refresh-token');
+    console.log(refreshResponse.data);
+    if (refreshResponse.data && refreshResponse.data.jwtToken) {
+      const { jwtToken, role, username } = refreshResponse.data;
+      useAuthStore.getState().setAuthData({ jwtToken, role, username });
+      return jwtToken;
+    }
+  }catch(error){
+    console.log(error);
+    window.location.href = '/login';
+    throw error;
   }
-  throw new Error('Refresh failed: no jwtToken in response');
 };
 
 api.interceptors.response.use(

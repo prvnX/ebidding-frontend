@@ -37,7 +37,9 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import useStompSubscriptions from "./hooks/useStompSubscriptions";
 import { wsCallBackManager } from './services/wsCallBackManager'
-import useAuthStore from './components/useAuthStore'
+import useAuthStore from './components/useAuthStore';
+import ProtectedRoute from './components/protectedRoutes';
+import Unauthorized from './pages/unauthorized';
 
 function App() {
   
@@ -92,34 +94,65 @@ function App() {
         <Route path="/login" element={<Loginpage />}/>
         <Route path="/register" element={<RegisterPage />}/>
         <Route path="/hello" element={<Hello />}/>
-
-        <Route path="/AppAdmin">
-          <Route index element={<Appadmin />} />
-          <Route path="addUser" element={<AddUser />} />
-        </Route>
-
+        <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/item/:itemId" element={<ItemDetails />}/>
-        <Route path="/RegisteredUser/dashboard" element={<BidderHome />}/>
-
-        <Route path="/profile" element={<ProfilePage />} />
-        
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path='/auctionHistory' element={<AuctionHistory />} />
-        <Route path="/auctionSummary" element={<AuctionSummary />}/>
-        <Route path="/wallet" element={<WalletWithStripe />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/paymentSuccess" element={<PaymentSuccess />} />
-        <Route path="/bankTransfer" element={<BankTransfer />} />
-        <Route path="/myBiddingHistory" element={<MyBiddingHistory />} />
 
-        <Route path="/AuctionMan">
-          <Route index element={<AuctionHome />} />
-          <Route path="addItem" element={<AddItem />} />
-          <Route path="scheduleAuctions" element={<ScheduleAuctions />} />
-          <Route path="item/:itemId" element={<AuctionManItemDetails />} />
-        </Route>
+        <Route
+          path="/AppAdmin/*"
+          element={
+            <ProtectedRoute allowedRoles={["app_admin"]}>
+              <Routes>
+                <Route index element={<Appadmin />} />
+                <Route path="addUser" element={<AddUser />} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/InventoryManager" element={<InventoryManagerHome />} />
+        <Route
+          path="/Bidder/*"
+          element={
+            <ProtectedRoute allowedRoles={["Bidder"]}>
+              <Routes>
+                <Route path="dashboard" element={<BidderHome />} />
+                <Route path="auctionHistory" element={<AuctionHistory />} />
+                <Route path="auctionSummary" element={<AuctionSummary />} />
+                <Route path="wallet" element={<WalletWithStripe />} />
+                <Route path="payment" element={<Payment />} />
+                <Route path="paymentSuccess" element={<PaymentSuccess />} />
+                <Route path="bankTransfer" element={<BankTransfer />} />
+                <Route path="myBiddingHistory" element={<MyBiddingHistory />} />
+                <Route path="profile" element={<ProfilePage />} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/AuctionMan/*"
+          element={
+            <ProtectedRoute allowedRoles={["Auction_manager"]}>
+              <Routes>
+                <Route index element={<AuctionHome />} />
+                <Route path="addItem" element={<AddItem />} />
+                <Route path="scheduleAuctions" element={<ScheduleAuctions />} />
+                <Route path="item/:itemId" element={<AuctionManItemDetails />} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/InventoryMan/*"
+          element={
+            <ProtectedRoute allowedRoles={["yard_manager"]}>
+              <Routes>
+                <Route index element={<InventoryManagerHome />} />
+              </Routes>
+            </ProtectedRoute>
+          }
+        />
 
       </Routes>
     </>

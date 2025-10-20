@@ -136,7 +136,7 @@ const Wallet = () => {
   };
 
   const calculateFee = (limit) => {
-    return limit * 0.1; // 10% fee
+    return limit; // 10% fee
   };
 
   const handleViewAllTransactions = () => {
