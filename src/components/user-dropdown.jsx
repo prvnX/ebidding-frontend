@@ -15,24 +15,22 @@ export function UserDropdown() {
   const fetchData = async () => {
     try {
       const response = await fetchProtectedResource(
-        `http://localhost:8084/us/v1/getSelfDetails`,
+        http://localhost:8083/us/v1/getSelfDetails,
         null,
         "GET"
       );
 
       const data = response.data;
-      setName(`${data.firstName} ${data.lastName}`);
+      setName(${data.firstName} ${data.lastName});
     } catch (error) {
       console.error("Error fetching user info:", error);
     }
   };
 
-  // ✅ Correct dependency
   useEffect(() => {
     fetchData();
   }, []);
 
-  // ✅ Update name on custom profileUpdated event
   useEffect(() => {
     const onProfileUpdated = (e) => {
       try {
@@ -50,7 +48,6 @@ export function UserDropdown() {
     return () => window.removeEventListener("profileUpdated", onProfileUpdated);
   }, []);
 
-  // ✅ Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -61,7 +58,6 @@ export function UserDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Logout handler
   const handleLogout = () => {
     navigate("/login");
   };
