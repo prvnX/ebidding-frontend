@@ -93,6 +93,26 @@ const RegisterPage = () => {
     return false;
   }
 
+    // Age validation: user must be at least 18 years old
+    if (formData.date_of_birth) {
+      const dob = new Date(formData.date_of_birth);
+      if (Number.isNaN(dob.getTime())) {
+        setError('Please enter a valid date of birth.');
+        return false;
+      }
+      const today = new Date();
+      // Calculate age in years
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age -= 1;
+      }
+      if (age < 18) {
+        setError('You must be at least 18 years old to register.');
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -151,8 +171,25 @@ const RegisterPage = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+        // Try to parse JSON error, otherwise fall back to text
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (parseErr) {
+          const text = await response.text().catch(() => '');
+          errorData.message = text;
+        }
+
+        const serverMessage = (errorData && errorData.message) || '';
+        // Detect duplicate NIC / username unique constraint errors and show a short friendly message
+        if (/duplicate key|users_username_key|already exists|duplicate/i.test(serverMessage)) {
+          // Short English message for duplicate NIC
+          setError('This NIC is already registered. Please use a different NIC number or sign in.');
+          setIsLoading(false);
+          return;
+        }
+
+        throw new Error(serverMessage || 'Registration failed');
       }
 
       const data = await response.json();
