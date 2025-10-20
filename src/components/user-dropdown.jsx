@@ -116,13 +116,13 @@ export function UserDropdown() {
               <Gavel className="h-4 w-4 mr-2 text-purple-500" /> My Bidding
               History
             </div>
-            <div
+            {/* <div
               className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
               onClick={() => navigate("/auctionHistory")}
             >
               <History className="h-4 w-4 mr-2 text-green-500" /> Auction
               History
-            </div>
+            </div> */}
             <hr className="my-2 border-gray-200" />
             <div
               className="flex items-center px-4 py-2 text-sm text-red-600 cursor-pointer hover:bg-red-50"
