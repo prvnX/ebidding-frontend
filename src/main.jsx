@@ -7,11 +7,11 @@ import './i18n'
 import { WebSocketProvider } from './contexts/WebSocketContext.jsx';
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  // <StrictMode>
     <BrowserRouter>
       <WebSocketProvider>
         <App />
       </WebSocketProvider>
     </BrowserRouter>
-  </StrictMode>,
+  /* </StrictMode> */
 )

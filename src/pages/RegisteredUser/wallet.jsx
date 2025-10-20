@@ -100,7 +100,7 @@ const Wallet = () => {
         console.warn('createCheckoutSession aborted: missing jwtToken');
         return;
       }
-      const amountInCents = Math.round(amountLKR * 100);
+      const amountInCents = Math.round(amountLKR);
       // include both representations so backend can pick the expected one
       const payload = {
         amount: amountInCents, // legacy: cents
@@ -290,7 +290,7 @@ const Wallet = () => {
     } else {
       try {
         // Use checkoutAmount (full LKR) and convert to cents
-        const amountInCents = Math.round(checkoutAmount * 100);
+        const amountInCents = Math.round(checkoutAmount);
 
         const { jwtToken } = useAuthStore.getState();
 
