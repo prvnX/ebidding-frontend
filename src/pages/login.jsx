@@ -54,16 +54,16 @@ const Loginpage = () => {
       
       switch (data.role) {
         case 'Bidder':
-          navigate('/RegisteredUser/dashboard');
+          navigate('/Bidder/dashboard/');
           break;
         case 'Auction_manager':
-          navigate('/AuctionMan');
+          navigate('/AuctionMan/');
           break;
-        case 'UserManager':
-          navigate('/user-manager/overview');
+        case 'app_admin':
+          navigate('/AppAdmin/');
           break;
         case 'yard_manager':
-          navigate('/InventoryManager');
+          navigate('/InventoryMan/');
           break;
         default:
           navigate('/unauthorized');
