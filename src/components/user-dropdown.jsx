@@ -15,13 +15,13 @@ export function UserDropdown() {
   const fetchData = async () => {
     try {
       const response = await fetchProtectedResource(
-        http://localhost:8083/us/v1/getSelfDetails,
+       `http://localhost:8083/us/v1/getSelfDetails`,
         null,
         "GET"
       );
 
       const data = response.data;
-      setName(${data.firstName} ${data.lastName});
+      setName(`${data.firstName} ${data.lastName}`);
     } catch (error) {
       console.error("Error fetching user info:", error);
     }
@@ -103,14 +103,6 @@ export function UserDropdown() {
               <Gavel className="h-4 w-4 mr-2 text-purple-500" /> My Bidding
               History
             </div>
-            <div
-              className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-              onClick={() => navigate("/auctionHistory")}
-            >
-              <History className="h-4 w-4 mr-2 text-green-500" /> Auction
-              History
-            </div>
-
             <hr className="my-2 border-gray-200" />
 
             <div
