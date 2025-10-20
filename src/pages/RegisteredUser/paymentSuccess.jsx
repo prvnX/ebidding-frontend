@@ -35,7 +35,7 @@ const PaymentSuccess = () => {
   }, [sessionId, jwtToken]);;
 
   const handleContinue = () => {
-    navigate('/wallet'); // Redirects to http://localhost:5173/wallet
+    navigate('/Bidder/wallet'); // Redirects to http://localhost:5173/wallet
   };
 
   return (
